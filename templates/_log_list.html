@@ -1,0 +1,6 @@
+<tr>
+  <th scope="row">{{ log.id_ }}</th>
+  <td>{{ log.name }}</td>
+  <td><a href="{{ url_for('read_log', log=log.name)}}" class="badge badge-info mr-2">Open</a>
+    <a href="{{ url_for('download_log', log=log.name)}}" class="badge badge-success mr-2">Download</a></td>
+</tr>

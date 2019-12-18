@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% include "navbar.html" %}
+
+{% block body %}
+
+<div class="container">
+  <div class="col-md-12 mt-3">
+    <div class="card">
+      <div class="card-header">
+        <div class="row">
+          <div class="col-md-10"> Enter the information about your experiment times </div>
+          <div class="col-md"><a href="{{ url_for('downloads') }}" class="badge badge-warning">Downloads</a></div>
+        </div>
+      </div>
+      <div class="card-body">
+        <form onsubmit="return confirm('estàs segur?')" action="" method="POST" enctype="multipart/form-data">
+          <div class="form-row">
+            <div class="form-group col-md-12">
+              <label for="inputfile4">Excel file</label>
+              <input type="file" accept=".txt" class="form-control" name="files" id="inputfile" multiple required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="inputAddress">'Flush' time</label>
+              <input type="number" value="{{ config.flush }}" name="flush" class="form-control" id="inputAddress" placeholder="Flush time in minutes" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="inputAddress">'Wait' time</label>
+              <input type="number" value="{{ config.wait }}" name="wait" class="form-control" id="inputAddress" placeholder="Wait time in minutes" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="inputAddress">'Close' time</label>
+              <input type="number" value="{{ config.close }}" name="close" class="form-control" id="inputAddress" placeholder="Close time in minutes" required>
+            </div>
+          </div>
+          <div class="row">
+            <button onclick="myFunction()" type="submit" id="submit_files" class="btn btn-primary mr-3">Process, please</button>
+            <div class="form-check">
+              <input class="form-check-input" name="plot" type="checkbox" value="yes" id="generatePlots" checked>
+              <label class="form-check-label" for="generatePlots">
+                Generar gràfics
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+  // function myFunction() {
+  //   confirm("Press a button!");
+  // }
+</script>
+{% endblock %}

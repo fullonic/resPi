@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="landing">
+  {% include "navbar.html" %}
+  <div class="p-5 container">
+    <!-- PUMP LEDS STATUS -->
+    <div class="row mb-2">
+      <div id="status" class="col-md-1">Estat: </div>
+      <div id="led" class="col-md-1 d-none">
+        <div id="available" class="led-green"></div>
+        <div id="busy" class="led-red"></div>
+        <div id="stand_by" class="led-yellow"></div>
+      </div>
+      <div class="col-md-4 d-block"></div>
+      <div class="col-md-6" id="timer"></div>
+    </div>
+
+    <div class="row mt-3">
+      <!-- MANUAL SETUP -->
+      <div class="col-md-4 mb-2">
+        <div class="card">
+          <div class="card-header text-center">
+            Manual <a class="ml-3" type="button" data-toggle="popover" data-content="Mode manual. Tens el control !! La bomba s’encén i s’apaga quan premeu el botó" data-placement="top"><img class="info-icon" src="https://img.icons8.com/flat_round/128/000000/info.png"></a>
+          </div>
+          <div class="card-body">
+            <form class="" action="" method="POST">
+              <div class="row">
+                <button type="submit" id="start_manual" name="manual" class="btn btn-success btn-sm btn-block mb-2" value="start_manual">Començar</button>
+              </div>
+              <div class="row">
+                <button type="submit" id="stop_manual" name="manual" class="btn btn-danger btn-sm btn-block" value="stop_manual">Parar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <!-- AUTOMATIC SETUP FORM -->
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header text-center">
+            Automàtic
+          </div>
+          <div class="card-body">
+            <form class="" action="" method="POST">
+              <div class="form-row">
+                <div class="col-6">
+                  <label title="" for="period">Endollar bomba a cada
+                    <a class="ml-3" type="button" data-toggle="popover" data-content="Aquest és el valor entre cada vegada que la bomba s’encendrà. Si, per exemple, el valor és de 5 minuts, significa que la bomba s’encendrà 5 minuts després de la darrera vegada que es va apagar."
+                      data-placement="top"><img class="info-icon" src="https://img.icons8.com/flat_round/128/000000/info.png"></a>
+                  </label>
+
+                  <input type="number" class="form-control" name="period" id="period" aria-describedby="periodHelp" placeholder="Minuts" value="{{ period }}" required>
+                </div>
+                <div class="col-6">
+                  <label for="cycle">Temps funcionament de la bomba
+                    <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top"><img class="info-icon" src="https://img.icons8.com/flat_round/128/000000/info.png"></a>
+                  </label>
+                  <input type="number" class="form-control" name="cycle" id="cycle" aria-describedby="cycleHelp" placeholder="Minuts" value="{{ cycle }}" required>
+                </div>
+              </div>
+              <div class="row mt-4">
+                <div class="col-6">
+                  <button type="submit" id="start_auto" name="action" class="btn btn-success btn-sm btn-block" value="start">Començar</button>
+                </div>
+                <div class="col-6">
+                  <button type="submit" id="stop_auto" name="action" class="btn btn-danger btn-sm btn-block" value="stop">Parar</button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <small class="card-footer form-text text-center text-muted">La unitat de temps és minuts</small>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% endblock %}
