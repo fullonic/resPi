@@ -35,15 +35,17 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask_socketio import SocketIO
 
-from scripts.utils import greeting
-
 from scripts.data_scrape import generate_data
+from scripts.converter import ExperimentCycle
+from scripts.stats import ResumeDataFrame
+
 from scripts.utils import (
     to_mbyte,
     delete_zip_file,
     to_js_time,
     check_extensions,
     SUPPORTED_FILES,
+    greeting,
 )
 
 
@@ -163,7 +165,6 @@ def pump_cycle(cycle, period):
         namespace="/resPi",
     )
     # Wait until tank is full
-    # time.sleep(cycle)
     if not exit_thread.wait(timeout=cycle):  # MINUTES
         if cache.get("run_auto"):  # If still in current automatic program
             # Turn off the pump
@@ -222,10 +223,26 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     # Loop throw all uploaded files and clean the data set
     new_column_name = cache.get("new_column_name")
     plot_title = cache.get("plot_title")
+    save_converted = False
     total_files = len(uploaded_excel_files)
     logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
-        generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
+        # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
+        experiment = ExperimentCycle(
+            flush, wait, close, file_path, "Date &Time [DD-MM-YYYY HH:MM:SS]"
+        )
+        if save_converted:
+            experiment.original_file.save()
+        resume = ResumeDataFrame(experiment)
+        resume.generate_resume()
+        if plot:
+            experiment.create_plot()
+        resume.save()
+
+        # TODO: add flag to save or not all converted file to excel
+
+        resume = ResumeDataFrame(experiment)
+
         logger.warning(f"Task concluded {i+1}/{total_files}")
         socketio.emit(
             "processing_files",
@@ -272,11 +289,12 @@ def respi():
                 pass
             else:
                 cache.set("run_auto", True)
-                cycle = int(request.form["cycle"])
+                flush = int(request.form["flush"])
+                wait = int(request.form["wait"])
+                close = int(request.form["close"]) + wait
                 # set program configuration on memory layer
-                cache.set(
-                    "user_program", dict(period=int(request.form["period"]), cycle=cycle)
-                )
+                cache.set("user_program", dict(period=close, cycle=flush))
+                session["user_program"] = [flush, wait, close]
                 # Create a register of the started thread
                 global _active_threads
                 t = Thread(target=start_program)
@@ -293,6 +311,7 @@ def respi():
             cache.set("next_cycle_at", None)
             cache.set("run_auto", False)  # Stop background thread
             exit_thread.set()
+            logger.warning(f"AFTER SET {_active_threads}")
         ###########################
         # MANUAL MODE
         ###########################
@@ -307,14 +326,17 @@ def respi():
 
     # Populate automatic form inputs with last inserted program times
     if not cache.get("user_program"):
-        period = 1
-        cycle = 1
+        flush = 5
+        wait = 5
+        close = 20
     else:
-        period = cache.get("user_program")["period"]
-        cycle = cache.get("user_program")["cycle"]
-    #logger.warning(f"AFTER SET {_active_threads}")
+        flush = cache.get("user_program")["cycle"]
+        wait = cache.get("user_program")["period"]
+        close = cache.get("user_program")["period"]
 
-    return render_template("app.html", period=period, cycle=cycle)
+    logger.warning(f"2 AFTER SET {_active_threads}")
+
+    return render_template("app.html", flush=flush, wait=wait, close=close)
 
 
 @app.route("/excel_files", methods=["POST", "GET"])
