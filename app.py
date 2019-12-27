@@ -487,6 +487,7 @@ def settings():
     config = config_from_file()
     if request.method == "POST":
         config = save_config_to_file(request.form.to_dict())
+        flash("Configuration updated", "info")
         return redirect("settings")
     return render_template("settings.html", config=config)
 

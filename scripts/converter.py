@@ -118,6 +118,8 @@ class ExperimentCycle:
         self.discard_time = flush + wait  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
         self.format_file(original_file)
+
+        # LOAD ALL CONFIG FROM FILE
         config = config_from_file()["experiment_file_config"]
         self.dt_col_name = config["DT_COL"]
         self.time_stamp_code = config["TSCODE"]  # Get data column name
@@ -125,6 +127,7 @@ class ExperimentCycle:
         self.x = config["X_COL"]  # column of oxygen evolution self.x
         self.y = config["Y_COL"]
         self.plot_title = config["PLOT_TITLE"]
+        self.save_loop_df = config["SAVE_LOOP_DF"]
 
     def format_file(self, original_file):
         txt_file = FileFormater(original_file)
@@ -175,6 +178,7 @@ class ExperimentCycle:
 
     @property
     def df_close_list(self):
+        k = 0
         lst = []
         start = 0
         end = 0
@@ -183,7 +187,10 @@ class ExperimentCycle:
             df_close = self._close_df(start, end)
             start = end + 1
             end += 1
+            if self.save_loop_df:
+                self.save(df_close, name=str(k))
             lst.append(df_close)
+            k += 1
         return lst
 
     def _close_df(self, start: datetime, end: datetime) -> pd.DataFrame:
@@ -220,15 +227,15 @@ class ExperimentCycle:
                     showlegend=True,
                 )
             )
-            fig1 = px.scatter(df_close, x="x", y="y", trendline="ols")
+            fig1 = px.scatter(df_close, x=x, y=y, trendline="ols")
             trendline = fig1.data[1]
             fig.add_trace(trendline)
             fig.update_layout(dict(title=self.plot_title))
 
             fig.write_html(f"{self.original_file.file_output}_plot_{i + 1}.html")
 
-    def save(self):
-        pass
+    def save(self, df_loop, name):
+        return df_loop.to_excel(f"{self.original_file.folder_dst}/df_loop_{name}.xlsx")
 
 
 class Plot:
