@@ -1,11 +1,11 @@
 {
-  "timer": {},
   "experiment_file_config": {
     "DT_COL": "Date &Time [DD-MM-YYYY HH:MM:SS]",
     "TSCODE": "Time stamp code",
     "O2_COL": "SDWA0003000061      , CH 1 O2 [mg/L]",
     "X_COL": "x",
     "Y_COL": "y",
-    "PLOT_TITLE": "O2 Evo",
-  }
+    "PLOT_TITLE": "O2 Evo"
+  },
+  "name": "None"
 }

@@ -1,8 +1,7 @@
 """Application backend logic."""
 
 import os
-
-import time
+import shutil
 import subprocess
 import logging
 from glob import glob
@@ -35,9 +34,9 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask_socketio import SocketIO
 
-from scripts.data_scrape import generate_data
 from scripts.converter import ExperimentCycle
 from scripts.stats import ResumeDataFrame
+from scripts.error_handler import checker
 
 from scripts.utils import (
     to_mbyte,
@@ -54,6 +53,7 @@ config = {
     "SECRET_KEY": "NONE",
     "CACHE_TYPE": "simple",
     "CACHE_DEFAULT_TIMEOUT": 0,
+    # "CACHE_ARGS": ["test", "Anna", "DIR"],
     "UPLOAD_FOLDER": f"{ROOT}/static/uploads",
     "LOGS_FOLDER": f"{ROOT}/logs",
     "LOGS_MB_SIZE": 24578,
@@ -74,6 +74,7 @@ _active_threads = {}
 exit_thread = Event()
 # Setup cache
 cache = Cache(app)
+# TODO: user cache.set_many() to provide all default cache values
 cache.set("running", False)  # By default pump is off
 cache.set("run_auto", False)
 cache.set("run_manual", False)
@@ -220,6 +221,7 @@ def start_program(app=None):
 
 def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
+    # Confirm headers
     # Loop throw all uploaded files and clean the data set
     new_column_name = cache.get("new_column_name")
     plot_title = cache.get("plot_title")
@@ -380,6 +382,23 @@ def excel_files():
             filename = file_.filename
             file_path = os.path.join(project_folder, filename)
             file_.save(file_path)
+            # CHECK HEADERS
+            check = checker(file_path).match()
+            print(f"{check=}")
+            if check is True:
+                print("MATCH")
+            else:
+                # TODO: Return flash message warning and abort
+                for msg in check:
+                    msg += " "
+                flash(
+                    check,
+                    "danger",
+                )
+                # Removes folder and file that doesn't match headers
+                shutil.rmtree(os.path.dirname(file_path))
+
+                return redirect("excel_files")
             # save the full path of the saved file
             uploaded_excel_files.append(file_path)
 
@@ -406,6 +425,7 @@ def excel_files():
 @app.route("/downloads", methods=["GET"])
 def downloads():
     """Route to see all zip files available to download."""
+    print(f"{cache.get_dict()=}")
     zip_folder = glob(f"{app.config['ZIP_FOLDER']}/*.zip")
     # get only the file name and the size of it excluding the path.
     # Create a list of tuples sorted by file name

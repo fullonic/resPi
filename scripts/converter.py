@@ -109,7 +109,9 @@ class ExperimentCycle:
         self.flush = flush
         self.wait = wait
         self.close = close
-        self.discard_time = flush + wait  # time-span to discard from each information cycle
+        self.discard_time = (
+            flush + wait
+        )  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
         self.dt_col_name = dt_col_name
         self.format_file(original_file)
@@ -179,12 +181,11 @@ class ExperimentCycle:
         Generate a new df from each individual loop containing only the information from the
         close part of the cycle.
         """
-
         # Create a new DF with close information
         start = start + (self.discard_time * 60)
         df_close = self.df[start:end]
         df_close.reset_index(inplace=True, drop=True)
-        time_stamp_code = df_close.columns[1]  # Get data column name
+        time_stamp_code = "Time stamp code"  # Get data column name
         # Create the new column of oxygen evolution
         column_name = "x"
         #  Create a new column for o2 evolution and calculate_ox_evolution
@@ -194,9 +195,7 @@ class ExperimentCycle:
         )
         O2_col_name = "SDWA0003000061      , CH 1 O2 [mg/L]"
         # O2_col_name = "SDWA0003000061      , CH 1 O2 [% air saturation]"
-        df_close["y"] = df_close[O2_col_name].map(
-            string_to_float
-        )
+        df_close["y"] = df_close[O2_col_name].map(string_to_float)
         return df_close
 
     def create_plot(self):
@@ -206,7 +205,11 @@ class ExperimentCycle:
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
-                    x=x, y=y, name="O2", line=dict(color="red", width=1), showlegend=True
+                    x=x,
+                    y=y,
+                    name="O2",
+                    line=dict(color="red", width=1),
+                    showlegend=True,
                 )
             )
             fig1 = px.scatter(df_close, x="x", y="y", trendline="ols")
@@ -218,3 +221,7 @@ class ExperimentCycle:
 
     def save(self):
         pass
+
+
+class Plot:
+    pass

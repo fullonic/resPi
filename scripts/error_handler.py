@@ -1,4 +1,8 @@
 """Confirm that input file have the expected structure."""
+import json
+
+from scripts.converter import ExperimentCycle
+
 
 error_template = """Your file value: '{}', is different from the expected value of your
 configuration file: '{}'"""
@@ -43,25 +47,12 @@ class WrongTimeStamp(HeadersException):
 class HeadersChecker:
     """Check that headers are present."""
 
-    def __init__(self, dt_col: str, O2_col: str, timestamp_col: str):  # noqa
+    def __init__(self, file_headers):  # noqa
         """All information passed here came directly from the current uploaded file.
 
         This data will be compared against the expected value from the app configuration file.
         """
-        try:
-            self.dt_col = dt_col.strip()
-            self.O2_col = O2_col.strip()
-            self.timestamp_col = timestamp_col.strip()
-        except AttributeError:
-            # TODO: Ensure that names are string types, warn user about name convert
-            self.dt_col = str(dt_col).strip()
-            self.O2_col = str(O2_col).strip()
-            self.timestamp_col = str(timestamp_col).strip()
-        self.file_headers = {
-            "DT_COL": self.dt_col,
-            "TSCODE": self.timestamp_col,
-            "O2_COL": self.O2_col,
-        }
+        self.file_headers = file_headers
         self.missing = set()
 
     @property
@@ -72,38 +63,46 @@ class HeadersChecker:
         to handle missing headers names as missing key values, using KeyError exceptions.
         """
         # Get current configuration from config json file.
-        # with open()  # TODO: Create configuration file
+        with open("config.json") as f:
+            config = json.load(f)
+        config = config["experiment_file_config"]
+        headers = ["DT_COL", "TSCODE", "O2_COL"]
         _config = {}
         for k, v in config.items():
-            if k in self.file_headers.keys():
+            if k in headers:
                 _config[k] = v
         return _config
 
-    def confirm(self, col_name, uploaded, expected):
+    def confirm(self, col_name, expected):
         """Compare headers."""
         error = {"DT_COL": WrongDT, "TSCODE": WrongO2, "O2_COL": WrongTimeStamp}
         try:
-            assert uploaded == expected  # current uploaded file
+            assert expected in self.file_headers  # current uploaded file
         except AssertionError:
-            self.missing.add(error_template.format(uploaded, expected))
-            raise error[col_name](error_template.format(uploaded, expected))
+            self.missing.add(error_template.format(col_name, expected))
+            raise error[col_name](error_template.format(col_name, expected))
 
     def check(self):
         """Check that current file headers are the same than the ones on configuration file."""
-        for col_name in self.file_headers:
-            self.confirm(col_name, self.file_headers[col_name], self.app_config[col_name])
+        for col_name in self.app_config:
+            self.confirm(col_name, self.app_config[col_name])
 
         if len(self.missing) == 0:
             self.missing = None
 
 
-h = HeadersChecker(
-    "Date &Time [DD-MM-YYYY HH:MM:SS]  ",
-    "SDWA0003000061      , CH 1 O2 [mg/L]",
-    "Timestamp code",
-)
-try:
-    h.check()
-except (WrongDT, WrongO2, WrongTimeStamp):
-    print(h.missing)
-    print("FAILED")
+class GUIChecker:
+    def __init__(self, file_):
+        self.file_ = file_
+
+    def match(self):
+        exp = ExperimentCycle(2, 3, 20, self.file_, "Date &Time [DD-MM-YYYY HH:MM:SS]")
+        h = HeadersChecker(exp.df.columns)
+        try:
+            h.check()
+            return True
+        except (WrongDT, WrongO2, WrongTimeStamp):
+            return h.missing
+
+
+checker = GUIChecker

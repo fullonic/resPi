@@ -1,3 +1,9 @@
+"""Experiment cycle resume generator.
+
+Here we handle and the raw information from the whole experiment and generate a resume using
+the information of each experiment loop.
+"""
+
 import datetime
 import os
 import shutil
@@ -28,22 +34,6 @@ COLS_NAME = [
     "CH 1 avg Uspeed [cm/s]",
     "CH 1 avg Uswim [BL/s]",
 ]
-
-
-def create_plot(df_close, k):
-    x = df_close["x"]
-    y = df_close["y"]
-    fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(x=x, y=y, name="O2", line=dict(color="red", width=1), showlegend=True)
-    )
-    fig1 = px.scatter(df_close, x="x", y="y", trendline="ols")
-    trendline = fig1.data[1]
-    fig.add_trace(trendline)
-    fig.update_layout(dict(title="O2"))
-
-    fig.write_html(f"f{k}.html")
-
 
 def string_to_float(n: str) -> float:
     """Convert str item to float."""
@@ -89,7 +79,7 @@ class ResumeDataFrame:
     """Generate the resume of a complete experiment cycle divided by loops."""
 
     def __init__(self, experiment):
-        """The complete experiment data frame."""
+        """Complete experiment data frame."""
         self.original_df = experiment.df
         self.experiment = experiment
         self.dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
@@ -111,7 +101,6 @@ class ResumeDataFrame:
 
     def generate_resume(self):
         """Create a the daily experiment resume."""
-
         resume_df = pd.DataFrame(columns=COLS_NAME)
 
         # start = 0
@@ -124,8 +113,6 @@ class ResumeDataFrame:
 
             O2 = O2_data(df_close[O2_col_name])
             r2_a_b = trendline_data(df_close)
-            # TODO:  Must be created a condition for plot creation
-            create_plot(df_close, k)
 
             row = {
                 "Date &Time [DD-MM-YYYY HH:MM:SS]": df_close[
