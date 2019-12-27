@@ -34,8 +34,8 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask_socketio import SocketIO
 
-from scripts.converter import ExperimentCycle
-from scripts.stats import ResumeDataFrame
+from scripts.converter import ExperimentCycle, ControlFile
+from scripts.stats import ResumeDataFrame, Control
 from scripts.error_handler import checker
 
 from scripts.utils import (
@@ -225,9 +225,22 @@ def start_program(app=None):
 
 def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
-    # Confirm headers
     # Loop throw all uploaded files and clean the data set
-    save_converted = False
+    save_converted = False  # if to save .txt file converted into .xlsx file
+
+    # CALCULATE BLANKS
+    control_file_1 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C1.txt")
+    control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
+
+    for c in [control_file_1, control_file_2]:
+        C = ControlFile(flush, wait, close, c, "Date &Time [DD-MM-YYYY HH:MM:SS]")
+        C_Total = Control(C)
+        C_Total.get_bank()
+    control = C_Total.calculate_blank()
+
+    ######################
+    #
+    ######################
     total_files = len(uploaded_excel_files)
     logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
@@ -238,13 +251,12 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
-        resume.generate_resume()
+        resume.generate_resume(control)
         if plot:
             experiment.create_plot()
         resume.save()
 
         # TODO: add flag to save or not all converted file to excel
-
         resume = ResumeDataFrame(experiment)
 
         logger.warning(f"Task concluded {i+1}/{total_files}")
@@ -361,45 +373,52 @@ def excel_files():
         cache.set("generating_files", True)
         # Save file to the system
         # NOTE: Must check for extensions
-        files = request.files.getlist("files")
+        data_file = request.files.get("data_file")
+        control_file_1 = request.files.get("control_file_1")
+        control_file_2 = request.files.get("control_file_2")
         # Contains a list of all uploaded file in a single uploaded request
         uploaded_excel_files = []
-        for file_ in files:
-            # Generate the folder name
-            time_stamp = datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S")
-            filename, ext = file_.filename.split(".")
-            if not check_extensions(ext):
-                flash(
-                    f"El tipus de fitxer {ext} no és compatible. Seleccioneu un tipus de fitxer {SUPPORTED_FILES}",  # noqa
-                    "danger",
-                )
-                return redirect("excel_files")
-            folder_name = f"{filename}_{time_stamp}"
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], folder_name)
-            try:
-                os.mkdir(project_folder)
-            except FileExistsError:
-                project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
-                os.mkdir(project_folder)
-            # Here filename complete with extension
-            filename = file_.filename
-            file_path = os.path.join(project_folder, filename)
+        # for file_ in files:
+        # Generate the folder name
+        time_stamp = datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S")
+        filename, ext = data_file.filename.split(".")
+        if not check_extensions(ext):
+            flash(
+                f"El tipus de fitxer {ext} no és compatible. Seleccioneu un tipus de fitxer {SUPPORTED_FILES}",  # noqa
+                "danger",
+            )
+            return redirect("excel_files")
+        folder_name = f"{filename}_{time_stamp}"
+        project_folder = os.path.join(app.config["UPLOAD_FOLDER"], folder_name)
+        try:
+            os.mkdir(project_folder)
+        except FileExistsError:
+            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            os.mkdir(project_folder)
+        # Here filename complete with extension
+        control_file_1.filename = "C1.txt"
+        control_file_2.filename = "C2.txt"
+        # Save all files into project folder
+        files_list = [data_file, control_file_1, control_file_2]
+        for file_ in files_list:
+            file_path = os.path.join(project_folder, file_.filename)
             file_.save(file_path)
-            # CHECK HEADERS
-            check = checker(file_path).match()
-            if check is not True:
-                for msg in check:
-                    msg += " "
-                flash(check, "danger")
-                # Removes folder and file that doesn't match headers
-                shutil.rmtree(os.path.dirname(file_path))
+        # CHECK HEADERS
+        check = checker(file_path).match()
+        if check is not True:
+            for msg in check:
+                msg += " "
+            flash(check, "danger")
+            # Removes folder and file that doesn't match headers
+            shutil.rmtree(os.path.dirname(file_path))
 
-                return redirect("excel_files")
-            # save the full path of the saved file
-            uploaded_excel_files.append(file_path)
+            return redirect("excel_files")
+        # save the full path of the saved file
+        uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
 
         t = Thread(
-            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot)
+            target=process_excel_files,
+            args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 

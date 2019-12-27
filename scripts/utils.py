@@ -187,3 +187,7 @@ def save_config_to_file(new_config):
     with open("config.json", "w") as f:
         json.dump(config_keys, f)
     return config_keys
+
+
+def calculate_blank(df):
+    pass

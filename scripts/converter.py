@@ -218,3 +218,6 @@ class ExperimentCycle:
 
 class Plot:
     pass
+
+
+ControlFile = ExperimentCycle

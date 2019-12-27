@@ -13,11 +13,20 @@
         </div>
       </div>
       <div class="card-body">
-        <form onsubmit="return confirm('estàs segur?')" action="" method="POST" enctype="multipart/form-data">
+        <form action="" method="POST" enctype="multipart/form-data">
+          <!-- <form onsubmit="return confirm('estàs segur?')" action="" method="POST" enctype="multipart/form-data"> -->
           <div class="form-row">
-            <div class="form-group col-md-12">
-              <label for="inputfile4">Excel file</label>
-              <input type="file" accept=".txt" class="form-control" name="files" id="inputfile" multiple required>
+            <div class="form-group col-md">
+              <label for="control_file_1">Control 1</label>
+              <input type="file" accept=".txt" class="form-control" name="control_file_1" id="control_file_1" required>
+            </div>
+            <div class="form-group col-md">
+              <label for="data_file">Experiment Data</label>
+              <input type="file" accept=".txt" class="form-control" name="data_file" id="data_file" required>
+            </div>
+            <div class="form-group col-md">
+              <label for="control_file_2">Control 2</label>
+              <input type="file" accept=".txt" class="form-control" name="control_file_2" id="control_file_2" required>
             </div>
           </div>
           <div class="form-row">

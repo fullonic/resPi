@@ -90,7 +90,7 @@ class ResumeDataFrame:
             start = end + datetime.timedelta(minutes=self.experiment.loop_time)
         return loop_range
 
-    def generate_resume(self):
+    def generate_resume(self, control):
         """Create a the daily experiment resume."""
         resume_df = pd.DataFrame(columns=COLS_NAME)
         aqua_volume = config["file_cycle_config"]["aqua_volume"]
@@ -103,6 +103,7 @@ class ResumeDataFrame:
             O2 = O2_data(df_close[O2_col_name])
             r2_a_b = trendline_data(df_close)
             slope = r2_a_b.b * 60
+            O2_HR = slope * aqua_volume
 
             row = {
                 "Date &Time [DD-MM-YYYY HH:MM:SS]": df_close[
@@ -111,7 +112,7 @@ class ResumeDataFrame:
                 "Time [sec]": len(df_close) + (self.experiment.discard_time * 60),
                 "Loop": k,
                 "Phase time [s]": self.phase_time,
-                "CH 1 MO2 [mgO2/hr]": slope * aqua_volume,
+                "CH 1 MO2 [mgO2/hr]": O2_HR,
                 "CH 1 slope [mgO2/L/hr]": slope,
                 "CH 1 R^2": r2_a_b.rsquared,
                 "CH 1 max O2 [mgO2/L]": O2.max,
@@ -120,7 +121,7 @@ class ResumeDataFrame:
                 "CH 1 avg temp [°C]": temp_mean(
                     df_close["SDWA0003000061      , CH 1 temp [°C]"]
                 ),
-                "O2 after blank": "O2 - blank",
+                "O2 after blank": O2_HR - control,
             }
 
             resume_df.loc[k] = row
@@ -141,9 +142,7 @@ class ResumeDataFrame:
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
         location = os.path.dirname(os.path.abspath(self.experiment.original_file.file_output))
-        # print(os.path.abspath(__file__))
-        print(os.path.dirname(os.path.abspath(self.experiment.original_file.file_output)))
-        print(f"{location=}")
+
         # Same as app.config["ZIP_FOLDER"]
         ZIP_FOLDER = os.path.abspath(f"{ROOT}/static/uploads/zip_files")
         # Create the zip file
@@ -151,4 +150,17 @@ class ResumeDataFrame:
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        delete_excel_files(location)
+        # delete_excel_files(location)
+
+
+class Control(ResumeDataFrame):
+    values = []
+
+    def get_bank(self):
+        self.generate_resume(0)
+        self.values.append(self.resume_df["CH 1 MO2 [mgO2/hr]"].sum())
+
+    def calculate_blank(self):
+
+        print("total", sum(self.values) / len(self.values))
+        return sum(self.values) / len(self.values)
