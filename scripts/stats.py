@@ -1,6 +1,6 @@
 """Experiment cycle resume generator.
 
-Here we handle and the raw information from the whole experiment and generate a resume using
+Here we handle the raw information from the whole experiment and generate a resume using
 the information of each experiment loop.
 """
 
@@ -11,13 +11,11 @@ from functools import namedtuple
 
 import statsmodels.api as sm
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 
-from scripts.utils import (
-    delete_excel_files)
+from scripts.utils import string_to_float
+
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
-
+print("STSTAS FILE", ROOT)
 O2Data = namedtuple("O2Data", "min max avg")
 R2AB = namedtuple("R2AB", "rsquared a b")
 COLS_NAME = [
@@ -36,10 +34,6 @@ COLS_NAME = [
     "CH 1 avg Uswim [BL/s]",
 ]
 
-def string_to_float(n: str) -> float:
-    """Convert str item to float."""
-    return float(n.replace(",", "."))
-
 
 def temp_mean(series):
     """Get a pandas series and calculate the mean.
@@ -47,11 +41,6 @@ def temp_mean(series):
     Series row values are float values in string format separated by ",".
     """
     return series.map(string_to_float).mean()
-
-
-def calculate_ox(ox_value, start_value):
-    """Calculate the evolution of time."""
-    return (ox_value - start_value) / 60
 
 
 def O2_data(series):
@@ -157,12 +146,9 @@ class ResumeDataFrame:
         print(os.path.dirname(os.path.abspath(self.experiment.original_file.file_output)))
         print(f"{location=}")
         # Same as app.config["ZIP_FOLDER"]
-        ZIP_FOLDER = os.path.abspath(f"static/uploads/zip_files")
-        print(f"{ZIP_FOLDER=}")
         ZIP_FOLDER = os.path.abspath(f"{ROOT}/uploads/zip_files")
         # Create the zip file
         zipped = shutil.make_archive(location, "zip", location)
-        print(f"{zipped=}")
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files

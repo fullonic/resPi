@@ -8,15 +8,12 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
+from scripts.utils import string_to_float, config_from_file
+
 
 def get_loop_seconds(data: dict) -> int:
     """Calculate total loop time in seconds"""
     return (data["end"] - data["start"]).seconds
-
-
-def string_to_float(n: str) -> float:
-    """Convert str item to float."""
-    return float(n.replace(",", "."))
 
 
 def convert_datetime(dt: str):
@@ -109,9 +106,7 @@ class ExperimentCycle:
         self.flush = flush
         self.wait = wait
         self.close = close
-        self.discard_time = (
-            flush + wait
-        )  # time-span to discard from each information cycle
+        self.discard_time = flush + wait  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
         self.dt_col_name = dt_col_name
         self.format_file(original_file)
@@ -126,8 +121,10 @@ class ExperimentCycle:
     def total_of_loops(self) -> int:
         """Calculate the total amount of time that last the experiment.
 
-        Using the first record and the last one we calculate here the total time. Using this total
-        (timedelta object) seconds are calculated and divided by the portion of each cycle by hour.
+        Using the first record and the last one we calculate here the total time.
+        Using this total
+        (timedelta object) seconds are calculated and divided by the portion of each cycle
+        by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
         dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
@@ -205,11 +202,7 @@ class ExperimentCycle:
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
-                    x=x,
-                    y=y,
-                    name="O2",
-                    line=dict(color="red", width=1),
-                    showlegend=True,
+                    x=x, y=y, name="O2", line=dict(color="red", width=1), showlegend=True
                 )
             )
             fig1 = px.scatter(df_close, x="x", y="y", trendline="ols")

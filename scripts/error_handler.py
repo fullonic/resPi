@@ -2,7 +2,7 @@
 import json
 
 from scripts.converter import ExperimentCycle
-
+from scripts.utils import config_from_file
 
 error_template = """Your file value: '{}', is different from the expected value of your
 configuration file: '{}'"""
@@ -63,8 +63,7 @@ class HeadersChecker:
         to handle missing headers names as missing key values, using KeyError exceptions.
         """
         # Get current configuration from config json file.
-        with open("config.json") as f:
-            config = json.load(f)
+        config = config_from_file()
         config = config["experiment_file_config"]
         headers = ["DT_COL", "TSCODE", "O2_COL"]
         _config = {}

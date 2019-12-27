@@ -16,20 +16,17 @@ import plotly.express as px
 SUPPORTED_FILES = ["txt", "xlsx"]
 
 
+def string_to_float(n: str) -> float:
+    """Convert str item to float."""
+    return float(n.replace(",", "."))
+
+
 def generate_plot(df, plot_name, folder_dst):
     """Create a plot with value from O2 saturation and time stamp code."""
     y, x = df.columns[-2:]
     fig = px.line(df, x=x, y=y, title="O2 Evolution")
     path = os.path.join(folder_dst, plot_name)
     fig.write_html(path)
-
-def calculate_ox(ox_value, start_value):
-    """Calculate the evolution of time."""
-    return (ox_value - start_value) / 60
-
-
-
-    return [calculate_ox(value) for value in lst_time_stamp_code]
 
 
 def file_formatter(file_):
@@ -54,7 +51,7 @@ def file_formatter(file_):
     # Remove top document information
     def get_col_idx(df):
         for index, dt in enumerate(df):
-            if df.iloc[index][0] == 'Date &Time [DD-MM-YYYY HH:MM:SS]':
+            if df.iloc[index][0] == "Date &Time [DD-MM-YYYY HH:MM:SS]":
                 return index
 
     col_idx = get_col_idx(df)
