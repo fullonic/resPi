@@ -6,6 +6,7 @@ All the operations here must be independent of the application requests.
 import shutil
 import os
 import time
+import json
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -147,3 +148,42 @@ def check_extensions(ext):
         return True
     else:
         return False
+
+
+def config_from_file():
+    """Open config file."""
+    with open("config.json") as f:
+        config = json.load(f)
+    return config
+
+
+def save_config_to_file(new_config):
+    def string_to_float(value):
+        """Convert config float type string into float type."""
+        try:
+            return float(value)
+        except ValueError:
+            return value.strip()
+
+    config_keys = {
+        "experiment_file_config": {},
+        "file_cycle_config": {},
+        "pump_control_config": {},
+    }
+
+    for k, v in new_config.items():
+        if k.startswith("output_file"):
+            k = k.replace("output_file_", "")
+            config_keys["experiment_file_config"].update({k: v.strip()})
+        elif k.startswith("pump"):
+            k = k.replace("pump_", "")
+            config_keys["pump_control_config"].update({k: string_to_float(v)})
+
+        elif k.startswith("file"):
+            k = k.replace("file_", "")
+            config_keys["file_cycle_config"].update({k: string_to_float(v)})
+        else:
+            print(f"Unexpected value {k}: {v}")
+    with open("config.json", "w") as f:
+        json.dump(config_keys, f)
+    return config_keys

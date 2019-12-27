@@ -45,6 +45,9 @@ from scripts.utils import (
     check_extensions,
     SUPPORTED_FILES,
     greeting,
+    config_from_file,
+    save_config_to_file
+
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
@@ -339,9 +342,15 @@ def respi():
 
     logger.warning(f"2 AFTER SET {_active_threads}")
 
-
-
     return render_template("app.html", flush=flush, wait=wait, close=close)
+
+
+@app.route("/settings", methods=["POST", "GET"])
+def settings():
+    config = config_from_file()
+    if request.method == "POST":
+        config = save_config_to_file(request.form.to_dict())
+    return render_template("settings.html", config=config)
 
 
 @app.route("/excel_files", methods=["POST", "GET"])
