@@ -213,7 +213,7 @@ class ExperimentCycle:
         df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
-    def create_plot(self):
+    def create_plot(self, format_="html"):
         for i, df_close in enumerate(self.df_close_list):
             x = df_close[self.x]
             y = df_close[self.y]
@@ -232,14 +232,15 @@ class ExperimentCycle:
             fig.add_trace(trendline)
             fig.update_layout(dict(title=self.plot_title))
 
-            fig.write_html(f"{self.original_file.file_output}_plot_{i + 1}.html")
+            fig.write_html(f"{self.original_file.file_output}_plot_{i + 1}.{format_}")
 
     def save(self, df_loop, name):
         return df_loop.to_excel(f"{self.original_file.folder_dst}/df_loop_{name}.xlsx")
 
 
 class Plot:
-    pass
+    def __init__(self, data, x_axis, y_axis, title, output):
+        pass
 
 
 ControlFile = ExperimentCycle
