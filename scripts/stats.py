@@ -12,7 +12,7 @@ from functools import namedtuple
 import statsmodels.api as sm
 import pandas as pd
 
-from scripts.utils import string_to_float, delete_excel_files
+from scripts.utils import string_to_float, delete_excel_files, config_from_file
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
 print("STSTAS FILE", ROOT)
@@ -30,9 +30,10 @@ COLS_NAME = [
     "CH 1 min O2 [mgO2/L]",
     "CH 1 avg O2 [mgO2/L]",
     "CH 1 avg temp [°C]",
-    "CH 1 avg Uspeed [cm/s]",
-    "CH 1 avg Uswim [BL/s]",
+    "O2 after blank",
 ]
+
+config = config_from_file()
 
 
 def temp_mean(series):
@@ -75,8 +76,8 @@ class ResumeDataFrame:
         self.dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
         self.df_lists = []
         self.phase_time = (
-            f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"
-        )  # noqa
+            f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
+        )
 
     @property
     def loop_data_range(self) -> dict:
@@ -92,9 +93,7 @@ class ResumeDataFrame:
     def generate_resume(self):
         """Create a the daily experiment resume."""
         resume_df = pd.DataFrame(columns=COLS_NAME)
-
-        # start = 0
-        # end = 0
+        aqua_volume = config["file_cycle_config"]["aqua_volume"]
         for i, df_close in enumerate(self.experiment.df_close_list):
             # for k, v in self.loop_data_range.items():
             k = i + 1
@@ -103,6 +102,7 @@ class ResumeDataFrame:
 
             O2 = O2_data(df_close[O2_col_name])
             r2_a_b = trendline_data(df_close)
+            slope = r2_a_b.b * 60
 
             row = {
                 "Date &Time [DD-MM-YYYY HH:MM:SS]": df_close[
@@ -111,8 +111,8 @@ class ResumeDataFrame:
                 "Time [sec]": len(df_close) + (self.experiment.discard_time * 60),
                 "Loop": k,
                 "Phase time [s]": self.phase_time,
-                "CH 1 MO2 [mgO2/hr]": "",
-                "CH 1 slope [mgO2/L/hr]": r2_a_b.b * 60,
+                "CH 1 MO2 [mgO2/hr]": slope * aqua_volume,
+                "CH 1 slope [mgO2/L/hr]": slope,
                 "CH 1 R^2": r2_a_b.rsquared,
                 "CH 1 max O2 [mgO2/L]": O2.max,
                 "CH 1 min O2 [mgO2/L]": O2.min,
@@ -120,8 +120,7 @@ class ResumeDataFrame:
                 "CH 1 avg temp [°C]": temp_mean(
                     df_close["SDWA0003000061      , CH 1 temp [°C]"]
                 ),
-                "CH 1 avg Uspeed [cm/s]": "",
-                "CH 1 avg Uswim [BL/s]": "",
+                "O2 after blank": "O2 - blank",
             }
 
             resume_df.loc[k] = row
