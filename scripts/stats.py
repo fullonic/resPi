@@ -12,9 +12,9 @@ from functools import namedtuple
 import statsmodels.api as sm
 import pandas as pd
 
-from scripts.utils import string_to_float
+from scripts.utils import string_to_float, delete_excel_files
 
-ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
 print("STSTAS FILE", ROOT)
 O2Data = namedtuple("O2Data", "min max avg")
 R2AB = namedtuple("R2AB", "rsquared a b")
@@ -146,10 +146,10 @@ class ResumeDataFrame:
         print(os.path.dirname(os.path.abspath(self.experiment.original_file.file_output)))
         print(f"{location=}")
         # Same as app.config["ZIP_FOLDER"]
-        ZIP_FOLDER = os.path.abspath(f"{ROOT}/uploads/zip_files")
+        ZIP_FOLDER = os.path.abspath(f"{ROOT}/static/uploads/zip_files")
         # Create the zip file
         zipped = shutil.make_archive(location, "zip", location)
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        # delete_excel_files(location)
+        delete_excel_files(location)

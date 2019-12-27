@@ -46,8 +46,7 @@ from scripts.utils import (
     SUPPORTED_FILES,
     greeting,
     config_from_file,
-    save_config_to_file
-
+    save_config_to_file,
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
@@ -345,14 +344,6 @@ def respi():
     return render_template("app.html", flush=flush, wait=wait, close=close)
 
 
-@app.route("/settings", methods=["POST", "GET"])
-def settings():
-    config = config_from_file()
-    if request.method == "POST":
-        config = save_config_to_file(request.form.to_dict())
-    return render_template("settings.html", config=config)
-
-
 @app.route("/excel_files", methods=["POST", "GET"])
 def excel_files():
     """User GUI for upload and deal with excel files."""
@@ -396,17 +387,10 @@ def excel_files():
             file_.save(file_path)
             # CHECK HEADERS
             check = checker(file_path).match()
-            print(f"{check=}")
-            if check is True:
-                print("MATCH")
-            else:
-                # TODO: Return flash message warning and abort
+            if check is not True:
                 for msg in check:
                     msg += " "
-                flash(
-                    check,
-                    "danger",
-                )
+                flash(check, "danger")
                 # Removes folder and file that doesn't match headers
                 shutil.rmtree(os.path.dirname(file_path))
 
@@ -478,6 +462,14 @@ def remove_file(file_):
     print(location)
     delete_zip_file(location)
     return redirect(url_for("downloads"))
+
+
+@app.route("/settings", methods=["POST", "GET"])
+def settings():
+    config = config_from_file()
+    if request.method == "POST":
+        config = save_config_to_file(request.form.to_dict())
+    return render_template("settings.html", config=config)
 
 
 ####################
