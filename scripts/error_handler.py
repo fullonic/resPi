@@ -7,13 +7,7 @@ from scripts.utils import config_from_file
 error_template = """Your file value: '{}', is different from the expected value of your
 configuration file: '{}'"""
 
-config = {
-    "DT_COL": "Date &Time [DD-MM-YYYY HH:MM:SS]",
-    "TSCODE": "Time stamp code",
-    "O2_COL": "SDWA0003000061      , CH 1 O2 [mg/L]",
-    "X_COL": "x",
-    "Y_COL": "y",
-}
+config = config_from_file()["experiment_file_config"]
 
 
 class HeadersException(Exception):
@@ -63,8 +57,8 @@ class HeadersChecker:
         to handle missing headers names as missing key values, using KeyError exceptions.
         """
         # Get current configuration from config json file.
-        config = config_from_file()
-        config = config["experiment_file_config"]
+        config = config_from_file()["experiment_file_config"]
+        # Must have headers
         headers = ["DT_COL", "TSCODE", "O2_COL"]
         _config = {}
         for k, v in config.items():
@@ -95,7 +89,7 @@ class GUIChecker:
         self.file_ = file_
 
     def match(self):
-        exp = ExperimentCycle(2, 3, 20, self.file_, "Date &Time [DD-MM-YYYY HH:MM:SS]")
+        exp = ExperimentCycle(0, 0, 0, self.file_)
         h = HeadersChecker(exp.df.columns)
         try:
             h.check()

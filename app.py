@@ -234,7 +234,7 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
 
     for c in [control_file_1, control_file_2]:
-        C = ControlFile(flush, wait, close, c, "Date &Time [DD-MM-YYYY HH:MM:SS]")
+        C = ControlFile(flush, wait, close, c)
         C_Total = Control(C)
         C_Total.get_bank()
     control = C_Total.calculate_blank()
@@ -246,9 +246,7 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
         # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
-        experiment = ExperimentCycle(
-            flush, wait, close, file_path, "Date &Time [DD-MM-YYYY HH:MM:SS]"
-        )
+        experiment = ExperimentCycle(flush, wait, close, file_path)
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
@@ -419,8 +417,7 @@ def excel_files():
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
 
         t = Thread(
-            target=process_excel_files,
-            args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 

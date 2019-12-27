@@ -10,6 +10,8 @@ import plotly.graph_objects as go
 
 from scripts.utils import string_to_float, config_from_file
 
+experiment_file_config = config_from_file()["experiment_file_config"]
+
 
 def get_loop_seconds(data: dict) -> int:
     """Calculate total loop time in seconds"""
@@ -27,7 +29,7 @@ def convert_datetime(dt: str):
 def calculate_ox(ox_value, start_value):
     """Calculate the evolution of time."""
     return (float(ox_value) - float(start_value)) / 60
-    # return [calculate_ox(value) for value in lst_time_stamp_code]
+    # return [calculate_ox(value) for value in lst_self.time_stamp_code]
 
 
 class FileFormater:
@@ -38,6 +40,9 @@ class FileFormater:
         self.folder_dst = os.path.dirname(file_)
         self.fname = os.path.basename(file_).split(".")[0]
         self.file_output = f"{self.folder_dst}/{self.fname}"
+        config = config_from_file()["experiment_file_config"]
+        self.save_converted = config["SAVE_CONVERTED"]
+        self.dt_col_name = config["DT_COL"]
 
     @property
     def file_extension(self):
@@ -54,13 +59,13 @@ class FileFormater:
 
     def information_index(self, df):
         for index, dt in enumerate(df):
-            if df.iloc[index][0] == "Date &Time [DD-MM-YYYY HH:MM:SS]":
+            if df.iloc[index][0] == self.dt_col_name:
                 return index
 
     def to_dataframe(self, output="xlsx"):
         df = pd.read_table(self.file_, encoding=self.file_encoding, decimal=",")
         for index, dt in enumerate(df):
-            if df.iloc[index][0] == "Date &Time [DD-MM-YYYY HH:MM:SS]":
+            if df.iloc[index][0] == self.dt_col_name:
                 break
 
         col_idx = index
@@ -74,10 +79,11 @@ class FileFormater:
         df.drop(0, 0, inplace=True)  # remove the line were was the columns name
 
         # Change date time column to a python datetime object
-        dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
-        df[dt_col_name] = df[dt_col_name].map(convert_datetime)
+        df[self.dt_col_name] = df[self.dt_col_name].map(convert_datetime)
         self.df = df
         self.output = output
+        if self.save_converted:
+            self.save(output)
 
     def save(self, name=None):
         """Export converted DF to a new file."""
@@ -104,15 +110,21 @@ class ExperimentCycle:
     """
 
     def __init__(
-        self, flush: int, wait: int, close: int, original_file: str, dt_col_name: str
+        self, flush: int, wait: int, close: int, original_file: str
     ):  # noqa
         self.flush = flush
         self.wait = wait
         self.close = close
         self.discard_time = flush + wait  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
-        self.dt_col_name = dt_col_name
         self.format_file(original_file)
+        config = config_from_file()["experiment_file_config"]
+        self.dt_col_name = config["DT_COL"]
+        self.time_stamp_code = config["TSCODE"]  # Get data column name
+        self.O2_COL = config["O2_COL"]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
+        self.x = config["X_COL"]  # column of oxygen evolution self.x
+        self.y = config["Y_COL"]
+        self.plot_title = config["PLOT_TITLE"]
 
     def format_file(self, original_file):
         txt_file = FileFormater(original_file)
@@ -130,8 +142,7 @@ class ExperimentCycle:
         by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
-        dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
-        time_diff = self.df[dt_col_name].iloc[-1] - self.df[dt_col_name].iloc[0]
+        time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
         time_diff.seconds
         # Put every time value into seconds
         total = (time_diff).seconds / (self.loop_time * 60)
@@ -185,33 +196,34 @@ class ExperimentCycle:
         start = start + (self.discard_time * 60)
         df_close = self.df[start:end]
         df_close.reset_index(inplace=True, drop=True)
-        time_stamp_code = "Time stamp code"  # Get data column name
         # Create the new column of oxygen evolution
-        column_name = "x"
         #  Create a new column for o2 evolution and calculate_ox_evolution
-        start_value = df_close[time_stamp_code].iloc[0]
-        df_close[column_name] = df_close[time_stamp_code].apply(
+        start_value = df_close[self.time_stamp_code].iloc[0]
+        df_close[self.x] = df_close[self.time_stamp_code].apply(
             calculate_ox, args=(start_value,)
         )
-        O2_col_name = "SDWA0003000061      , CH 1 O2 [mg/L]"
-        # O2_col_name = "SDWA0003000061      , CH 1 O2 [% air saturation]"
-        df_close["y"] = df_close[O2_col_name].map(string_to_float)
+        # self.O2_COL = "SDWA0003000061      , CH 1 O2 [% air saturation]"
+        df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
     def create_plot(self):
         for i, df_close in enumerate(self.df_close_list):
-            x = df_close["x"]
-            y = df_close["y"]
+            x = df_close[self.x]
+            y = df_close[self.y]
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
-                    x=x, y=y, name="O2", line=dict(color="red", width=1), showlegend=True
+                    x=x,
+                    y=y,
+                    name=self.plot_title,
+                    line=dict(color="red", width=1),
+                    showlegend=True,
                 )
             )
             fig1 = px.scatter(df_close, x="x", y="y", trendline="ols")
             trendline = fig1.data[1]
             fig.add_trace(trendline)
-            fig.update_layout(dict(title="O2"))
+            fig.update_layout(dict(title=self.plot_title))
 
             fig.write_html(f"{self.original_file.file_output}_plot_{i + 1}.html")
 

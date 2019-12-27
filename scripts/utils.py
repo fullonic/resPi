@@ -165,6 +165,8 @@ def save_config_to_file(new_config):
         except ValueError:
             return value.strip()
 
+    print(f"{new_config=}")
+
     config_keys = {
         "experiment_file_config": {},
         "file_cycle_config": {},
@@ -189,6 +191,13 @@ def save_config_to_file(new_config):
                 config_keys["file_cycle_config"].update({k: string_to_int(v)})
         else:
             print(f"Unexpected value {k}: {v}")
+    config_keys["experiment_file_config"].update(
+        {"SAVE_LOOP_DF": True if new_config.get("save_loop_df") else False}
+    )
+    config_keys["experiment_file_config"].update(
+        {"SAVE_CONVERTED": True if new_config.get("save_converted") else False}
+    )
+
     with open("config.json", "w") as f:
         json.dump(config_keys, f)
     return config_keys

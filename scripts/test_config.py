@@ -36,7 +36,6 @@ tst["Time stamp code"] = add_one_second(tst["Time stamp code"])
 tst["Date &Time [DD-MM-YYYY HH:MM:SS]"]
 
 
-
 def fake_data():
     def add_one_second(series, type_="dt"):
         start_value = series.iloc[0]
@@ -129,10 +128,38 @@ def fake_control():
 lst = fake_data()
 lst = lst[:8178]
 
-file_path = "/home/somnium/Desktop/angula5.txt"
-df = FileFormater(file_path)
-df.to_dataframe()
-df = df.df
-col = "SDWA0003000061      , CH 1 O2 [mg/L]"
-df[col] = lst
-df.to_csv(f"{os.path.dirname(file_path)}/fake_data200.txt", index=False, sep="\t")
+file_path = "/home/somnium/Desktop/fake_cycle.txt"
+from scripts.converter import FileFormater, ExperimentCycle
+from scripts.stats import ResumeDataFrame
+
+experiment = ExperimentCycle(
+    2, 3, 20, file_path
+)
+experiment.loop_time * 60
+
+resume = ResumeDataFrame(experiment)
+experiment.df_close_list[3]
+
+
+def create_config_file():
+    import json
+
+    config = {
+        "experiment_file_config": {
+            "DT_COL": "Date &Time [DD-MM-YYYY HH:MM:SS]",
+            "TSCODE": "Time stamp code",
+            "O2_COL": "SDWA0003000061      , CH 1 O2 [mg/L]",
+            "PLOT_TITLE": "O2 Evo",
+            "X_COL": "x",
+            "Y_COL": "y",
+            "SAVE_CONVERTED": True,
+            "SAVE_LOOP_DF": True,
+        },
+        "file_cycle_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": 21.0},
+        "pump_control_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": "40.434"},
+    }
+    with open("config.json", "w") as f:
+        json.dump(config, f)
+
+
+create_config_file()

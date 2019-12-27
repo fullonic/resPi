@@ -52,10 +52,10 @@ def O2_data(series):
     return O2Data(min_, max_, avg_)
 
 
-def trendline_data(df_close):
+def trendline_data(df_close, x_column, y_column):
     """Calculate R squared, a and b values."""
-    x = df_close["x"]
-    y = df_close["y"]
+    x = df_close[x_column]
+    y = df_close[y_column]
     x = sm.add_constant(x)
     model = sm.OLS(y, x)
     results = model.fit()
@@ -73,7 +73,7 @@ class ResumeDataFrame:
         """Complete experiment data frame."""
         self.original_df = experiment.df
         self.experiment = experiment
-        self.dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
+        self.dt_col_name = experiment.dt_col_name
         self.df_lists = []
         self.phase_time = (
             f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
@@ -101,7 +101,7 @@ class ResumeDataFrame:
             # O2_col_name = "SDWA0003000061      , CH 1 O2 [% air saturation]"
 
             O2 = O2_data(df_close[O2_col_name])
-            r2_a_b = trendline_data(df_close)
+            r2_a_b = trendline_data(df_close, self.experiment.x, self.experiment.y)
             slope = r2_a_b.b * 60
             O2_HR = slope * aqua_volume
 

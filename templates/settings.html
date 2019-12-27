@@ -100,6 +100,23 @@
               <input type="text" value="{{ config.experiment_file_config.Y_COL }}" name="output_file_Y_COL" class="form-control" id="Y_COL" placeholder="Close time in minutes" required>
             </div>
           </div>
+          <div class="form-row">
+            <div class="form-check mr-3">
+              <input class="form-check-input" name="save_loop_df" type="checkbox" value="yes" id="saveLoopsDF" {% if config.experiment_file_config.SAVE_LOOP_DF %}checked{% endif %}>
+              <label class="form-check-label" for="saveLoopsDF">
+                Save individual loop data
+              </label>
+            </div>
+            <div class="form-check mr-3">
+              <input class="form-check-input" name="save_converted" type="checkbox" value="yes" id="saveConvertedFile" {% if config.experiment_file_config.SAVE_CONVERTED %}checked{% endif %}>
+
+
+              <label class="form-check-label" for="saveConvertedFile">
+                Save original file as excel
+              </label>
+            </div>
+
+          </div>
         </div>
       </div>
       <!-- CONFIRM BUTTON -->
