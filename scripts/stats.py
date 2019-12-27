@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 
 from scripts.utils import (
     delete_excel_files)
+ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
 
 O2Data = namedtuple("O2Data", "min max avg")
 R2AB = namedtuple("R2AB", "rsquared a b")
@@ -158,6 +159,7 @@ class ResumeDataFrame:
         # Same as app.config["ZIP_FOLDER"]
         ZIP_FOLDER = os.path.abspath(f"static/uploads/zip_files")
         print(f"{ZIP_FOLDER=}")
+        ZIP_FOLDER = os.path.abspath(f"{ROOT}/uploads/zip_files")
         # Create the zip file
         zipped = shutil.make_archive(location, "zip", location)
         print(f"{zipped=}")

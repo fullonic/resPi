@@ -14,10 +14,10 @@ from functools import partial  # noqa maybe can be used on save files
 try:
     import RPi.GPIO as GPIO
 
-    ROOT = os.path.join(os.getcwd(), "resPI")
+    # ROOT = os.path.join(os.getcwd(), "resPI")
 except RuntimeError:
     GPIO = None  # None means that is not running on raspberry pi
-    ROOT = os.getcwd()
+    # ROOT = os.getcwd()
 
 from flask_caching import Cache
 from flask import (
@@ -47,7 +47,7 @@ from scripts.utils import (
     greeting,
 )
 
-
+ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
 # App basic configuration
 config = {
     "SECRET_KEY": "NONE",
@@ -66,6 +66,7 @@ if GPIO is not None:
     GPIO.setmode(GPIO.BCM)  # Use GPIO Numbers
     PUMP_GPIO = 26  # Digital input to the relay
     GPIO.setup(PUMP_GPIO, GPIO.OUT)  # GPIO Assign mode
+
 
 # DEFINE APP
 app = Flask(__name__)
@@ -337,6 +338,8 @@ def respi():
         close = cache.get("user_program")["period"]
 
     logger.warning(f"2 AFTER SET {_active_threads}")
+
+
 
     return render_template("app.html", flush=flush, wait=wait, close=close)
 
