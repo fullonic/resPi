@@ -77,10 +77,7 @@ _active_threads = {}
 exit_thread = Event()
 # Setup cache
 cache = Cache(app)
-# TODO: user cache.set_many() to provide all default cache values
-cache.set("running", False)  # By default pump is off
-cache.set("run_auto", False)
-cache.set("run_manual", False)
+cache.set_many((("run_manual", False), ("run_auto", False), ("running", False)))
 
 # SocketIO
 socketio = SocketIO(app, async_mode=None)
@@ -144,9 +141,8 @@ def switch_off():
     """Turn pump OFF."""
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
-    cache.set("running", False)
-    cache.set("cycle_ends_in", None)
-    cache.set("next_cycle_at", None)
+
+    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     logger.warning(f"Pump is off |  Mode: {run_mode}")
 
@@ -216,9 +212,6 @@ def start_program(app=None):
         pump_cycle(cycle, period)
         if not exit_thread.wait(timeout=period):
             continue
-        # if not cache.get("run_auto"):
-        #     break
-        # time.sleep(period)
     else:
         return False
 
@@ -320,11 +313,15 @@ def respi():
                 t.start()  # start a fresh new thread with the current program
         elif request.form.get("action", False) == "stop":
             switch_off()  # TODO: Must be checked first
-            cache.set("running", False)  # Turn off red led
-            # Remove counters/timers
-            cache.set("cycle_ends", None)
-            cache.set("next_cycle_at", None)
-            cache.set("run_auto", False)  # Stop background thread
+            # Remove counters/timers and stop background thread
+            cache.set_many(
+                (
+                    ("running", False),
+                    ("cycle_ends", None),
+                    ("next_cycle_at", None),
+                    ("run_auto", False),
+                )
+            )
             exit_thread.set()
             logger.warning(f"AFTER SET {_active_threads}")
         ###########################
@@ -332,8 +329,9 @@ def respi():
         ###########################
         if request.form.get("manual", False):
             if request.form["manual"] == "start_manual":
-                cache.set("run_manual", True)
-                cache.set("started_at", to_js_time(run_type="manual"))
+                cache.set_many(
+                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True))
+                )
                 switch_on()
             else:
                 switch_off()
@@ -365,11 +363,7 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") == "yes" else False
-
-        # TODO: This should be added to the file upload GUI form
-        cache.set("new_column_name", "evolucio_oxigen/temps")
-        cache.set("plot_title", "Evolució de l’oxigen")
+        plot = True if request.form.get("plot") else False
 
         cache.set("generating_files", True)
         # Save file to the system
