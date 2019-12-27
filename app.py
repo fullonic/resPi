@@ -210,8 +210,9 @@ def start_program(app=None):
     Creates a periodic task using user form input.
     """
     user_program = cache.get("user_program")
-    period = user_program.get("period") * UNIT  # Turn the pump on every x seconds
-    cycle = user_program.get("cycle") * UNIT  # Run the pump for the time of x seconds
+    # Turn the pump on every x seconds
+    period = (user_program.get("close") + user_program.get("wait")) * UNIT
+    cycle = user_program.get("flush") * UNIT  # Run the pump for the time of x seconds
     while cache.get("run_auto"):
         pump_cycle(cycle, period)
         if not exit_thread.wait(timeout=period):
@@ -227,8 +228,6 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
     # Confirm headers
     # Loop throw all uploaded files and clean the data set
-    new_column_name = cache.get("new_column_name")
-    plot_title = cache.get("plot_title")
     save_converted = False
     total_files = len(uploaded_excel_files)
     logger.warning(f"A total of {total_files} files received")
@@ -297,9 +296,9 @@ def respi():
                 cache.set("run_auto", True)
                 flush = int(request.form["flush"])
                 wait = int(request.form["wait"])
-                close = int(request.form["close"]) + wait
+                close = int(request.form["close"])
                 # set program configuration on memory layer
-                cache.set("user_program", dict(period=close, cycle=flush))
+                cache.set("user_program", dict(close=close, flush=flush, wait=wait))
                 session["user_program"] = [flush, wait, close]
                 # Create a register of the started thread
                 global _active_threads
@@ -330,15 +329,16 @@ def respi():
                 switch_off()
                 cache.set("run_manual", False)
 
-    # Populate automatic form inputs with last inserted program times
+    # Populate form inputs with last inserted program or from config file values
     if not cache.get("user_program"):
-        flush = 5
-        wait = 5
-        close = 20
+        config = config_from_file()["pump_control_config"]
+        flush = int(config["flush"])
+        wait = int(config["wait"])
+        close = int(config["close"])
     else:
-        flush = cache.get("user_program")["cycle"]
-        wait = cache.get("user_program")["period"]
-        close = cache.get("user_program")["period"]
+        flush = cache.get("user_program")["flush"]
+        wait = cache.get("user_program")["wait"]
+        close = cache.get("user_program")["close"]
 
     logger.warning(f"2 AFTER SET {_active_threads}")
 
