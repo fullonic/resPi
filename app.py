@@ -226,6 +226,7 @@ def start_program(app=None):
 def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
+    print(f"{uploaded_excel_files=}")
     save_converted = False  # if to save .txt file converted into .xlsx file
 
     # CALCULATE BLANKS

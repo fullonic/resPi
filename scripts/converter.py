@@ -18,7 +18,10 @@ def get_loop_seconds(data: dict) -> int:
 
 def convert_datetime(dt: str):
     """Convert a date time str representation to a python datetime object."""
-    return datetime.datetime.strptime(dt, "%d/%m/%Y %H:%M:%S")
+    try:
+        return datetime.datetime.strptime(dt, "%d/%m/%Y %H:%M:%S")
+    except ValueError:  # only for testing
+        return datetime.datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
 
 
 def calculate_ox(ox_value, start_value):
@@ -84,7 +87,7 @@ class FileFormater:
             self.df.to_csv(self.converted_file)
         else:
             self.converted_file = f"{self.file_output}.xlsx"
-            self.df.to_excel(self.converted_file)
+            self.df.to_excel(self.converted_file, index=False)
 
 
 class ExperimentCycle:
