@@ -360,6 +360,8 @@ def respi():
 @app.route("/excel_files", methods=["POST", "GET"])
 def excel_files():
     """User GUI for upload and deal with excel files."""
+    session["excel_config"] = config_from_file()["file_cycle_config"]
+
     if request.method == "POST":
         # Get basic information about the data set
         flush = int(request.form.get("flush"))
@@ -412,7 +414,6 @@ def excel_files():
             flash(check, "danger")
             # Removes folder and file that doesn't match headers
             shutil.rmtree(os.path.dirname(file_path))
-
             return redirect("excel_files")
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
@@ -432,7 +433,7 @@ def excel_files():
         )
         return redirect("excel_files")
 
-    return render_template("excel_files.html", config=session.get("excel_config", None))
+    return render_template("excel_files.html", config=session.get("excel_config"))
 
 
 ####################
@@ -489,6 +490,7 @@ def settings():
     config = config_from_file()
     if request.method == "POST":
         config = save_config_to_file(request.form.to_dict())
+        return redirect("settings")
     return render_template("settings.html", config=config)
 
 

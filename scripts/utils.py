@@ -158,10 +158,10 @@ def config_from_file():
 
 
 def save_config_to_file(new_config):
-    def string_to_float(value):
+    def string_to_int(value):
         """Convert config float type string into float type."""
         try:
-            return float(value)
+            return int(value)
         except ValueError:
             return value.strip()
 
@@ -177,11 +177,16 @@ def save_config_to_file(new_config):
             config_keys["experiment_file_config"].update({k: v.strip()})
         elif k.startswith("pump"):
             k = k.replace("pump_", "")
-            config_keys["pump_control_config"].update({k: string_to_float(v)})
+            if k == "aqua_volume":
+                config_keys["pump_control_config"].update({k: float(v)})
+            config_keys["pump_control_config"].update({k: string_to_int(v)})
 
         elif k.startswith("file"):
             k = k.replace("file_", "")
-            config_keys["file_cycle_config"].update({k: string_to_float(v)})
+            if k == "aqua_volume":
+                config_keys["file_cycle_config"].update({k: float(v)})
+            else:
+                config_keys["file_cycle_config"].update({k: string_to_int(v)})
         else:
             print(f"Unexpected value {k}: {v}")
     with open("config.json", "w") as f:
