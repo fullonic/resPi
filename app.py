@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """Application backend logic."""
 
 import os
@@ -6,10 +8,9 @@ import subprocess
 import logging
 from glob import glob
 from logging.handlers import RotatingFileHandler
-from functools import wraps
+from functools import wraps, partial  # noqa maybe can be used on save files
 from threading import Thread, Event
 from datetime import datetime
-from functools import partial  # noqa maybe can be used on save files
 
 try:
     import RPi.GPIO as GPIO

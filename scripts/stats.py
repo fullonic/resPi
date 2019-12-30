@@ -33,7 +33,7 @@ COLS_NAME = [
     "O2 after blank",
 ]
 
-config = config_from_file()
+
 
 
 def temp_mean(series):
@@ -93,6 +93,7 @@ class ResumeDataFrame:
     def generate_resume(self, control):
         """Create a the daily experiment resume."""
         resume_df = pd.DataFrame(columns=COLS_NAME)
+        config = config_from_file()
         aqua_volume = config["file_cycle_config"]["aqua_volume"]
         for i, df_close in enumerate(self.experiment.df_close_list):
             # for k, v in self.loop_data_range.items():

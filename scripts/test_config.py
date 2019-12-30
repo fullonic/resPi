@@ -7,46 +7,7 @@ import random
 from scripts.converter import FileFormater, ExperimentCycle
 from scripts.stats import ResumeDataFrame
 
-file_path = "/home/somnium/Desktop/angula5.txt"
-experiment = ExperimentCycle(3, 2, 20, file_path, "Date &Time [DD-MM-YYYY HH:MM:SS]")
-resume = ResumeDataFrame(experiment)
-# def add_second(start):
-tst = resume.original_df
-
-tst["Date &Time [DD-MM-YYYY HH:MM:SS]"] + datetime.timedelta(seconds=1)
-
-
-def add_one_second(series, type_="dt"):
-    start_value = series.iloc[0]
-    if type_ == "dt":
-        for i in range(len(series)):
-            series.iloc[i] = start_value + datetime.timedelta(seconds=i)
-    else:
-        for i in range(len(series)):
-            series.iloc[i] = start_value + i
-    return series
-
-
-tst["Date &Time [DD-MM-YYYY HH:MM:SS]"] = add_one_second(
-    tst["Date &Time [DD-MM-YYYY HH:MM:SS]"]
-)
-tst["Time stamp code"] = add_one_second(tst["Time stamp code"])
-
-
-tst["Date &Time [DD-MM-YYYY HH:MM:SS]"]
-
-
 def fake_data():
-    def add_one_second(series, type_="dt"):
-        start_value = series.iloc[0]
-        if type_ == "dt":
-            for i in range(len(series)):
-                series.iloc[i] = start_value + datetime.timedelta(seconds=i)
-        else:
-            for i in range(len(series)):
-                series.iloc[i] = str(int(start_value) + int(i))
-        return series
-
     file_name = "/home/somnium/Desktop/angula5.txt"
 
     col = "SDWA0003000061      , CH 1 O2 [mg/L]"
@@ -75,19 +36,22 @@ def fake_data():
             count += 1
 
         new_df = df[:w]
-        # new_df["Date &Time [DD-MM-YYYY HH:MM:SS]"] = add_one_second(
-        #     new_df["Date &Time [DD-MM-YYYY HH:MM:SS]"]
-        # )
-        # new_df["Time stamp code"] = add_one_second(new_df["Time stamp code"], type_="sec")
 
         return new_df
 
     frames = [loop() for i in range(6)]
     results = pd.concat(frames, ignore_index=True)
-    # results.to_excel("fake_data.xlsx")
+    # original df
+    file_ = FileFormater(file_name)
+    file_.to_dataframe()
+    df = file_.df
 
-    return results[col]
-    # results.to_csv(f"{os.path.dirname(file_name)}/fake_data2.txt", index=False, sep="\t")
+    results = results[:len(df)]
+    lst = list(results[col])
+    df[col] = lst
+    df.to_csv(f"{os.path.dirname(file_name)}/fake_data.txt", index=False, sep="\t")
+    5*60
+    df.iloc[299][col]
 
 
 def fake_control():
@@ -120,26 +84,6 @@ def fake_control():
     frames = [df_loop for i in range(1)]
     results = pd.concat(frames, ignore_index=True)
     return results
-    # results.to_csv(f"{os.path.dirname(file_name)}/control_2.txt", index=False, sep="\t")
-    # return results["SDWA0003000061      , CH 1 O2 [mg/L]"]
-
-
-# r = fake_control()
-lst = fake_data()
-lst = lst[:8178]
-
-file_path = "/home/somnium/Desktop/fake_cycle.txt"
-from scripts.converter import FileFormater, ExperimentCycle
-from scripts.stats import ResumeDataFrame
-
-experiment = ExperimentCycle(
-    2, 3, 20, file_path
-)
-experiment.loop_time * 60
-
-resume = ResumeDataFrame(experiment)
-experiment.df_close_list[3]
-
 
 def create_config_file():
     import json
@@ -162,4 +106,4 @@ def create_config_file():
         json.dump(config, f)
 
 
-create_config_file()
+# create_config_file()
