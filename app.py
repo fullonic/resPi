@@ -90,7 +90,8 @@ handler = RotatingFileHandler(
     maxBytes=app.config["LOGS_MB_SIZE"],
     backupCount=app.config["LOGS_BACKUP"],
 )
-handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(message)s"))
+# handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(message)s"))
+handler.setFormatter(logging.Formatter("%(message)s"))
 handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
@@ -151,7 +152,8 @@ def switch_off():
 def pump_cycle(cycle, period):
     """Define how long pump is ON in order to full the fish tank."""
     # Turn on the pump
-    started = datetime.now()
+    started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cache.set("run_times", cache.get("run_times") + 1)
     switch_on()
     cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
     socketio.emit(
@@ -180,11 +182,14 @@ def pump_cycle(cycle, period):
                 },
                 namespace="/resPi",
             )
-            ended = datetime.now()
+            ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # print(f"Current automatic program: Started {str(started)} | Ended: {str(ended)}")
             # Write information to logging file
+            print(
+                f"""Current program [{cache.get("run_times")}]: Started {str(started)} | Ended: {str(ended)}"""
+            )
             logger.warning(
-                f"Current automatic program: Started {str(started)} | Ended: {str(ended)}"
+                f"""Current program [{cache.get("run_times")}]: Started {str(started)} | Ended: {str(ended)}"""
             )
         else:  # Ignore previous. Pump is already off
             logger.warning(
@@ -198,7 +203,6 @@ def pump_cycle(cycle, period):
 # USER DEFINED PROGRAM
 def start_program(app=None):
     """Start a new background thread to run the user program."""
-    logger.warning("""Starting a new background thread to run the user program.""")
     # program()
     """User defined task.
 
@@ -219,7 +223,6 @@ def start_program(app=None):
 def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
-    print(f"{uploaded_excel_files=}")
     save_converted = False  # if to save .txt file converted into .xlsx file
 
     # CALCULATE BLANKS
@@ -288,7 +291,6 @@ def respi():
 
     This route contains all user interface possibilities with the hardware.
     """
-
     if request.method == "POST":
         # Get information from user form data and run automatic program
         if request.form.get("action", False) == "start":
@@ -302,13 +304,13 @@ def respi():
                 close = int(request.form["close"])
                 # set program configuration on memory layer
                 cache.set("user_program", dict(close=close, flush=flush, wait=wait))
+                cache.set("run_times", 0)
                 session["user_program"] = [flush, wait, close]
                 # Create a register of the started thread
                 global _active_threads
                 t = Thread(target=start_program)
                 t_name = t.getName()
                 _active_threads[t_name] = t  # noqa
-                logger.warning(f"STARTED NEW {_active_threads}")
                 exit_thread.clear()  # set all thread flags to false
                 t.start()  # start a fresh new thread with the current program
         elif request.form.get("action", False) == "stop":
@@ -323,7 +325,6 @@ def respi():
                 )
             )
             exit_thread.set()
-            logger.warning(f"AFTER SET {_active_threads}")
         ###########################
         # MANUAL MODE
         ###########################
@@ -347,8 +348,6 @@ def respi():
         flush = cache.get("user_program")["flush"]
         wait = cache.get("user_program")["wait"]
         close = cache.get("user_program")["close"]
-
-    logger.warning(f"2 AFTER SET {_active_threads}")
 
     return render_template("app.html", flush=flush, wait=wait, close=close)
 
@@ -375,7 +374,7 @@ def excel_files():
         uploaded_excel_files = []
         # for file_ in files:
         # Generate the folder name
-        time_stamp = datetime.now().strftime(f"%Y_%m_%d_%H_%M_%S")
+        time_stamp = datetime.now().strftime(f"%d_%m_%Y_%H_%M_%S")
         filename, ext = data_file.filename.split(".")
         if not check_extensions(ext):
             flash(
@@ -433,7 +432,6 @@ def excel_files():
 @app.route("/downloads", methods=["GET"])
 def downloads():
     """Route to see all zip files available to download."""
-    print(f"{cache.get_dict()=}")
     zip_folder = glob(f"{app.config['ZIP_FOLDER']}/*.zip")
     # get only the file name and the size of it excluding the path.
     # Create a list of tuples sorted by file name
@@ -471,7 +469,6 @@ def get_file(file_):
 def remove_file(file_):
     """Delete a zip file based on file name."""
     location = os.path.join(app.config["ZIP_FOLDER"], file_)
-    print(location)
     delete_zip_file(location)
     return redirect(url_for("downloads"))
 
@@ -568,7 +565,6 @@ def restart():
 @app.route("/status", methods=["GET"])
 def get_status():
     """Return information about the different components of the system."""
-    print("STATUS ", cache.get("started_at"))
     return jsonify(
         {
             "running": cache.get("running"),
