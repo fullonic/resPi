@@ -162,8 +162,6 @@ class Control(ResumeDataFrame):
             self.resume_df["CH 1 MO2 [mgO2/hr]"].sum()
             / len(self.resume_df["CH 1 MO2 [mgO2/hr]"])
         )
-        print(f"On control {sum(self.values)=}")
 
     def calculate_blank(self):
-        print(f"total {sum(self.values)=} / {len(self.values)=}")
         return sum(self.values) / len(self.values)

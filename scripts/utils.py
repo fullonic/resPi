@@ -165,8 +165,6 @@ def save_config_to_file(new_config):
         except ValueError:
             return value.strip()
 
-    print(f"{new_config=}")
-
     config_keys = {
         "experiment_file_config": {},
         "file_cycle_config": {},
