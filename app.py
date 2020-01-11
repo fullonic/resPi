@@ -153,7 +153,7 @@ def pump_cycle(cycle, period):
     """Define how long pump is ON in order to full the fish tank."""
     # Turn on the pump
     started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cache.set("run_times", cache.get("run_times") + 1)
+    cache.set("total_loops", cache.get("total_loops") + 1)
     switch_on()
     cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
     socketio.emit(
@@ -163,6 +163,8 @@ def pump_cycle(cycle, period):
             "running": cache.get("running"),
             "run_auto": cache.get("running"),
             "cycle_ends_in": cache.get("cycle_ends_in"),
+            "total_loops": cache.get("total_loops"),
+            "auto_run_since": cache.get("auto_run_since"),
         },
         namespace="/resPi",
     )
@@ -186,15 +188,13 @@ def pump_cycle(cycle, period):
             # print(f"Current automatic program: Started {str(started)} | Ended: {str(ended)}")
             # Write information to logging file
             print(
-                f"""Current program [{cache.get("run_times")}]: Started {str(started)} | Ended: {str(ended)}"""
+                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
             )
             logger.warning(
-                f"""Current program [{cache.get("run_times")}]: Started {str(started)} | Ended: {str(ended)}"""
+                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
             )
         else:  # Ignore previous. Pump is already off
-            logger.warning(
-                f"Automatic program: Started {str(started)} was closed forced by user"
-            )
+            logger.warning(f"Automatic program: Started {started} was closed forced by user")
 
 
 ####################
@@ -208,6 +208,9 @@ def start_program(app=None):
 
     Creates a periodic task using user form input.
     """
+    # Save starting time programming
+    cache.set("auto_run_since", (datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+
     user_program = cache.get("user_program")
     # Turn the pump on every x seconds
     period = (user_program.get("close") + user_program.get("wait")) * UNIT
@@ -304,7 +307,7 @@ def respi():
                 close = int(request.form["close"])
                 # set program configuration on memory layer
                 cache.set("user_program", dict(close=close, flush=flush, wait=wait))
-                cache.set("run_times", 0)
+                cache.set("total_loops", 0)
                 session["user_program"] = [flush, wait, close]
                 # Create a register of the started thread
                 global _active_threads
@@ -574,8 +577,17 @@ def get_status():
             "cycle_ends_in": cache.get("cycle_ends_in"),
             "next_cycle_at": cache.get("next_cycle_at"),
             "generating_files": cache.get("generating_files"),
+            "total_loops": cache.get("total_loops"),
+            "auto_run_since": cache.get("auto_run_since"),
         }
     )
+
+
+@app.route("/user_time/<local_time>", methods=["GET", "POST"])
+def update_time(local_time):
+    """Get user local time to update server time."""
+    print(local_time)
+    return redirect(url_for("login"))
 
 
 if __name__ == "__main__":

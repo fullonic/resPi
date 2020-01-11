@@ -104,6 +104,8 @@
           $("#stop_auto, #stop_manual").addClass("deactivated")
         }
         $("#led").removeClass("d-none")
+        $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
+        $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
 
         if (system_info.generating_files) {
           $("#submit_files").addClass("deactivated")
@@ -125,6 +127,8 @@
         if (system_info.running && system_info.run_auto) {
           ledRed();
           countDown(system_info.cycle_ends_in);
+          $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
+          $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
         } else if (system_info.run_auto && !system_info.running) {
           ledYellow();
           countDown(system_info.next_cycle_at);
@@ -149,6 +153,7 @@
       $('[data-toggle="popover"]').popover()
     })
   </script>
+  {% block scripts %}{% endblock %}
 
 </body>
 
