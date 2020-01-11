@@ -131,7 +131,9 @@ def switch_off():
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
 
-    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
+    cache.set_many(
+        (("cycle_ends_in", None), ("next_cycle_at", None), ("running", False))
+    )
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     logger.warning(f"Pump is off |  Mode: {run_mode}")
 
@@ -182,7 +184,9 @@ def pump_cycle(cycle, period):
                 f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
             )
         else:  # Ignore previous. Pump is already off
-            logger.warning(f"Automatic program: Started {started} was closed forced by user")
+            logger.warning(
+                f"Automatic program: Started {started} was closed forced by user"
+            )
 
 
 ####################
@@ -276,7 +280,10 @@ def respi():
         if request.form.get("manual", False):
             if request.form["manual"] == "start_manual":
                 cache.set_many(
-                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True))
+                    (
+                        ("started_at", to_js_time(run_type="manual")),
+                        ("run_manual", True),
+                    )
                 )
                 switch_on()
             else:
@@ -410,7 +417,8 @@ def get_status():
 @app.route("/user_time/<local_time>", methods=["GET", "POST"])
 def update_time(local_time):
     """Get user local time to update server time."""
-    print(local_time)
+    update_time = ["sudo", "date", "-s", "{local_time}"]
+    subprocess.rum(update_time)
     return redirect(url_for("login"))
 
 
