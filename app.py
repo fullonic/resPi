@@ -285,7 +285,7 @@ def respi():
 
     # Populate form inputs with last inserted program or from config file values
     if not cache.get("user_program"):
-        config = config_from_file()["pump_control_config"]
+        config = config_from_file(ROOT)["pump_control_config"]
         flush = int(config["flush"])
         wait = int(config["wait"])
         close = int(config["close"])
@@ -302,7 +302,7 @@ def respi():
 ####################
 @app.route("/settings", methods=["POST", "GET"])
 def settings():
-    config = config_from_file()
+    config = config_from_file(ROOT)
     if request.method == "POST":
         config = save_config_to_file(request.form.to_dict())
         flash("Configuration updated", "info")

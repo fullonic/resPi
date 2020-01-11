@@ -150,9 +150,9 @@ def check_extensions(ext):
         return False
 
 
-def config_from_file():
+def config_from_file(ROOT):
     """Open config file."""
-    with open("config.json") as f:
+    with open(f"{ROOT}/config.json") as f:
         config = json.load(f)
     return config
 
