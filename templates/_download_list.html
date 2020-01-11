@@ -1,8 +1,0 @@
-<tr>
-  <th scope="row">{{ file.id_ }}</th>
-  <td>{{ file.name }}</td>
-  <td>{{ file.created }}</td>
-  <td>{{ file.size }} MB</td>
-  <td><a href="{{ url_for('get_file', file_=file.name)}}" class="badge badge-success mr-2">Download</a>
-    <a href="{{ url_for('remove_file', file_=file.name)}}" class="badge badge-danger">Remove</a></td>
-</tr>
