@@ -2,7 +2,7 @@ echo ------- moving venv out -------
 mv venv/ ../
 mv .git/ ../
 
-echo ------- removing pychache and logs -------
+echo ------- removing pycache and logs -------
 sudo rm -rf __pycache__
 sudo rm -rf logs
 

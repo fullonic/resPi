@@ -5,3 +5,4 @@ venv
 *.log*
 *.txt
 *plot_*.html
+__pycache__
