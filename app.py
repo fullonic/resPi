@@ -1,5 +1,6 @@
 """Application backend logic."""
 
+import sys
 import os
 import subprocess
 import logging
@@ -59,7 +60,13 @@ if GPIO is not None:
 
 
 # DEFINE APP
-app = Flask(__name__)
+# app = Flask(__name__)
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    app = Flask(__name__)
 app.config.from_mapping(config)
 _active_threads = {}
 exit_thread = Event()
