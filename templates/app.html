@@ -9,12 +9,18 @@
     <div class="row mb-2">
       <div id="status" class="col-md-1">Estat: </div>
       <div id="led" class="col-md-1 d-none">
-        <div id="available" class="led-green"></div>
-        <div id="busy" class="led-red"></div>
-        <div id="stand_by" class="led-yellow"></div>
+        <div id="available" class="led-green" title="Bomba parada"></div>
+        <div id="busy" class="led-red" title="Bomba en funcionament"></div>
+        <div id="stand_by" class="led-yellow" title="Bomba en pausa"></div>
       </div>
       <div class="col-md-4 d-block"></div>
-      <div class="col-md-6" id="timer"></div>
+      <div class="col-md-6">
+        <div class="row">
+          <div class="col-md" id="timer"></div>
+          <div class="col-md" id="auto_run_since"></div>
+          <div class="col-md" id="total_loops"></div>
+        </div>
+      </div>
     </div>
 
     <div class="row mt-3">
@@ -51,19 +57,19 @@
                       data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
                   </label>
 
-                  <input type="number" class="form-control" name="flush" id="flush" aria-describedby="flushHelp" placeholder="Minuts" value="{{ flush }}" required>
+                  <input type="number" min="0" class="form-control" name="flush" id="flush" aria-describedby="flushHelp" placeholder="Minuts" value="{{ flush }}" required>
                 </div>
                 <div class="col-4">
                   <label for="wait">Wait
                     <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
                   </label>
-                  <input type="number" class="form-control" name="wait" id="wait" aria-describedby="waitHelp" placeholder="Minuts" value="{{ wait }}" required>
+                  <input type="number" min="0" class="form-control" name="wait" id="wait" aria-describedby="waitHelp" placeholder="Minuts" value="{{ wait }}" required>
                 </div>
                 <div class="col-4">
                   <label for="close">Close
                     <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
                   </label>
-                  <input type="number" class="form-control" name="close" id="close" aria-describedby="closeHelp" placeholder="Minuts" value="{{ close }}" required>
+                  <input type="number" min="0" class="form-control" name="close" id="close" aria-describedby="closeHelp" placeholder="Minuts" value="{{ close }}" required>
                 </div>
               </div>
               <div class="row mt-4">

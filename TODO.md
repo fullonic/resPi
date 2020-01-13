@@ -7,5 +7,10 @@ FrontEnd
  - [x] Add control form inputs
  - [x] Add cache keys/values using set_many
  - [x] Allows save DF loops and converted file
- - [] Add possibility to save plot as png
+ - [ ] change original file  name when saved
+ - [x] add info led on title
+ - [ ] Delete volume from pump control settings
+ - [ ] Add setting to change default saved DF file name
+ - [ ] Add setting to change default saved plot file name
+ - [ ] Add possibility to save plot as png
  - [ ] Improve plot

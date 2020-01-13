@@ -12,7 +12,7 @@ mkdir logs
 cd ../
 
 echo ------- sending to Pi -------
-scp -r resPI/ pi@192.168.0.11:/home/pi
+scp -r resPI/ pi@192.168.4.1:/home/pi
 
 echo ------- moving venv -------
 mv venv/ resPI/

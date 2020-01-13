@@ -109,9 +109,7 @@ class ExperimentCycle:
     dt_col_name: Name of that contains the experiment time spans
     """
 
-    def __init__(
-        self, flush: int, wait: int, close: int, original_file: str
-    ):  # noqa
+    def __init__(self, flush: int, wait: int, close: int, original_file: str):  # noqa
         self.flush = flush
         self.wait = wait
         self.close = close
@@ -213,33 +211,49 @@ class ExperimentCycle:
         df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
-    def create_plot(self):
+    def create_plot(self, format_="html"):
         for i, df_close in enumerate(self.df_close_list):
-            x = df_close[self.x]
-            y = df_close[self.y]
-            fig = go.Figure()
-            fig.add_trace(
-                go.Scatter(
-                    x=x,
-                    y=y,
-                    name=self.plot_title,
-                    line=dict(color="red", width=1),
-                    showlegend=True,
-                )
-            )
-            fig1 = px.scatter(df_close, x=x, y=y, trendline="ols")
-            trendline = fig1.data[1]
-            fig.add_trace(trendline)
-            fig.update_layout(dict(title=self.plot_title))
-
-            fig.write_html(f"{self.original_file.file_output}_plot_{i + 1}.html")
+            Plot(
+                df_close,
+                self.x,
+                self.y,
+                self.plot_title,
+                dst=os.path.dirname(self.original_file.file_output),
+                fname=f"df_plot_{i + 1}",  # TODO: must be user o decides name
+            ).create()
 
     def save(self, df_loop, name):
         return df_loop.to_excel(f"{self.original_file.folder_dst}/df_loop_{name}.xlsx")
 
 
 class Plot:
-    pass
+    def __init__(
+        self, data, x_axis, y_axis, title, *, dst=None, fname="dataframe", output="html",
+    ):
+        self.data = data
+        self.x_axis = x_axis
+        self.y_axis = y_axis
+        self.title = title
+        self.output = output
+        self.fname = fname
+        self.dst = dst
+
+    def create(self):
+        print("Creating plots")
+        x = self.data[self.x_axis]
+        y = self.data[self.y_axis]
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=x, y=y, name=self.title, line=dict(color="red", width=1), showlegend=True,
+            )
+        )
+        fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
+        trendline = fig1.data[1]
+        fig.add_trace(trendline)
+        fig.update_layout(dict(title=self.title))
+
+        fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
 
 ControlFile = ExperimentCycle

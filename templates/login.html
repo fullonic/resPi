@@ -37,4 +37,21 @@
   </div>
 </div>
 
+
+
+
+{% endblock %}
+
+{% block scripts %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    var date = Date()
+    console.log(date);
+    $.ajax({
+      type: "POST",
+      url: "/user_time/" + date,
+    });
+  })
+</script>
 {% endblock %}

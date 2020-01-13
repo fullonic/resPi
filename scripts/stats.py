@@ -159,9 +159,10 @@ class Control(ResumeDataFrame):
 
     def get_bank(self):
         self.generate_resume(0)
-        self.values.append(self.resume_df["CH 1 MO2 [mgO2/hr]"].sum())
+        self.values.append(
+            self.resume_df["CH 1 MO2 [mgO2/hr]"].sum()
+            / len(self.resume_df["CH 1 MO2 [mgO2/hr]"])
+        )
 
     def calculate_blank(self):
-
-        print("total", sum(self.values) / len(self.values))
         return sum(self.values) / len(self.values)
