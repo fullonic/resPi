@@ -4,4 +4,6 @@ venv
 *.zip
 *.log*
 *.txt
-*plot_*.html
+*plot_*.htm
+build
+dist

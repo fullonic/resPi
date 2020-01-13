@@ -53,25 +53,8 @@ from scripts.utils import (
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
-# with open(f"{sys._MEIPASS}/config.json", "w") as cfg:
-#     json.dump(
-#         {
-#             "experiment_file_config": {
-#                 "DT_COL": "Date &Time [DD-MM-YYYY HH:MM:SS]",
-#                 "TSCODE": "Time stamp code",
-#                 "O2_COL": "SDWA0003000061      , CH 1 O2 [mg/L]",
-#                 "PLOT_TITLE": "Evoluciò de l'oxigen",
-#                 "X_COL": "Time",
-#                 "Y_COL": "O2",
-#                 "SAVE_LOOP_DF": True,
-#                 "SAVE_CONVERTED": True,
-#             },
-#             "file_cycle_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": 0.2},
-#             "pump_control_config": {"flush": 3, "wait": 2, "close": 20},
-#         },
-#         cfg,
-#     )
-# # App basic configuration
+
+# App basic configuration
 config = {
     "SECRET_KEY": "NONE",
     "CACHE_TYPE": "simple",
@@ -619,4 +602,4 @@ def update_time(local_time):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=False, host="0.0.0.0", port=5001)
+    socketio.run(app, debug=False, host="0.0.0.0", port=5000)

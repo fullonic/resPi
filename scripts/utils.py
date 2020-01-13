@@ -152,7 +152,8 @@ def check_extensions(ext):
 
 def config_from_file():
     """Open config file."""
-    with open("config.json") as f:
+    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    with open(f"{ROOT}/config.json") as f:
         config = json.load(f)
     return config
 

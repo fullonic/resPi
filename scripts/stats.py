@@ -15,7 +15,6 @@ import pandas as pd
 from scripts.utils import string_to_float, delete_excel_files, config_from_file
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
-print("STSTAS FILE", ROOT)
 O2Data = namedtuple("O2Data", "min max avg")
 R2AB = namedtuple("R2AB", "rsquared a b")
 COLS_NAME = [
@@ -150,7 +149,7 @@ class ResumeDataFrame:
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        # delete_excel_files(location)
+        delete_excel_files(location)
 
 
 class Control(ResumeDataFrame):
