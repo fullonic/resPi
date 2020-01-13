@@ -13,14 +13,6 @@ from threading import Thread, Event
 from datetime import datetime
 from functools import partial  # noqa maybe can be used on save files
 
-try:
-    import RPi.GPIO as GPIO
-
-    # ROOT = os.path.join(os.getcwd(), "resPI")
-except RuntimeError:
-    GPIO = None  # None means that is not running on raspberry pi
-    # ROOT = os.getcwd()
-
 from flask_caching import Cache
 from flask import (
     Flask,
@@ -67,15 +59,7 @@ config = {
     "ZIP_FOLDER": f"{ROOT}/static/uploads/zip_files",
 }  # UNIT: minutes
 
-# DEFINE RASPBERRY PI PINS NUMBERS AND API FUNCTIONS
-if GPIO is not None:
-    GPIO.setmode(GPIO.BCM)  # Use GPIO Numbers
-    PUMP_GPIO = 26  # Digital input to the relay
-    GPIO.setup(PUMP_GPIO, GPIO.OUT)  # GPIO Assign mode
-
-
 # DEFINE APP
-# app = Flask(__name__)
 if getattr(sys, 'frozen', False):
     template_folder = os.path.join(sys._MEIPASS, 'templates')
     static_folder = os.path.join(sys._MEIPASS, 'static')
@@ -138,102 +122,8 @@ def check_password(password):
 
 
 ####################
-# PUMP SETUP AND CONFIGURATION
-####################
-def switch_on():
-    """Turn pump ON."""
-    if GPIO:
-        GPIO.output(PUMP_GPIO, GPIO.HIGH)  # on
-    cache.set("running", True)
-    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    logger.warning(f"Pump is running | Mode: {run_mode}")
-
-
-def switch_off():
-    """Turn pump OFF."""
-    if GPIO:
-        GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
-
-    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
-    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    logger.warning(f"Pump is off |  Mode: {run_mode}")
-
-
-# PUMP CYCLE
-def pump_cycle(cycle, period):
-    """Define how long pump is ON in order to full the fish tank."""
-    # Turn on the pump
-    started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cache.set("total_loops", cache.get("total_loops") + 1)
-    switch_on()
-    cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
-    socketio.emit(
-        "automatic_program",
-        {
-            "data": "Server generated event",
-            "running": cache.get("running"),
-            "run_auto": cache.get("running"),
-            "cycle_ends_in": cache.get("cycle_ends_in"),
-            "total_loops": cache.get("total_loops"),
-            "auto_run_since": cache.get("auto_run_since"),
-        },
-        namespace="/resPi",
-    )
-    # Wait until tank is full
-    if not exit_thread.wait(timeout=cycle):  # MINUTES
-        if cache.get("run_auto"):  # If still in current automatic program
-            # Turn off the pump
-            switch_off()
-            cache.set("next_cycle_at", to_js_time(period, "auto"))
-            socketio.emit(
-                "automatic_program",
-                {
-                    "data": "Server generated event",
-                    "running": cache.get("running"),
-                    "run_auto": True,
-                    "next_cycle_at": cache.get("next_cycle_at"),
-                },
-                namespace="/resPi",
-            )
-            ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # print(f"Current automatic program: Started {str(started)} | Ended: {str(ended)}")
-            # Write information to logging file
-            print(
-                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
-            )
-            logger.warning(
-                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
-            )
-        else:  # Ignore previous. Pump is already off
-            logger.warning(f"Automatic program: Started {started} was closed forced by user")
-
-
-####################
 # BACKGROUND TASKS
 ####################
-# USER DEFINED PROGRAM
-def start_program(app=None):
-    """Start a new background thread to run the user program."""
-    # program()
-    """User defined task.
-
-    Creates a periodic task using user form input.
-    """
-    # Save starting time programming
-    cache.set("auto_run_since", (datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-    user_program = cache.get("user_program")
-    # Turn the pump on every x seconds
-    period = (user_program.get("close") + user_program.get("wait")) * UNIT
-    cycle = user_program.get("flush") * UNIT  # Run the pump for the time of x seconds
-    while cache.get("run_auto"):
-        pump_cycle(cycle, period)
-        if not exit_thread.wait(timeout=period):
-            continue
-    else:
-        return False
-
-
 def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
@@ -296,74 +186,6 @@ def landing():
     else:
         flash(f"Hey {greeting()}, benvingut {session['username']}", "info")
         return redirect(url_for("login"))
-
-
-@app.route("/respi", methods=["GET", "POST"])
-@login_required
-def respi():
-    """Application GUI.
-
-    This route contains all user interface possibilities with the hardware.
-    """
-    if request.method == "POST":
-        # Get information from user form data and run automatic program
-        if request.form.get("action", False) == "start":
-            # Avoids create a new thread if user reloads browser
-            if cache.get("running") or cache.get("run_auto"):
-                pass
-            else:
-                cache.set("run_auto", True)
-                flush = int(request.form["flush"])
-                wait = int(request.form["wait"])
-                close = int(request.form["close"])
-                # set program configuration on memory layer
-                cache.set("user_program", dict(close=close, flush=flush, wait=wait))
-                cache.set("total_loops", 0)
-                session["user_program"] = [flush, wait, close]
-                # Create a register of the started thread
-                global _active_threads
-                t = Thread(target=start_program)
-                t_name = t.getName()
-                _active_threads[t_name] = t  # noqa
-                exit_thread.clear()  # set all thread flags to false
-                t.start()  # start a fresh new thread with the current program
-        elif request.form.get("action", False) == "stop":
-            switch_off()  # TODO: Must be checked first
-            # Remove counters/timers and stop background thread
-            cache.set_many(
-                (
-                    ("running", False),
-                    ("cycle_ends", None),
-                    ("next_cycle_at", None),
-                    ("run_auto", False),
-                )
-            )
-            exit_thread.set()
-        ###########################
-        # MANUAL MODE
-        ###########################
-        if request.form.get("manual", False):
-            if request.form["manual"] == "start_manual":
-                cache.set_many(
-                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True))
-                )
-                switch_on()
-            else:
-                switch_off()
-                cache.set("run_manual", False)
-
-    # Populate form inputs with last inserted program or from config file values
-    if not cache.get("user_program"):
-        config = config_from_file()["pump_control_config"]
-        flush = int(config["flush"])
-        wait = int(config["wait"])
-        close = int(config["close"])
-    else:
-        flush = cache.get("user_program")["flush"]
-        wait = cache.get("user_program")["wait"]
-        close = cache.get("user_program")["close"]
-
-    return render_template("app.html", flush=flush, wait=wait, close=close)
 
 
 @app.route("/excel_files", methods=["POST", "GET"])
