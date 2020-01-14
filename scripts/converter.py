@@ -134,11 +134,16 @@ class ExperimentCycle:
     def format_file(self, original_file):
         txt_file = FileFormater(original_file)
         txt_file.to_dataframe()
-        self.df = txt_file.df
+        df = txt_file.df
+        for col in df.columns[1:]:
+            df[col] = df[col].astype(str)
+        self.df = df
+
         self.original_file = txt_file
         self.experiment_plot()
 
     def experiment_plot(self):
+        print(f"{self.total_of_loops=}")
         data = self.df
         start_value = data[self.time_stamp_code].iloc[0]
         data[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
@@ -198,7 +203,10 @@ class ExperimentCycle:
         end = 0
         for k, v in self.loop_data_range.items():
             end += get_loop_seconds(v)
-            df_close = self._close_df(start, end)
+            try:
+                df_close = self._close_df(start, end)
+            except IndexError:
+                break
             start = end + 1
             end += 1
             if self.save_loop_df:
@@ -224,8 +232,8 @@ class ExperimentCycle:
             calculate_ox, args=(start_value,)
         )
         # self.O2_COL = "SDWA0003000061      , CH 1 O2 [% air saturation]"
-        # df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
-        df_close[self.y] = df_close[self.O2_COL]
+        df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
+        # df_close[self.y] = df_close[self.O2_COL]
         return df_close
 
     def create_plot(self, format_="html"):

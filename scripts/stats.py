@@ -149,7 +149,7 @@ class ResumeDataFrame:
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        delete_excel_files(location)
+        # delete_excel_files(location)
 
 
 class Control(ResumeDataFrame):

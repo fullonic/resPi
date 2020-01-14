@@ -149,8 +149,6 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     for i, file_path in enumerate(uploaded_excel_files):
         # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
         experiment = ExperimentCycle(flush, wait, close, file_path)
-        if plot:
-            experiment.create_plot()
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
