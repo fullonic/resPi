@@ -144,6 +144,14 @@ class ExperimentCycle:
 
     def experiment_plot(self):
         print(f"{self.total_of_loops=}")
+        markers = []
+        timer = 0
+        for i in range(self.total_of_loops):
+            pt = timer + (self.loop_time)
+            markers.append(pt)
+            timer = pt
+        print(f"{markers=}, {len(markers)}")
+        # markers = [self.loop_time for i in range(self.total_of_loops)]
         data = self.df
         start_value = data[self.time_stamp_code].iloc[0]
         data[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
@@ -152,7 +160,7 @@ class ExperimentCycle:
         plot = Plot(
             data, self.x, self.y, "test", dst=os.path.dirname(self.original_file.file_output)
         )
-        plot.simple_plot()
+        plot.simple_plot(markers)
 
     @property
     def total_of_loops(self) -> int:
@@ -280,7 +288,7 @@ class Plot:
 
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
-    def simple_plot(self):
+    def simple_plot(self, markers=[]):
         x = self.data[self.x_axis]
         y = self.data[self.y_axis]
         fig = go.Figure()
@@ -289,6 +297,11 @@ class Plot:
                 x=x, y=y, name=self.title, line=dict(color="red", width=1), showlegend=True,
             )
         )
+        y = [9.5 for i in range(len(markers))]
+        size = [2 for i in range(len(markers))]
+        loop = [i + 1 for i in range(len(markers))]
+        fig1 = px.scatter(x=markers, y=y, size=size, text=loop)
+        fig.add_trace(fig1.data[0])
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
 

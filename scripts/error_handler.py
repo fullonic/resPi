@@ -89,7 +89,7 @@ class GUIChecker:
         self.file_ = file_
 
     def match(self):
-        exp = ExperimentCycle(0, 0, 0, self.file_)
+        exp = ExperimentCycle(1, 1, 1, self.file_)
         h = HeadersChecker(exp.df.columns)
         try:
             h.check()

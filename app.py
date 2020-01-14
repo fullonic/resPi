@@ -60,9 +60,9 @@ config = {
 }  # UNIT: minutes
 
 # DEFINE APP
-if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(sys._MEIPASS, 'templates')
-    static_folder = os.path.join(sys._MEIPASS, 'static')
+if getattr(sys, "frozen", False):
+    template_folder = os.path.join(sys._MEIPASS, "templates")
+    static_folder = os.path.join(sys._MEIPASS, "static")
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
     app = Flask(__name__)
@@ -127,7 +127,7 @@ def check_password(password):
 def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
-    save_converted = False  # if to save .txt file converted into .xlsx file
+    save_converted = False  # NOTE: REMOVE AND GET INFO FROM CONFIG FILE
 
     # CALCULATE BLANKS
     control_file_1 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C1.txt")
@@ -157,7 +157,6 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
             experiment.create_plot()
         resume.save()
 
-        # TODO: add flag to save or not all converted file to excel
         resume = ResumeDataFrame(experiment)
 
         logger.warning(f"Task concluded {i+1}/{total_files}")
@@ -205,13 +204,12 @@ def excel_files():
 
         cache.set("generating_files", True)
         # Save file to the system
-        # NOTE: Must check for extensions
         data_file = request.files.get("data_file")
         control_file_1 = request.files.get("control_file_1")
         control_file_2 = request.files.get("control_file_2")
+
         # Contains a list of all uploaded file in a single uploaded request
         uploaded_excel_files = []
-        # for file_ in files:
         # Generate the folder name
         time_stamp = datetime.now().strftime(f"%d_%m_%Y_%H_%M_%S")
         filename, ext = data_file.filename.split(".")
@@ -247,6 +245,13 @@ def excel_files():
             return redirect("excel_files")
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
+
+        if request.form.get("experiment_plot"):
+            ExperimentCycle(flush, wait, close, uploaded_excel_files[0])
+
+            with open(f"{os.path.dirname(uploaded_excel_files[0])}/dataframe.html") as page:
+                cache.set("generating_files", False)
+                return page.read()
 
         t = Thread(
             target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
