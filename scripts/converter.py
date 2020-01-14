@@ -24,7 +24,10 @@ def convert_datetime(dt: str):
     try:
         return datetime.datetime.strptime(dt, "%d/%m/%Y %H:%M:%S")
     except ValueError:  # only for testing
-        return datetime.datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+        try:
+            return datetime.datetime.strptime(dt, "%Y-%m-%d %H:%M:%S")
+        except ValueError:  # only for testing
+            return datetime.datetime.strptime(dt, "%d/%m/%Y %H:%M")
 
 
 def calculate_ox(ox_value, start_value):

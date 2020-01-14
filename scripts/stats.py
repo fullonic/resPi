@@ -118,7 +118,7 @@ class ResumeDataFrame:
                 "CH 1 min O2 [mgO2/L]": O2.min,
                 "CH 1 avg O2 [mgO2/L]": O2.avg,
                 "CH 1 avg temp [°C]": temp_mean(
-                    df_close["SDWA0003000061      , CH 1 temp [°C]"]
+                    df_close["SDWA0003000061      , CH 1 temp [?C]"]
                 ),
                 "O2 after blank": O2_HR - control,
             }
