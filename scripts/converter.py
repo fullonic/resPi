@@ -119,7 +119,6 @@ class ExperimentCycle:
         self.close = close
         self.discard_time = flush + wait  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
-        self.format_file(original_file)
 
         # LOAD ALL CONFIG FROM FILE
         config = config_from_file()["experiment_file_config"]
@@ -130,12 +129,25 @@ class ExperimentCycle:
         self.y = config["Y_COL"]
         self.plot_title = config["PLOT_TITLE"]
         self.save_loop_df = config["SAVE_LOOP_DF"]
+        self.format_file(original_file)
 
     def format_file(self, original_file):
         txt_file = FileFormater(original_file)
         txt_file.to_dataframe()
         self.df = txt_file.df
         self.original_file = txt_file
+        self.experiment_plot()
+
+    def experiment_plot(self):
+        data = self.df
+        start_value = data[self.time_stamp_code].iloc[0]
+        data[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
+        data[self.y] = data[self.O2_COL].map(string_to_float)
+        data.head()
+        plot = Plot(
+            data, self.x, self.y, "test", dst=os.path.dirname(self.original_file.file_output)
+        )
+        plot.simple_plot()
 
     @property
     def total_of_loops(self) -> int:
@@ -212,7 +224,8 @@ class ExperimentCycle:
             calculate_ox, args=(start_value,)
         )
         # self.O2_COL = "SDWA0003000061      , CH 1 O2 [% air saturation]"
-        df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
+        # df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
+        df_close[self.y] = df_close[self.O2_COL]
         return df_close
 
     def create_plot(self, format_="html"):
@@ -257,6 +270,17 @@ class Plot:
         fig.add_trace(trendline)
         fig.update_layout(dict(title=self.title))
 
+        fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
+
+    def simple_plot(self):
+        x = self.data[self.x_axis]
+        y = self.data[self.y_axis]
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=x, y=y, name=self.title, line=dict(color="red", width=1), showlegend=True,
+            )
+        )
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
 

@@ -3,7 +3,7 @@
 import sys
 import os
 import shutil
-import json
+import time
 import subprocess
 import logging
 from glob import glob
@@ -138,15 +138,19 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
         C_Total = Control(C)
         C_Total.get_bank()
     control = C_Total.calculate_blank()
+    print(f"Valor 'Blanco' {control}")
 
     ######################
     #
     ######################
+    now = time.perf_counter()
     total_files = len(uploaded_excel_files)
     logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
         # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
         experiment = ExperimentCycle(flush, wait, close, file_path)
+        if plot:
+            experiment.create_plot()
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
@@ -168,6 +172,7 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     socketio.emit(
         "processing_files", {"generating_files": False, "msg": ""}, namespace="/resPi"
     )
+    print(f"Total time {time.perf_counter() - now}")
 
 
 ####################
@@ -182,7 +187,7 @@ def landing():
             f"{greeting()}, primer cal iniciar la sessió abans d’utilitzar aquesta aplicació",
             "info",
         )
-        return redirect(url_for("respi"))
+        return redirect(url_for("excel_files"))
     else:
         flash(f"Hey {greeting()}, benvingut {session['username']}", "info")
         return redirect(url_for("login"))
@@ -361,7 +366,7 @@ def login():
         if check_password(password):
             logger.warning(f"{request.form.get('username')} connectado")
             flash(f"Hey {greeting()}! Benvingut {session['username']}", "info")
-            return redirect(url_for("respi"))
+            return redirect(url_for("excel_files"))
         flash("Contrasenya incorrecta", "danger")
     return render_template("login.html")
 
@@ -424,4 +429,4 @@ def update_time(local_time):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=False, host="0.0.0.0", port=5000)
+    socketio.run(app, debug=True, host="0.0.0.0", port=5000)

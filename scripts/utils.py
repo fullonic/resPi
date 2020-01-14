@@ -13,13 +13,15 @@ import pandas as pd
 import chardet
 
 import plotly.express as px
-
 SUPPORTED_FILES = ["txt", "xlsx"]
 
 
 def string_to_float(n: str) -> float:
     """Convert str item to float."""
-    return float(n.replace(",", "."))
+    try:
+        return float(n.replace(",", "."))
+    except AttributeError:
+        return n
 
 
 def generate_plot(df, plot_name, folder_dst):
