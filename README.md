@@ -10,7 +10,10 @@ source: https://stackoverflow.com/questions/46099695/pyinstaller-fails-with-plot
 
 
 pyinstaller command:
-short: pyinstaller --onedir --icon=icon.ico --add-data 'templates:templates' --add-data 'static:static' --add-data 'logs:logs' --add-data "config.json:." --add-data "venv/lib/python3.8/site-packages/plotly:plotly" app.py
+pyinstaller --onedir --icon=icon.ico --add-data 'templates:templates' --add-data 'static:static' --add-data 'logs:logs' --add-data "config.json:." --add-data "venv/lib/python3.8/site-packages/plotly:plotly" app.py
+
+On windows, replace : by ; and plotly path to "venv\Lib\site-packages\plotly;plotly"
+pyinstaller --onedir --icon=icon.ico --add-data 'templates;templates' --add-data 'static;static' --add-data 'logs;logs' --add-data "config.json;." --add-data "venv\Lib\site-packages\plotly;plotly":plotly" app.py
 
 full cmd:
 pyinstaller --onefile --add-data 'templates:templates' --add-data 'static:static' --add-data 'logs:logs' --add-data "venv/lib/python3.8/site-packages/plotly:plotly" app.py --hidden-import=statsmodels.tsa.statespace._kalman_filter --hidden-import=statsmodels.tsa.statespace._kalman_smoother --hidden-import=statsmodels.tsa.statespace._representation --hidden-import=statsmodels.tsa.statespace._simulation_smoother --hidden-import=statsmodels.tsa.statespace._statespace --hidden-import=statsmodels.tsa.statespace._tools --hidden-import=statsmodels.tsa.statespace._filters._conventional --hidden-import=statsmodels.tsa.statespace._filters._inversions --hidden-import=statsmodels.tsa.statespace._filters._univariate --hidden-import=statsmodels.tsa.statespace._smoothers._alternative --hidden-import=statsmodels.tsa.statespace._smoothers._classical --hidden-import=statsmodels.tsa.statespace._smoothers._conventional --hidden-import=statsmodels.tsa.statespace._smoothers._univariate
