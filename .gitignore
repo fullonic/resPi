@@ -3,7 +3,7 @@ venv
 *.xlsx
 *.zip
 *.log*
-
+.vscode
 *plot_*.html
 build
 dist

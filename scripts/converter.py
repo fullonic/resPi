@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from scripts.utils import string_to_float, config_from_file
+from scripts.utils import string_to_float, config_from_file, withprogressbar
 
 experiment_file_config = config_from_file()["experiment_file_config"]
 
@@ -77,6 +77,7 @@ class FileFormater:
         columns_name = list(df.iloc[0])[:6]
         # Drop all NaN columns
         df = df.dropna(axis=1)
+        df = df.iloc[:, 0:6]
         # Set new columns names
         df.columns = columns_name
         df.reset_index(inplace=True, drop=True)
@@ -130,6 +131,10 @@ class ExperimentCycle:
         self.plot_title = config["PLOT_TITLE"]
         self.save_loop_df = config["SAVE_LOOP_DF"]
         self.format_file(original_file)
+        # try:
+        #     self.format_file(original_file)
+        # except Exception as e:
+        #     print(e)
 
     def format_file(self, original_file):
         txt_file = FileFormater(original_file)
@@ -143,15 +148,12 @@ class ExperimentCycle:
         self.experiment_plot()
 
     def experiment_plot(self):
-        print(f"{self.total_of_loops=}")
         markers = []
         timer = 0
         for i in range(self.total_of_loops):
             pt = timer + (self.loop_time)
             markers.append(pt)
             timer = pt
-        print(f"{markers=}, {len(markers)}")
-        # markers = [self.loop_time for i in range(self.total_of_loops)]
         data = self.df
         start_value = data[self.time_stamp_code].iloc[0]
         data[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
@@ -239,13 +241,15 @@ class ExperimentCycle:
         df_close[self.x] = df_close[self.time_stamp_code].apply(
             calculate_ox, args=(start_value,)
         )
-        # self.O2_COL = "SDWA0003000061      , CH 1 O2 [% air saturation]"
         df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
         # df_close[self.y] = df_close[self.O2_COL]
         return df_close
 
     def create_plot(self, format_="html"):
+        print("Creating Plots", end="\n")
         for i, df_close in enumerate(self.df_close_list):
+            print(f"[{'=' * i}", end=" ")
+            print(f"{i + 1}/{len(self.df_close_list)}]", end="\r")
             Plot(
                 df_close,
                 self.x,
@@ -272,7 +276,6 @@ class Plot:
         self.dst = dst
 
     def create(self):
-        print("Creating plots")
         x = self.data[self.x_axis]
         y = self.data[self.y_axis]
         fig = go.Figure()
