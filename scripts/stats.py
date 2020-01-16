@@ -22,13 +22,13 @@ COLS_NAME = [
     "Time [sec]",
     "Loop",
     "Phase time [s]",
-    "CH 1 MO2 [mgO2/hr]",
-    "CH 1 slope [mgO2/L/hr]",
-    "CH 1 R^2",
-    "CH 1 max O2 [mgO2/L]",
-    "CH 1 min O2 [mgO2/L]",
-    "CH 1 avg O2 [mgO2/L]",
-    "CH 1 avg temp [°C]",
+    "MO2 [mgO2/hr]",
+    "slope [mgO2/L/hr]",
+    "R^2",
+    "max O2 [mgO2/L]",
+    "min O2 [mgO2/L]",
+    "avg O2 [mgO2/L]",
+    "avg temp [°C]",
     "O2 after blank",
 ]
 
@@ -101,7 +101,8 @@ class ResumeDataFrame:
 
             O2 = O2_data(df_close[O2_col_name])
             r2_a_b = trendline_data(df_close, self.experiment.x, self.experiment.y)
-            slope = r2_a_b.b * 60
+            # slope = r2_a_b.b * 60
+            slope = r2_a_b.b
             O2_HR = slope * aqua_volume
 
             row = {
@@ -111,13 +112,13 @@ class ResumeDataFrame:
                 "Time [sec]": len(df_close) + (self.experiment.discard_time * 60),
                 "Loop": k,
                 "Phase time [s]": self.phase_time,
-                "CH 1 MO2 [mgO2/hr]": O2_HR,
-                "CH 1 slope [mgO2/L/hr]": slope,
-                "CH 1 R^2": r2_a_b.rsquared,
-                "CH 1 max O2 [mgO2/L]": O2.max,
-                "CH 1 min O2 [mgO2/L]": O2.min,
-                "CH 1 avg O2 [mgO2/L]": O2.avg,
-                "CH 1 avg temp [°C]": temp_mean(
+                "MO2 [mgO2/hr]": O2_HR,
+                "slope [mgO2/L/hr]": slope,
+                "R^2": r2_a_b.rsquared,
+                "max O2 [mgO2/L]": O2.max,
+                "min O2 [mgO2/L]": O2.min,
+                "avg O2 [mgO2/L]": O2.avg,
+                "avg temp [°C]": temp_mean(
                     df_close["SDWA0003000061      , CH 1 temp [?C]"]
                 ),
                 "O2 after blank": O2_HR - control,
@@ -158,8 +159,8 @@ class Control(ResumeDataFrame):
     def get_bank(self):
         self.generate_resume(0)
         self.values.append(
-            self.resume_df["CH 1 MO2 [mgO2/hr]"].sum()
-            / len(self.resume_df["CH 1 MO2 [mgO2/hr]"])
+            self.resume_df["MO2 [mgO2/hr]"].sum()
+            / len(self.resume_df["MO2 [mgO2/hr]"])
         )
 
     def calculate_blank(self):

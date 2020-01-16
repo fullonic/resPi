@@ -20,11 +20,12 @@ for c in [C1, C2]:
 control = C_Total.calculate_blank()
 experiment = ExperimentCycle(flush, wait, close, file_path)
 # experiment
-experiment.create_plot()
+# experiment.create_plot()
+
+print(control)
 resume = ResumeDataFrame(experiment)
 resume.generate_resume(control)
 resume.save()
 
 # f = FileFormater(C1)
 # f.to_dataframe()
-control

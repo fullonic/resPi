@@ -160,7 +160,11 @@ class ExperimentCycle:
         data[self.y] = data[self.O2_COL].map(string_to_float)
         data.head()
         plot = Plot(
-            data, self.x, self.y, "test", dst=os.path.dirname(self.original_file.file_output)
+            data,
+            self.x,
+            self.y,
+            "Experiment",
+            dst=os.path.dirname(self.original_file.file_output),
         )
         plot.simple_plot(markers)
 
@@ -241,7 +245,7 @@ class ExperimentCycle:
         df_close["Temps (min)"] = df_close[self.time_stamp_code].apply(
             calculate_ox, args=(start_value,)
         )
-        df_close[self.x] = df_close["Temps (min)"].map(lambda x: x/60)
+        df_close[self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
         df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
         # df_close[self.y] = df_close[self.O2_COL]
         return df_close
@@ -298,7 +302,20 @@ class Plot:
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(
-                x=x, y=y, name=self.title, line=dict(color="red", width=1), showlegend=True,
+                x=x, y=y, name=self.title, line=dict(color="blue", width=1), showlegend=True,
+            )
+        )
+        temp = [
+            string_to_float(t) for t in list(self.data["SDWA0003000061      , CH 1 temp [?C]"])
+        ]
+        print(f"{temp[:10]=}")
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=temp,
+                name="Temperature",
+                line=dict(color="red", width=1),
+                showlegend=True,
             )
         )
         y = [9.5 for i in range(len(markers))]
@@ -306,6 +323,11 @@ class Plot:
         loop = [i + 1 for i in range(len(markers))]
         fig1 = px.scatter(x=markers, y=y, size=size, text=loop)
         fig.add_trace(fig1.data[0])
+        # # Temperature
+
+        # temp = go.Scatter(x=self.data[self.x_axis], y=self.data["SDWA0003000061      , CH 1 temp [?C]"])
+        # fig.add_trace(temp)
+
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
 
