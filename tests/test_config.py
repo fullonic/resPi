@@ -120,10 +120,6 @@ def fake_control():
     frames = [df_loop for i in range(1)]
     results = pd.concat(frames, ignore_index=True)
     return results
-    # results.to_csv(f"{os.path.dirname(file_name)}/control_2.txt", index=False, sep="\t")
-    # return results["SDWA0003000061      , CH 1 O2 [mg/L]"]
-
-
 # r = fake_control()
 lst = fake_data()
 lst = lst[:8178]

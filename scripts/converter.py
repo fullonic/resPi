@@ -238,9 +238,10 @@ class ExperimentCycle:
         # Create the new column of oxygen evolution
         #  Create a new column for o2 evolution and calculate_ox_evolution
         start_value = df_close[self.time_stamp_code].iloc[0]
-        df_close[self.x] = df_close[self.time_stamp_code].apply(
+        df_close["Temps (min)"] = df_close[self.time_stamp_code].apply(
             calculate_ox, args=(start_value,)
         )
+        df_close[self.x] = df_close["Temps (min)"].map(lambda x: x/60)
         df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
         # df_close[self.y] = df_close[self.O2_COL]
         return df_close
@@ -248,8 +249,8 @@ class ExperimentCycle:
     def create_plot(self, format_="html"):
         print("Creating Plots", end="\n")
         for i, df_close in enumerate(self.df_close_list):
-            print(f"[{'=' * i}", end=" ")
-            print(f"{i + 1}/{len(self.df_close_list)}]", end="\r")
+            print(f"[ {'=' * i}", end=" ")
+            print(f"] {i + 1}/{len(self.df_close_list)}", end="\r")
             Plot(
                 df_close,
                 self.x,

@@ -162,7 +162,7 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
         logger.warning(f"Task concluded {i+1}/{total_files}")
         socketio.emit(
             "processing_files",
-            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}"},
+            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
             namespace="/resPi",
         )
     cache.set("generating_files", False)
@@ -319,6 +319,7 @@ def remove_file(file_):
 
 @app.route("/settings", methods=["POST", "GET"])
 def settings():
+    """User define app settings."""
     config = config_from_file()
     if request.method == "POST":
         config = save_config_to_file(request.form.to_dict())
@@ -380,7 +381,7 @@ def logout():
     session["auth"] = False
     logger.warning(f"{session['username']} left.")
     flash(f"Adeu!! {session['username']}", "info")
-    return redirect(url_for("landing"))
+    return redirect(url_for("login"))
 
 
 @app.route("/turn_off")
@@ -388,8 +389,8 @@ def turn_off():
     """Turn off PI."""
     cmd = "sudo shutdown now"
     subprocess.Popen(cmd, shell=True)
-    flash(f"Apagar el sistema... Això pot trigar un parell, espereu si us plau", "info")
-    return redirect(url_for("landing"))
+    flash(f"Apagar el sistema...", "info")
+    return redirect(url_for("login"))
 
 
 @app.route("/restart")
@@ -432,4 +433,4 @@ def update_time(local_time):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host="0.0.0.0", port=5000)
+    socketio.run(app, debug=False, host="0.0.0.0", port=5000)

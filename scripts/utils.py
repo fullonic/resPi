@@ -24,6 +24,7 @@ def string_to_float(n: str) -> float:
         return n
 
 
+
 def generate_plot(df, plot_name, folder_dst):
     """Create a plot with value from O2 saturation and time stamp code."""
     y, x = df.columns[-2:]
@@ -206,3 +207,37 @@ def save_config_to_file(new_config):
 
 def calculate_blank(df):
     pass
+
+
+
+# PROGRESS BAR
+import shutil, sys
+
+def withprogressbar(func):
+    """Decorates ``func`` to display a progress bar while running.
+
+    The decorated function can yield values from 0 to 100 to
+    display the progress.
+    """
+    def _func_with_progress(*args, **kwargs):
+        max_width, _ = shutil.get_terminal_size()
+
+        gen = func(*args, **kwargs)
+        while True:
+            try:
+                progress = next(gen)
+            except StopIteration as exc:
+                sys.stdout.write('\n')
+                return exc.value
+            else:
+                # Build the displayed message so we can compute
+                # how much space is left for the progress bar itself.
+                message = '[%s] {}%%'.format(progress)
+                # Add 3 characters to cope for the %s and %%
+                bar_width = max_width - len(message) + 3
+
+                filled = int(round(bar_width / 100.0 * progress))
+                spaceleft = bar_width - filled
+                bar = '=' * filled + ' ' * spaceleft
+                sys.stdout.write((message+'\r') % bar)
+                sys.stdout.flush()
