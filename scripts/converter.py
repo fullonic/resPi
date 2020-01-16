@@ -297,18 +297,22 @@ class Plot:
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
     def simple_plot(self, markers=[]):
+        from plotly.subplots import make_subplots
         x = self.data[self.x_axis]
         y = self.data[self.y_axis]
-        fig = go.Figure()
+        # fig = go.Figure()
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(
             go.Scatter(
                 x=x, y=y, name=self.title, line=dict(color="blue", width=1), showlegend=True,
-            )
+            ),
+            secondary_y=False
         )
         temp = [
             string_to_float(t) for t in list(self.data["SDWA0003000061      , CH 1 temp [?C]"])
         ]
-        print(f"{temp[:10]=}")
+
         fig.add_trace(
             go.Scatter(
                 x=x,
@@ -316,17 +320,20 @@ class Plot:
                 name="Temperature",
                 line=dict(color="red", width=1),
                 showlegend=True,
-            )
+            ),
+            secondary_y=True
         )
+        # # MARKERS
         y = [9.5 for i in range(len(markers))]
         size = [2 for i in range(len(markers))]
         loop = [i + 1 for i in range(len(markers))]
         fig1 = px.scatter(x=markers, y=y, size=size, text=loop)
         fig.add_trace(fig1.data[0])
         # # Temperature
-
-        # temp = go.Scatter(x=self.data[self.x_axis], y=self.data["SDWA0003000061      , CH 1 temp [?C]"])
-        # fig.add_trace(temp)
+        # Set x-axis title
+        fig.update_xaxes(title_text="Temps (hr)")
+        fig.update_yaxes(title_text="<b>mg O2/l</b>", secondary_y=False)
+        fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
 
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
