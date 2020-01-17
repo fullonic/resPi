@@ -122,6 +122,15 @@ def check_password(password):
         return False
 
 
+def show_preview(flush, wait, close, file_):
+    """Proxy function to generate a global plot preview."""
+    file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", file_.filename)
+    file_.save(file_path)
+
+    ExperimentCycle(flush, wait, close, file_path)
+    os.remove(file_path)
+
+
 ####################
 # BACKGROUND TASKS
 ####################
@@ -190,15 +199,6 @@ def landing():
         flash(f"Hey {greeting()}, benvingut {session['username']}", "info")
         return redirect(url_for("login"))
 
-def show_preview(flush, wait, close, file_):
-    # file_.filename =
-    file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", file_.filename)
-    print(f"{file_path=}")
-    file_.save(file_path)
-
-    ExperimentCycle(flush, wait, close, file_path)
-    os.remove(file_path)
-
 
 @app.route("/excel_files", methods=["POST", "GET"])
 def excel_files():
@@ -206,32 +206,38 @@ def excel_files():
     session["excel_config"] = config_from_file()["file_cycle_config"]
 
     if request.method == "POST":
+        cache.set("generating_files", True)
+        # Get all uploaded files and do validation
+        data_file = request.files.get("data_file")
+        control_file_1 = request.files.get("control_file_1")
+        control_file_2 = request.files.get("control_file_2")
+        for f in [data_file, control_file_1, control_file_2]:
+            filename, ext = f.filename.split(".")
+            if not check_extensions(ext):
+                flash(
+                    f"El tipus de fitxer {ext} no és compatible. Seleccioneu un tipus de fitxer {SUPPORTED_FILES}",  # noqa
+                    "danger",
+                )
+                return redirect("excel_files")
+
         # Get basic information about the data set
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
         plot = True if request.form.get("plot") else False  # if generate or no loop plots
+        ignore_loops = request.form.get("ignore_loops", None)
+        print(f"{ignore_loops=}")
 
-        cache.set("generating_files", True)
-        # Save file to the system
-        data_file = request.files.get("data_file")
+        # Show preview plot if user wants
         if request.form.get("experiment_plot"):
             show_preview(flush, wait, close, data_file)
-            return render_template("global_plot_preview.html")
-        control_file_1 = request.files.get("control_file_1")
-        control_file_2 = request.files.get("control_file_2")
-
+            cache.set("generating_files", False)
+            return render_template("global_graph_preview.html")
         # Contains a list of all uploaded file in a single uploaded request
         uploaded_excel_files = []
         # Generate the folder name
         time_stamp = datetime.now().strftime(f"%d_%m_%Y_%H_%M_%S")
-        filename, ext = data_file.filename.split(".")
-        if not check_extensions(ext):
-            flash(
-                f"El tipus de fitxer {ext} no és compatible. Seleccioneu un tipus de fitxer {SUPPORTED_FILES}",  # noqa
-                "danger",
-            )
-            return redirect("excel_files")
+
         folder_name = f"{filename}_{time_stamp}"
         project_folder = os.path.join(app.config["UPLOAD_FOLDER"], folder_name)
         try:
@@ -258,14 +264,6 @@ def excel_files():
             return redirect("excel_files")
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
-
-        # if request.form.get("experiment_plot"):
-        #     ExperimentCycle(flush, wait, close, uploaded_excel_files[0])
-        #
-        #     with open(f"{os.path.dirname(uploaded_excel_files[0])}/dataframe.html") as page:
-        #         cache.set("generating_files", False)
-        #         return page.read()
-
         t = Thread(
             target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
         )
@@ -278,9 +276,12 @@ def excel_files():
             estaran disponibles a la secció de descàrregues..""",
             "info",
         )
+        # session["ignore_loops"] = None
         return redirect("excel_files")
 
-    return render_template("excel_files.html", config=session.get("excel_config"))
+    config = session.get("excel_config")
+    config["ignore_loops"] = session.get("ignore_loops")
+    return render_template("excel_files.html", config=config)
 
 
 ####################
@@ -436,6 +437,14 @@ def get_status():
             "auto_run_since": cache.get("auto_run_since"),
         }
     )
+
+
+@app.route("/remove_loops", methods=["POST"])
+def remove_loops():
+    """Save user selected loops to be deleted on user session"""
+    # session["ignore_loops"] = [int(loop) for loop in request.form["ignore_loops"].split(",")]
+    session["ignore_loops"] = request.form["ignore_loops"]
+    return redirect(url_for("excel_files"))
 
 
 @app.route("/user_time/<local_time>", methods=["GET", "POST"])

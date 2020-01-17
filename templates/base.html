@@ -16,7 +16,6 @@
 </head>
 
 <body>
-
   {% block body %}
 
   {% endblock %}
@@ -152,6 +151,10 @@
     $(function() {
       $('[data-toggle="popover"]').popover()
     })
+
+    function saySomething() {
+      console.log("You called!!!");
+    }
   </script>
   {% block scripts %}{% endblock %}
 

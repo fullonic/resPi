@@ -31,20 +31,26 @@
           </div>
           <div class="form-row">
             <div class="form-group col-md-4">
-              <label for="inputAddress">'Flush' time</label>
-              <input type="number" value="{{ config.flush }}" name="flush" class="form-control" id="inputAddress" placeholder="Flush time in minutes" required>
+              <label for="inputFlush">'Flush' time</label>
+              <input type="number" value="{{ config.flush }}" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
             </div>
             <div class="form-group col-md-4">
-              <label for="inputAddress">'Wait' time</label>
-              <input type="number" value="{{ config.wait }}" name="wait" class="form-control" id="inputAddress" placeholder="Wait time in minutes" required>
+              <label for="inputWait">'Wait' time</label>
+              <input type="number" value="{{ config.wait }}" name="wait" class="form-control" id="inputWait" placeholder="Wait time in minutes" required>
             </div>
             <div class="form-group col-md-4">
-              <label for="inputAddress">'Close' time</label>
-              <input type="number" value="{{ config.close }}" name="close" class="form-control" id="inputAddress" placeholder="Close time in minutes" required>
+              <label for="inputClose">'Close' time</label>
+              <input type="number" value="{{ config.close }}" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
             </div>
           </div>
           <div class="row">
-            <button onclick="myFunction()" type="submit" id="submit_files" class="btn btn-primary mr-3">Process, please</button>
+            <div class="form-group col-md-4">
+              <label for="inputIgnoreLoops">Loops que seran ignorados</label>
+              <input type="text" value="{{ config.ignore_loops }}" name="ignore_loops" class="form-control" id="inputIgnoreLoops" placeholder="Close time in minutes">
+            </div>
+          </div>
+          <div class="row">
+            <button type="submit" id="submit_files" class="btn btn-primary mr-3">Process, please</button>
             <div class="form-check">
               <input class="form-check-input" name="plot" type="checkbox" value="yes" id="generatePlots" checked>
               <label class="form-check-label" for="generatePlots">
