@@ -9,19 +9,23 @@ from scripts.utils import string_to_float
 # now = time.perf_counter()
 C1 = "/home/somnium/Desktop/ANGULA/RealData/D2/blanc16.txt"
 C2 = "/home/somnium/Desktop/ANGULA/RealData/D2/blanc16.txt"
+# file_path = "/home/somnium/Desktop/ANGULA/RealData/D2/blanc16.txt"
 file_path = "/home/somnium/Desktop/ANGULA/RealData/D2/nitota.txt"
 dst = "/home/somnium/Desktop/ANGULA/RealData"
 flush, wait, close = 3, 10, 40
 #
 for c in [C1, C2]:
-    C = ControlFile(flush, wait, close, c)
+    C = ControlFile(flush, wait, close, c, ignore_loops=[0])
     C_Total = Control(C)
     C_Total.get_bank()
 control = C_Total.calculate_blank()
-experiment = ExperimentCycle(flush, wait, close, file_path)
-# experiment
-# experiment.create_plot()
+experiment = ExperimentCycle(flush, wait, close, file_path, ignore_loops=[10,11,12,13])
+lst = experiment.df_close_list
+len(lst)
 
+# # experiment
+# # experiment.create_plot()
+#
 print(control)
 resume = ResumeDataFrame(experiment)
 resume.generate_resume(control)

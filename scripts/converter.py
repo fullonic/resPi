@@ -113,7 +113,9 @@ class ExperimentCycle:
     dt_col_name: Name of that contains the experiment time spans
     """
 
-    def __init__(self, flush: int, wait: int, close: int, original_file: str):  # noqa
+    def __init__(
+        self, flush: int, wait: int, close: int, original_file: str, ignore_loops: list = None
+    ):  # noqa
         self.flush = flush
         self.wait = wait
         self.close = close
@@ -130,10 +132,7 @@ class ExperimentCycle:
         self.plot_title = config["PLOT_TITLE"]
         self.save_loop_df = config["SAVE_LOOP_DF"]
         self.format_file(original_file)
-        # try:
-        #     self.format_file(original_file)
-        # except Exception as e:
-        #     print(e)
+        self.ignore_loops = ignore_loops or []
 
     def format_file(self, original_file):
         txt_file = FileFormater(original_file)
@@ -147,6 +146,7 @@ class ExperimentCycle:
         self.experiment_plot()
 
     def experiment_plot(self):
+        """Create a global plot of all complete experiment cycle."""
         markers = []
         timer = 0
         for i in range(self.total_of_loops):
@@ -209,12 +209,16 @@ class ExperimentCycle:
         return close_range
 
     @property
-    def df_close_list(self):
-        k = 0
-        lst = []
-        start = 0
-        end = 0
-        for k, v in self.loop_data_range.items():
+    def df_close_list(self):  # NOTE:  must pass here list to ignore
+        # k = 0
+        lst: list = []
+        start: int = 0
+        end: int = 0
+        for k, v in self.loop_data_range.items():  # It will ignore
+            # print(f"{k=}")
+            # if k in self.ignore_loops:
+            #     k += 1
+            #     continue
             end += get_loop_seconds(v)
             try:
                 df_close = self._close_df(start, end)
@@ -310,7 +314,8 @@ class Plot:
             secondary_y=False,
         )
         temp = [
-            string_to_float(t) for t in list(self.data["SDWA0003000061      , CH 1 temp [?C]"])[:100]
+            string_to_float(t)
+            for t in list(self.data["SDWA0003000061      , CH 1 temp [?C]"])[:100]
         ]
 
         fig.add_trace(

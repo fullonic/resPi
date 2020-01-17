@@ -94,8 +94,9 @@ class ResumeDataFrame:
         resume_df = pd.DataFrame(columns=COLS_NAME)
         aqua_volume = config["file_cycle_config"]["aqua_volume"]
         for i, df_close in enumerate(self.experiment.df_close_list):
-            # for k, v in self.loop_data_range.items():
             k = i + 1
+            if k in self.experiment.ignore_loops:
+                continue
             O2_col_name = "SDWA0003000061      , CH 1 O2 [mg/L]"
             # O2_col_name = "SDWA0003000061      , CH 1 O2 [% air saturation]"
 
@@ -134,6 +135,7 @@ class ResumeDataFrame:
         if ext == "csv":
             self.resume_df.to_csv(fname)
         else:
+            self.resume_df.reset_index(inplace=True, drop=True)
             self.resume_df.to_excel(fname)
 
         self.zip_folder()

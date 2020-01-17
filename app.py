@@ -134,7 +134,9 @@ def show_preview(flush, wait, close, file_):
 ####################
 # BACKGROUND TASKS
 ####################
-def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
+def process_excel_files(
+    flush, wait, close, uploaded_excel_files, plot, ignore_loops: list = None
+):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
     save_converted = False  # NOTE: REMOVE AND GET INFO FROM CONFIG FILE
@@ -158,7 +160,7 @@ def process_excel_files(flush, wait, close, uploaded_excel_files, plot):
     logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
         # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
-        experiment = ExperimentCycle(flush, wait, close, file_path)
+        experiment = ExperimentCycle(flush, wait, close, file_path, ignore_loops)
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
@@ -225,7 +227,7 @@ def excel_files():
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
         plot = True if request.form.get("plot") else False  # if generate or no loop plots
-        ignore_loops = request.form.get("ignore_loops", None)
+        ignore_loops = [int(loop) for loop in request.form["ignore_loops"].split(",")]
         print(f"{ignore_loops=}")
 
         # Show preview plot if user wants
@@ -265,7 +267,8 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files,
+            args=(flush, wait, close, uploaded_excel_files, plot, ignore_loops),
         )
         t.start()
 
