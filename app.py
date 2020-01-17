@@ -190,6 +190,15 @@ def landing():
         flash(f"Hey {greeting()}, benvingut {session['username']}", "info")
         return redirect(url_for("login"))
 
+def show_preview(flush, wait, close, file_):
+    # file_.filename =
+    file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", file_.filename)
+    print(f"{file_path=}")
+    file_.save(file_path)
+
+    ExperimentCycle(flush, wait, close, file_path)
+    os.remove(file_path)
+
 
 @app.route("/excel_files", methods=["POST", "GET"])
 def excel_files():
@@ -201,11 +210,14 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False
+        plot = True if request.form.get("plot") else False  # if generate or no loop plots
 
         cache.set("generating_files", True)
         # Save file to the system
         data_file = request.files.get("data_file")
+        if request.form.get("experiment_plot"):
+            show_preview(flush, wait, close, data_file)
+            return render_template("global_plot_preview.html")
         control_file_1 = request.files.get("control_file_1")
         control_file_2 = request.files.get("control_file_2")
 
@@ -247,12 +259,12 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
 
-        if request.form.get("experiment_plot"):
-            ExperimentCycle(flush, wait, close, uploaded_excel_files[0])
-
-            with open(f"{os.path.dirname(uploaded_excel_files[0])}/dataframe.html") as page:
-                cache.set("generating_files", False)
-                return page.read()
+        # if request.form.get("experiment_plot"):
+        #     ExperimentCycle(flush, wait, close, uploaded_excel_files[0])
+        #
+        #     with open(f"{os.path.dirname(uploaded_excel_files[0])}/dataframe.html") as page:
+        #         cache.set("generating_files", False)
+        #         return page.read()
 
         t = Thread(
             target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
@@ -435,5 +447,6 @@ def update_time(local_time):
 
 if __name__ == "__main__":
     port = 5000
-    webbrowser.open(f"http://localhost:{port}/excel_files")
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # webbrowser.open(f"http://localhost:{port}/excel_files")
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)

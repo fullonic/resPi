@@ -2,14 +2,13 @@
 import os
 import math
 import datetime
-import queue
 
 import chardet
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from scripts.utils import string_to_float, config_from_file, withprogressbar
+from scripts.utils import string_to_float, config_from_file
 
 experiment_file_config = config_from_file()["experiment_file_config"]
 
@@ -331,11 +330,15 @@ class Plot:
         fig.add_trace(fig1.data[0])
         # # Temperature
         # Set x-axis title
-        fig.update_xaxes(title_text="Temps (hr)")
+        fig.update_xaxes(title_text="<b>Temps (hr)</b>")
         fig.update_yaxes(title_text="<b>mg O2/l</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
 
-        fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
+        print(f"LOCATION = {self.dst}/{self.fname}.{self.output}")
+        # fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
+        print(f"{os.getcwd()=}")
+        template_folder = os.path.join(os.getcwd(), "templates")
+        fig.write_html(f"{template_folder}/_global_plot_preview.{self.output}")
 
 
 ControlFile = ExperimentCycle
