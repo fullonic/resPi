@@ -1,5 +1,6 @@
 """Application backend logic."""
 
+import webbrowser
 import sys
 import os
 import shutil
@@ -433,4 +434,6 @@ def update_time(local_time):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host="0.0.0.0", port=5000)
+    port = 5000
+    webbrowser.open(f"http://localhost:{port}/excel_files")
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
