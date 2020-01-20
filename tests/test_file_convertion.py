@@ -19,7 +19,7 @@ for c in [C1, C2]:
     C_Total = Control(C)
     C_Total.get_bank()
 control = C_Total.calculate_blank()
-experiment = ExperimentCycle(flush, wait, close, file_path, ignore_loops=[10,11,12,13])
+experiment = ExperimentCycle(flush, wait, close, file_path, ignore_loops=[1,2,3,4,5])
 lst = experiment.df_close_list
 len(lst)
 
