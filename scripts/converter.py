@@ -8,7 +8,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-from scripts.utils import string_to_float, config_from_file
+from scripts.utils import string_to_float, config_from_file, progress_bar
 
 experiment_file_config = config_from_file()["experiment_file_config"]
 
@@ -253,19 +253,23 @@ class ExperimentCycle:
         # df_close[self.y] = df_close[self.O2_COL]
         return df_close
 
+    @progress_bar
     def create_plot(self, format_="html"):
         print("Creating Plots", end="\n")
+        step = 100 / len(self.df_close_list)
         for i, df_close in enumerate(self.df_close_list):
-            print(f"[ {'=' * i}", end=" ")
-            print(f"] {i + 1}/{len(self.df_close_list)}", end="\r")
+            k = i + 1
+            # print(f"[ {'=' * i}", end=" ")
+            # print(f"] {i + 1}/{len(self.df_close_list)}", end="\r")
             Plot(
                 df_close,
                 self.x,
                 self.y,
                 self.plot_title,
                 dst=os.path.dirname(self.original_file.file_output),
-                fname=f"df_plot_{i + 1}",  # TODO: must be user o decides name
+                fname=f"df_plot_{k}",  # TODO: must be user o decides name
             ).create()
+            yield round(step * k)
 
     def save(self, df_loop, name):
         return df_loop.to_excel(f"{self.original_file.folder_dst}/df_loop_{name}.xlsx")

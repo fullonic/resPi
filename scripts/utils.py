@@ -4,6 +4,7 @@ All the operations here must be independent of the application requests.
 """
 
 import shutil
+import sys
 import os
 import time
 import json
@@ -208,17 +209,13 @@ def save_config_to_file(new_config):
 def calculate_blank(df):
     pass
 
-
-
-# PROGRESS BAR
-import shutil, sys
-
-def withprogressbar(func):
+def progress_bar(func):
     """Decorates ``func`` to display a progress bar while running.
 
     The decorated function can yield values from 0 to 100 to
     display the progress.
     """
+
     def _func_with_progress(*args, **kwargs):
         max_width, _ = shutil.get_terminal_size()
 
@@ -226,18 +223,20 @@ def withprogressbar(func):
         while True:
             try:
                 progress = next(gen)
-            except StopIteration as exc:
-                sys.stdout.write('\n')
-                return exc.value
+            except StopIteration as e:
+                sys.stdout.write("\n")
+                return e.value
             else:
                 # Build the displayed message so we can compute
                 # how much space is left for the progress bar itself.
-                message = '[%s] {}%%'.format(progress)
+                message = "[%s] {}%%".format(progress)
                 # Add 3 characters to cope for the %s and %%
                 bar_width = max_width - len(message) + 3
 
                 filled = int(round(bar_width / 100.0 * progress))
                 spaceleft = bar_width - filled
-                bar = '=' * filled + ' ' * spaceleft
-                sys.stdout.write((message+'\r') % bar)
+                bar = "=" * filled + " " * spaceleft
+                sys.stdout.write((f"{message}\r") % bar)
                 sys.stdout.flush()
+
+    return _func_with_progress
