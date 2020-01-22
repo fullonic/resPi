@@ -39,22 +39,31 @@
   <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
   <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
   <script type="text/javascript">
-    function ledGreen() {
-      $("#available").removeClass("d-none")
+    function ledsOFF() {
+      $("#available").addClass("d-none")
+      $("#close").addClass("d-none")
       $("#busy").addClass("d-none")
-      $("#stand_by").addClass("d-none")
+      $("#wait").addClass("d-none")
+    };
+
+    function ledGreen() {
+      ledsOFF();
+      $("#available").removeClass("d-none")
     };
 
     function ledRed() {
+      ledsOFF();
       $("#busy").removeClass("d-none")
-      $("#available").addClass("d-none")
-      $("#stand_by").addClass("d-none")
     };
 
     function ledYellow() {
-      $("#stand_by").removeClass("d-none")
-      $("#busy").addClass("d-none")
-      $("#available").addClass("d-none")
+      ledsOFF();
+      $("#wait").removeClass("d-none")
+    };
+
+    function ledOrange() {
+      ledsOFF();
+      $("#close").removeClass("d-none")
     };
 
     function blockStart() {
@@ -90,7 +99,11 @@
           countDown(system_info.cycle_ends_in);
           blockStart();
         } else if (system_info.run_auto && !system_info.running) { // Pump in stand by; auto mode True
-          ledYellow();
+          if (system_info.cycle_fase === "wait") {
+            ledYellow();
+          } else {
+            ledOrange();
+          }
           runningAuto();
           countDown(system_info.next_cycle_at)
           blockStart();
@@ -130,15 +143,24 @@
           $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
           $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
         } else if (system_info.run_auto && !system_info.running) {
-          ledYellow();
-          countDown(system_info.next_cycle_at);
-          // stopWatch(system_info.cycle_ends_in);
-        } else {
+          if (system_info.cycle_fase === "wait") {
+            ledYellow();
+            console.log(system_info.cycle_fase);
+          } else {
+            ledOrange();
+            console.log(system_info.cycle_fase);
+          }
+          countDown(system_info.next_cycle_at)
+        }
+        // stopWatch(system_info.cycle_ends_in);
+        else {
           ledGreen();
         }
         if (cb)
           cb();
       });
+
+
       socket.on('processing_files', function(data, cb) {
         // if (data.generating_files) {
         $("#files-progress").text(data.msg)

@@ -247,6 +247,96 @@ body {
   }
 }
 
+/* ORANGE LED */
+.led-orange {
+  margin: 0 auto;
+  width: 24px;
+  height: 24px;
+  background-color: #ffa800;
+  border-radius: 50%;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #ffa800 0 2px 12px;
+  -webkit-animation: blinkOrange 1s infinite;
+  -moz-animation: blinkOrange 1s infinite;
+  -ms-animation: blinkOrange 1s infinite;
+  -o-animation: blinkOrange 1s infinite;
+  animation: blinkOrange 1s infinite;
+}
+
+@-webkit-keyframes blinkOrange {
+  from {
+    background-color: #ffa800;
+  }
+
+  50% {
+    background-color: #AA0;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #ffa800 0 2px 0;
+  }
+
+  to {
+    background-color: #ffa800;
+  }
+}
+
+@-moz-keyframes blinkOrange {
+  from {
+    background-color: #ffa800;
+  }
+
+  50% {
+    background-color: #AA0;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #ffa800 0 2px 0;
+  }
+
+  to {
+    background-color: #ffa800;
+  }
+}
+
+@-ms-keyframes blinkOrange {
+  from {
+    background-color: #ffa800;
+  }
+
+  50% {
+    background-color: #AA0;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #ffa800 0 2px 0;
+  }
+
+  to {
+    background-color: #ffa800;
+  }
+}
+
+@-o-keyframes blinkOrange {
+  from {
+    background-color: #ffa800;
+  }
+
+  50% {
+    background-color: #AA0;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #ffa800 0 2px 0;
+  }
+
+  to {
+    background-color: #ffa800;
+  }
+}
+
+@keyframes blinkOrange {
+  from {
+    background-color: #ffa800;
+  }
+
+  50% {
+    background-color: #AA0;
+    box-shadow: rgba(0, 0, 0, 0.2) 0 -1px 7px 1px, inset #808002 0 -1px 9px, #ffa800 0 2px 0;
+  }
+
+  to {
+    background-color: #ffa800;
+  }
+}
+
 /* body,
 .landing {
   background-image: url("../img/Angulas.jpg");

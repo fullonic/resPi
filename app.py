@@ -61,9 +61,9 @@ if GPIO is not None:
 
 # DEFINE APP
 # app = Flask(__name__)
-if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(sys._MEIPASS, 'templates')
-    static_folder = os.path.join(sys._MEIPASS, 'static')
+if getattr(sys, "frozen", False):
+    template_folder = os.path.join(sys._MEIPASS, "templates")
+    static_folder = os.path.join(sys._MEIPASS, "static")
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
     app = Flask(__name__)
@@ -138,9 +138,7 @@ def switch_off():
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
 
-    cache.set_many(
-        (("cycle_ends_in", None), ("next_cycle_at", None), ("running", False))
-    )
+    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     logger.warning(f"Pump is off |  Mode: {run_mode}")
 
@@ -158,6 +156,7 @@ def pump_cycle(cycle, period):
         {
             "data": "Server generated event",
             "running": cache.get("running"),
+            "cycle_fase": cache.set("cycle_fase", "flush"),
             "run_auto": cache.get("running"),
             "cycle_ends_in": cache.get("cycle_ends_in"),
             "total_loops": cache.get("total_loops"),
@@ -171,29 +170,24 @@ def pump_cycle(cycle, period):
             # Turn off the pump
             switch_off()
             cache.set("next_cycle_at", to_js_time(period, "auto"))
-            socketio.emit(
-                "automatic_program",
-                {
-                    "data": "Server generated event",
-                    "running": cache.get("running"),
-                    "run_auto": True,
-                    "next_cycle_at": cache.get("next_cycle_at"),
-                },
-                namespace="/resPi",
-            )
+            # socketio.emit(
+            #     "automatic_program",
+            #     {
+            #         "data": "Server generated event",
+            #         "running": cache.get("running"),
+            #         "cycle_fase": cache.get("cycle_fase"),
+            #         "run_auto": True,
+            #         "next_cycle_at": cache.get("next_cycle_at"),
+            #     },
+            #     namespace="/resPi",
+            # )
             ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # print(f"Current automatic program: Started {str(started)} | Ended: {str(ended)}")
             # Write information to logging file
-            print(
-                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
-            )
             logger.warning(
                 f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
             )
         else:  # Ignore previous. Pump is already off
-            logger.warning(
-                f"Automatic program: Started {started} was closed forced by user"
-            )
+            logger.warning(f"Automatic program: Started {started} was closed forced by user")
 
 
 ####################
@@ -216,8 +210,35 @@ def start_program(app=None):
     cycle = user_program.get("flush") * UNIT  # Run the pump for the time of x seconds
     while cache.get("run_auto"):
         pump_cycle(cycle, period)
-        if not exit_thread.wait(timeout=period):
-            continue
+        # Send message about wait status
+        cache.set("cycle_fase", "wait")
+        socketio.emit(
+            "automatic_program",
+            {
+                "data": "Server generated event",
+                "running": cache.get("running"),
+                "cycle_fase": cache.get("cycle_fase"),
+                "run_auto": True,
+                "next_cycle_at": cache.get("next_cycle_at"),
+            },
+            namespace="/resPi",
+        )
+        if not exit_thread.wait(timeout=(user_program.get("wait") * UNIT)):
+            # Send message about close status
+            cache.set("cycle_fase", "close")
+            socketio.emit(
+                "automatic_program",
+                {
+                    "data": "Server generated event",
+                    "running": cache.get("running"),
+                    "cycle_fase": cache.get("cycle_fase"),
+                    "run_auto": True,
+                    "next_cycle_at": cache.get("next_cycle_at"),
+                },
+                namespace="/resPi",
+            )
+            if not exit_thread.wait(timeout=(user_program.get("close") * UNIT)):
+                continue
     else:
         return False
 
@@ -287,10 +308,7 @@ def respi():
         if request.form.get("manual", False):
             if request.form["manual"] == "start_manual":
                 cache.set_many(
-                    (
-                        ("started_at", to_js_time(run_type="manual")),
-                        ("run_manual", True),
-                    )
+                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True),)
                 )
                 switch_on()
             else:
@@ -411,6 +429,7 @@ def get_status():
             "running": cache.get("running"),
             "run_auto": cache.get("run_auto"),
             "run_manual": cache.get("run_manual"),
+            "cycle_fase": cache.get("cycle_fase"),
             "started_at": cache.get("started_at"),
             "cycle_ends_in": cache.get("cycle_ends_in"),
             "next_cycle_at": cache.get("next_cycle_at"),
@@ -425,7 +444,7 @@ def get_status():
 def update_time(local_time):
     """Get user local time to update server time."""
     update_time = ["sudo", "date", "-s", "{local_time}"]
-    subprocess.rum(update_time)
+    subprocess.run(update_time)
     return redirect(url_for("login"))
 
 
