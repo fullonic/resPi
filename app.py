@@ -61,9 +61,9 @@ if GPIO is not None:
 
 # DEFINE APP
 # app = Flask(__name__)
-if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(sys._MEIPASS, 'templates')
-    static_folder = os.path.join(sys._MEIPASS, 'static')
+if getattr(sys, "frozen", False):
+    template_folder = os.path.join(sys._MEIPASS, "templates")
+    static_folder = os.path.join(sys._MEIPASS, "static")
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
     app = Flask(__name__)
@@ -138,9 +138,7 @@ def switch_off():
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
 
-    cache.set_many(
-        (("cycle_ends_in", None), ("next_cycle_at", None), ("running", False))
-    )
+    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     logger.warning(f"Pump is off |  Mode: {run_mode}")
 
@@ -182,18 +180,15 @@ def pump_cycle(cycle, period):
                 namespace="/resPi",
             )
             ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # print(f"Current automatic program: Started {str(started)} | Ended: {str(ended)}")
             # Write information to logging file
-            print(
-                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
-            )
+            # print(
+            #     f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
+            # )
             logger.warning(
                 f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
             )
         else:  # Ignore previous. Pump is already off
-            logger.warning(
-                f"Automatic program: Started {started} was closed forced by user"
-            )
+            logger.warning(f"Automatic program: Started {started} was closed forced by user")
 
 
 ####################
@@ -287,10 +282,7 @@ def respi():
         if request.form.get("manual", False):
             if request.form["manual"] == "start_manual":
                 cache.set_many(
-                    (
-                        ("started_at", to_js_time(run_type="manual")),
-                        ("run_manual", True),
-                    )
+                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True),)
                 )
                 switch_on()
             else:
@@ -411,6 +403,7 @@ def get_status():
             "running": cache.get("running"),
             "run_auto": cache.get("run_auto"),
             "run_manual": cache.get("run_manual"),
+            "cycle_fase": cache.get("cycle_fase"),
             "started_at": cache.get("started_at"),
             "cycle_ends_in": cache.get("cycle_ends_in"),
             "next_cycle_at": cache.get("next_cycle_at"),
