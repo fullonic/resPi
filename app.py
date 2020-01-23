@@ -90,7 +90,7 @@ handler.setFormatter(logging.Formatter("%(message)s"))
 handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
-UNIT = 60  # 1 for seconds, 60 for minutes
+UNIT = 1  # 1 for seconds, 60 for minutes
 
 
 def login_required(fn):
@@ -138,18 +138,23 @@ def switch_off():
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
 
-    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
+    cache.set_many((("cycle_ends_in", None), ("cycle_ends_in", None), ("running", False)))
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     logger.warning(f"Pump is off |  Mode: {run_mode}")
 
 
 # PUMP CYCLE
-def pump_cycle(cycle, period):
-    """Define how long pump is ON in order to full the fish tank."""
+def pump_cycle(cycle: int, period: int):
+    """Define how long pump is ON in order to full the fish tank.
+
+    cycle: pump flush time
+    period: wait time + close time
+    """
     # Turn on the pump
     started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cache.set("total_loops", cache.get("total_loops") + 1)
     switch_on()
+    cycle_ends_in = to_js_time(cycle, "auto")
     cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
     socketio.emit(
         "automatic_program",
@@ -169,18 +174,7 @@ def pump_cycle(cycle, period):
         if cache.get("run_auto"):  # If still in current automatic program
             # Turn off the pump
             switch_off()
-            cache.set("next_cycle_at", to_js_time(period, "auto"))
-            # socketio.emit(
-            #     "automatic_program",
-            #     {
-            #         "data": "Server generated event",
-            #         "running": cache.get("running"),
-            #         "cycle_fase": cache.get("cycle_fase"),
-            #         "run_auto": True,
-            #         "next_cycle_at": cache.get("next_cycle_at"),
-            #     },
-            #     namespace="/resPi",
-            # )
+            # cache.set("cycle_ends_in", to_js_time(period, "auto"))
             ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # Write information to logging file
             logger.warning(
@@ -203,8 +197,10 @@ def start_program(app=None):
     """
     # Save starting time programming
     cache.set("auto_run_since", (datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
     user_program = cache.get("user_program")
+    wait = user_program.get("wait") * UNIT
+    close = user_program.get("close") * UNIT
+
     # Turn the pump on every x seconds
     period = (user_program.get("close") + user_program.get("wait")) * UNIT
     cycle = user_program.get("flush") * UNIT  # Run the pump for the time of x seconds
@@ -212,6 +208,9 @@ def start_program(app=None):
         pump_cycle(cycle, period)
         # Send message about wait status
         cache.set("cycle_fase", "wait")
+        print("WAIT")
+        print(f'{cache.get("cycle_fase")=}')
+        cache.set("cycle_ends_in", to_js_time(wait))
         socketio.emit(
             "automatic_program",
             {
@@ -219,13 +218,15 @@ def start_program(app=None):
                 "running": cache.get("running"),
                 "cycle_fase": cache.get("cycle_fase"),
                 "run_auto": True,
-                "next_cycle_at": cache.get("next_cycle_at"),
+                "cycle_ends_in": cache.get("cycle_ends_in"),
             },
             namespace="/resPi",
         )
         if not exit_thread.wait(timeout=(user_program.get("wait") * UNIT)):
             # Send message about close status
+            print("CLOSEEEE")
             cache.set("cycle_fase", "close")
+            cache.set("cycle_ends_in", to_js_time(close))
             socketio.emit(
                 "automatic_program",
                 {
@@ -233,7 +234,7 @@ def start_program(app=None):
                     "running": cache.get("running"),
                     "cycle_fase": cache.get("cycle_fase"),
                     "run_auto": True,
-                    "next_cycle_at": cache.get("next_cycle_at"),
+                    "cycle_ends_in": cache.get("cycle_ends_in"),
                 },
                 namespace="/resPi",
             )
@@ -297,7 +298,7 @@ def respi():
                 (
                     ("running", False),
                     ("cycle_ends", None),
-                    ("next_cycle_at", None),
+                    ("cycle_ends_in", None),
                     ("run_auto", False),
                 )
             )
@@ -432,7 +433,6 @@ def get_status():
             "cycle_fase": cache.get("cycle_fase"),
             "started_at": cache.get("started_at"),
             "cycle_ends_in": cache.get("cycle_ends_in"),
-            "next_cycle_at": cache.get("next_cycle_at"),
             "generating_files": cache.get("generating_files"),
             "total_loops": cache.get("total_loops"),
             "auto_run_since": cache.get("auto_run_since"),
