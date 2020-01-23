@@ -1,0 +1,65 @@
+<div id="status" class="col-md-1">Estat: </div>
+<div id="led" class="col-md-6 mb-3">
+  <div class="row">
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Ready
+      </div>
+      <div class="card-body">
+        <div id="available" class="led-green" title="Bomba parada"></div>
+      </div>
+    </div>
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Flush
+      </div>
+      <div class="card-body">
+        <div id="led-flush" class="led-blue" title="Bomba en funcionament"></div>
+      </div>
+    </div>
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Wait
+      </div>
+      <div class="card-body">
+        <div id="led-wait" class="led-yellow" title="Bomba en wait"></div>
+      </div>
+    </div>
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Close
+      </div>
+      <div class="card-body">
+        <div id="led-close" class="led-red" title="Bomba en close"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="col-md-5">
+  <div class="row">
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Tiempo
+      </div>
+      <div class="card-body">
+        <div class="col-md small" id="timer"></div>
+      </div>
+    </div>
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Started
+      </div>
+      <div class="card-body">
+        <div class="col-md small" id="auto_run_since"></div>
+      </div>
+    </div>
+    <div class="card mr-1">
+      <div class="card-header text-center small">
+        Loop
+      </div>
+      <div class="card-body">
+        <div class="col-md small" id="total_loops"></div>
+      </div>
+    </div>
+  </div>
+</div>

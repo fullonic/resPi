@@ -7,21 +7,8 @@
   <div class="p-5 container">
     <!-- PUMP LEDS STATUS -->
     <div class="row mb-2">
-      <div id="status" class="col-md-1">Estat: </div>
-      <div id="led" class="col-md-1 d-none">
-        <div id="available" class="led-green" title="Bomba parada"></div>
-        <div id="busy" class="led-red" title="Bomba en funcionament"></div>
-        <div id="wait" class="led-yellow" title="Bomba en wait"></div>
-        <div id="close" class="led-orange" title="Bomba en close"></div>
-      </div>
-      <div class="col-md-4 d-block"></div>
-      <div class="col-md-6">
-        <div class="row">
-          <div class="col-md" id="timer"></div>
-          <div class="col-md" id="auto_run_since"></div>
-          <div class="col-md" id="total_loops"></div>
-        </div>
-      </div>
+      {% include "_controllers.html" %}
+
     </div>
 
     <div class="row mt-3">

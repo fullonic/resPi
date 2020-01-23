@@ -40,10 +40,14 @@
   <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
   <script type="text/javascript">
     function ledsOFF() {
-      $("#available").addClass("d-none")
-      $("#close").addClass("d-none")
-      $("#busy").addClass("d-none")
-      $("#wait").addClass("d-none")
+      // $("#available").addClass("led-off")
+      $("#led-flush").addClass("led-off")
+      $("#led-wait").addClass("led-off")
+      $("#led-close").addClass("led-off")
+      // $("#available").removeClass("led-green")
+      $("#led-flush").removeClass("led-blue")
+      $("#led-wait").removeClass("led-yellow")
+      $("#led-close").removeClass("led-red")
     };
 
     function ledGreen() {
@@ -51,19 +55,23 @@
       $("#available").removeClass("d-none")
     };
 
-    function ledRed() {
+
+    function ledBlue() {
       ledsOFF();
-      $("#busy").removeClass("d-none")
+      $("#led-flush").removeClass("led-off")
+      $("#led-flush").addClass("led-blue")
     };
 
     function ledYellow() {
       ledsOFF();
-      $("#wait").removeClass("d-none")
+      $("#led-wait").removeClass("led-off")
+      $("#led-wait").addClass("led-yellow")
     };
 
-    function ledOrange() {
+    function ledRed() {
       ledsOFF();
-      $("#close").removeClass("d-none")
+      $("#led-close").removeClass("led-off")
+      $("#led-close").addClass("led-red")
     };
 
     function blockStart() {
@@ -94,7 +102,7 @@
       $.get("/status", function(system_info, status) {
         console.log(system_info);
         if (system_info.running && system_info.run_auto) { // Means that is running and in auto mode
-          ledRed();
+          ledBlue();
           runningAuto();
           countDown(system_info.cycle_ends_in);
           blockStart();
@@ -102,13 +110,13 @@
           if (system_info.cycle_fase === "wait") {
             ledYellow();
           } else {
-            ledOrange();
+            ledRed();
           }
           runningAuto();
           countDown(system_info.next_cycle_at)
           blockStart();
         } else if (system_info.running && system_info.run_manual) { // Means is running on manual mode
-          ledRed();
+          ledBlue();
           blockStart();
           stopWatch(system_info.started_at);
           runningManual();
@@ -117,8 +125,8 @@
           $("#stop_auto, #stop_manual").addClass("deactivated")
         }
         $("#led").removeClass("d-none")
-        $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
-        $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
+        $("#auto_run_since").text(system_info.auto_run_since);
+        $("#total_loops").text(system_info.total_loops);
 
         if (system_info.generating_files) {
           $("#submit_files").addClass("deactivated")
@@ -140,14 +148,14 @@
         if (system_info.running && system_info.run_auto) {
           ledRed();
           countDown(system_info.cycle_ends_in);
-          $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
-          $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
+          $("#auto_run_since").text(system_info.auto_run_since);
+          $("#total_loops").text(system_info.total_loops);
         } else if (system_info.run_auto && !system_info.running) {
           if (system_info.cycle_fase === "wait") {
             ledYellow();
             console.log(system_info.cycle_fase);
           } else {
-            ledOrange();
+            ledBlue();
             console.log(system_info.cycle_fase);
           }
           countDown(system_info.next_cycle_at)
