@@ -36,7 +36,7 @@ function countDown(cycle_ends_in) {
     // If the count down is finished, write some text
     if (distance < 0) {
       clearInterval(count_down);
-      document.getElementById("timer").innerHTML = "";
+      document.getElementById("timer").innerHTML = "00:00:00";
     }
   }, 1000);
 };

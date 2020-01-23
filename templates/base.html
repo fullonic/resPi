@@ -39,22 +39,41 @@
   <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
   <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
   <script type="text/javascript">
-    function ledGreen() {
-      $("#available").removeClass("d-none")
-      $("#busy").addClass("d-none")
-      $("#stand_by").addClass("d-none")
+    function ledsOFF() {
+      // $("#available").addClass("led-off")
+      $("#led-flush").addClass("led-off")
+      $("#led-wait").addClass("led-off")
+      $("#led-close").addClass("led-off")
+      // $("#available").removeClass("led-green")
+      // $("#led-flush").removeClass("led-blue")
+      $("#led-flush").removeClass("led-green-blink")
+      $("#led-wait").removeClass("led-yellow")
+      $("#led-close").removeClass("led-red")
     };
 
-    function ledRed() {
-      $("#busy").removeClass("d-none")
-      $("#available").addClass("d-none")
-      $("#stand_by").addClass("d-none")
+    function ledGreen() {
+      ledsOFF();
+      $("#available").removeClass("d-none")
+    };
+
+
+    function ledBlue() {
+      ledsOFF();
+      $("#led-flush").removeClass("led-off")
+      // $("#led-flush").addClass("led-blue")
+      $("#led-flush").addClass("led-green-blink")
     };
 
     function ledYellow() {
-      $("#stand_by").removeClass("d-none")
-      $("#busy").addClass("d-none")
-      $("#available").addClass("d-none")
+      ledsOFF();
+      $("#led-wait").removeClass("led-off")
+      $("#led-wait").addClass("led-yellow")
+    };
+
+    function ledRed() {
+      ledsOFF();
+      $("#led-close").removeClass("led-off")
+      $("#led-close").addClass("led-red")
     };
 
     function blockStart() {
@@ -67,7 +86,8 @@
     }
 
     function runningManual() {
-      blockStart()
+      blockStart();
+      ledBlue();
       $("#stop_auto").addClass("deactivated")
       $("#stop_manual").removeClass("deactivated")
     }
@@ -83,19 +103,23 @@
 
     $(document).ready(function() {
       $.get("/status", function(system_info, status) {
-        console.log(system_info);
         if (system_info.running && system_info.run_auto) { // Means that is running and in auto mode
-          ledRed();
+          ledBlue();
           runningAuto();
           countDown(system_info.cycle_ends_in);
           blockStart();
         } else if (system_info.run_auto && !system_info.running) { // Pump in stand by; auto mode True
-          ledYellow();
+          if (system_info.cycle_fase === "wait") {
+            ledYellow();
+            countDown(system_info.cycle_ends_in)
+          } else {
+            ledRed();
+            countDown(system_info.cycle_ends_in)
+          }
           runningAuto();
-          countDown(system_info.next_cycle_at)
           blockStart();
         } else if (system_info.running && system_info.run_manual) { // Means is running on manual mode
-          ledRed();
+          ledBlue();
           blockStart();
           stopWatch(system_info.started_at);
           runningManual();
@@ -104,14 +128,8 @@
           $("#stop_auto, #stop_manual").addClass("deactivated")
         }
         $("#led").removeClass("d-none")
-        $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
-        $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
-
-        if (system_info.generating_files) {
-          $("#submit_files").addClass("deactivated")
-        } else {
-          $("#submit_files").removeClass("deactivated")
-        }
+        $("#auto_run_since").text(system_info.auto_run_since);
+        $("#total_loops").text(system_info.total_loops);
       });
 
       // SOCKER IO
@@ -125,20 +143,26 @@
       socket.on('automatic_program', function(system_info, cb) {
         console.log("ENDS " + system_info.cycle_ends_in);
         if (system_info.running && system_info.run_auto) {
-          ledRed();
+          ledBlue();
           countDown(system_info.cycle_ends_in);
-          $("#auto_run_since").text("Started at': " + system_info.auto_run_since);
-          $("#total_loops").text("Total de 'loops': " + system_info.total_loops);
+          $("#auto_run_since").text(system_info.auto_run_since);
+          $("#total_loops").text(system_info.total_loops);
         } else if (system_info.run_auto && !system_info.running) {
-          ledYellow();
-          countDown(system_info.next_cycle_at);
-          // stopWatch(system_info.cycle_ends_in);
+          if (system_info.cycle_fase === "wait") {
+            ledYellow();
+            countDown(system_info.cycle_ends_in)
+          } else {
+            ledRed();
+            countDown(system_info.cycle_ends_in)
+          }
         } else {
           ledGreen();
         }
         if (cb)
           cb();
       });
+
+
       socket.on('processing_files', function(data, cb) {
         // if (data.generating_files) {
         $("#files-progress").text(data.msg)
