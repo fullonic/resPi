@@ -14,3 +14,4 @@ FrontEnd
  - [ ] Add setting to change default saved plot file name
  - [ ] Add possibility to save plot as png
  - [ ] Improve plot
+Icons made by <a href="https://www.flaticon.com/authors/smalllikeart" title="smalllikeart">smalllikeart</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
