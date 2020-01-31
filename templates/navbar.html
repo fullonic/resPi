@@ -4,13 +4,15 @@
   <a type="button" class="ml-auto mr-5 btn-box" data-toggle="modal" data-target="#powerModal">
     <i class="fas fa-power-off fa-2x power-btn"></i>
   </a>
+  {% if request.path == "/respi" %}
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
   <div class="collapse navbar-collapse" id="navbarNav">
+
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" href="#"><i class="fas fa-question"></i> Ajuda</a>
+        <a class="nav-link" href="{{ url_for('help') }}"><i class="fas fa-question"></i> Ajuda</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="#" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog"></i> Configuració</a>
@@ -22,7 +24,9 @@
         <a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sortir</a>
       </li>
     </ul>
+
   </div>
+  {% endif %}
 </nav>
 
 <!-- POWER Modal -->

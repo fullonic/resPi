@@ -1,1 +1,1 @@
-{"pump_control_config": {"flush": 2, "wait": 3, "close": 20, "safe_fish": true, "pump_was_running": 1}}
+{"pump_control_config": {"flush": 2, "wait": 3, "close": 20, "safe_fish": true, "pump_was_running": 0}}

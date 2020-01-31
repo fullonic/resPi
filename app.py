@@ -101,12 +101,8 @@ UNIT = 1  # 1 for seconds, 60 for minutes
 # USER DEFINED PROGRAM
 def start_program(app=None):
     """Start a new background thread to run the user program."""
-    # program()
-    """User defined task.
-
-    Creates a periodic task using user form input.
-    """
     _set_time(cache.get("user_time"))
+    logger.warning("S'ha iniciat un nou cicle d'experiments")
 
     # Save starting time programming
     cache.set("auto_run_since", (datetime.now().strftime("%d-%m-%Y %H:%M:%S")))
@@ -158,7 +154,7 @@ def start_program(app=None):
 # Active SAFE FISH mode
 #####################
 def _safe_fish_flag(flag):
-    """It sets pump_was_running flag to True or False.
+    """Set pump_was_running flag to True or False.
 
     When experiment starts flag will be True. If user stop the experiment or turn off the
     board using the "turn_off" or "restart" flag will be False.
@@ -196,7 +192,7 @@ def switch_on():
         GPIO.output(PUMP_GPIO, GPIO.HIGH)  # on
     cache.set("running", True)
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    logger.warning(f"Bomba ON | Mode: {run_mode}")
+    # logger.warning(f"Bomba ON | Mode: {run_mode}")
 
 
 def switch_off():
@@ -204,11 +200,9 @@ def switch_off():
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
 
-    cache.set_many(
-        (("cycle_ends_in", None), ("next_cycle_at", None), ("running", False))
-    )
+    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    logger.warning(f"Bomba OFF |  Mode: {run_mode}")
+    # logger.warning(f"Bomba OFF |  Mode: {run_mode}")
 
 
 # PUMP CYCLE
@@ -324,10 +318,7 @@ def respi():
         if request.form.get("manual", False):  # MUST BE CHECK IF CAN BE elif and not if
             if request.form["manual"] == "start_manual":
                 cache.set_many(
-                    (
-                        ("started_at", to_js_time(run_type="manual")),
-                        ("run_manual", True),
-                    )
+                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True),)
                 )
                 switch_on()
             else:
@@ -350,6 +341,12 @@ def respi():
     return render_template(
         "app.html", flush=flush, wait=wait, close=close, config=config, logs=logs
     )
+
+
+@app.route("/help")
+def help():
+    """Help page."""
+    return render_template("help.html")
 
 
 ####################
