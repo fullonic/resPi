@@ -76,11 +76,13 @@
     }
 
     function runningAuto() {
-      blockStart()
+      $("#chronos").text("temps restant");
+      blockStart();
       $("#stop_manual").addClass("deactivated")
     }
 
     function runningManual() {
+      $("#chronos").text("temps acumulat");
       blockStart();
       ledGreen();
       $("#stop_auto").addClass("deactivated")

@@ -16,5 +16,9 @@ resume = ResumeDataFrame(experiment)
 resume.generate_resume(0.2)
 resume.df_lists
 p = Plot(
-    resume.df_lists, "x", "y", "test", dst=os.path.dirname(experiment.original_file.file_output)
+    resume.df_lists,
+    "x",
+    "y",
+    "test",
+    dst=os.path.dirname(experiment.original_file.file_output),
 ).create()

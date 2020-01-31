@@ -1,7 +1,11 @@
-body, .settingsModal, .powerModal {
+body, .settingsModal, .powerModal, .logsModal {
   background-color: #31343A !important;
   color: #FFF !important;
   border: #FFF !important;
+}
+
+.logsModal {
+  padding: 6px !important;
 }
 
 .powerModal a {

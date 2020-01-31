@@ -204,7 +204,9 @@ def switch_off():
     if GPIO:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
 
-    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
+    cache.set_many(
+        (("cycle_ends_in", None), ("next_cycle_at", None), ("running", False))
+    )
     run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     logger.warning(f"Bomba OFF |  Mode: {run_mode}")
 
@@ -322,7 +324,10 @@ def respi():
         if request.form.get("manual", False):  # MUST BE CHECK IF CAN BE elif and not if
             if request.form["manual"] == "start_manual":
                 cache.set_many(
-                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True),)
+                    (
+                        ("started_at", to_js_time(run_type="manual")),
+                        ("run_manual", True),
+                    )
                 )
                 switch_on()
             else:
@@ -340,22 +345,23 @@ def respi():
         wait = cache.get("user_program")["wait"]
         close = cache.get("user_program")["close"]
     config = config_from_file(ROOT)
+    logs = get_logs()
 
-    return render_template("app.html", flush=flush, wait=wait, close=close, config=config)
+    return render_template(
+        "app.html", flush=flush, wait=wait, close=close, config=config, logs=logs
+    )
 
 
 ####################
 # LOGS ROUTES
 ####################
-@app.route("/logs", methods=["GET"])
-def logs():
+def get_logs():
     """Route to see all zip files available to download."""
     logs_folder = glob(f"{app.config['LOGS_FOLDER']}/*.log*")
     # get only the file name and the size of it excluding the path.
     # Create a list of tuples sorted by file name
     logs_folder = sorted([os.path.basename(f) for f in logs_folder])
-    logs = [{"id_": i, "name": file_} for i, file_ in enumerate(logs_folder)]
-    return render_template("logs.html", logs=logs)
+    return [{"id_": i, "name": file_} for i, file_ in enumerate(logs_folder)]
 
 
 @app.route("/read_log/<log>")

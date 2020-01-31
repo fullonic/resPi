@@ -3,21 +3,21 @@
   <div class="card mt-3">
     <div class="card-header">
       <div class="row">
-        <div class="col-md-10">Pump control</div>
+        <div class="col-md-10">Control Bomba Temps</div>
       </div>
     </div>
     <div class="card-body">
       <div class="form-row">
         <div class="form-group col-md">
-          <label for="flush">'Flush' time</label>
+          <label for="flush">'Flush</label>
           <input type="number" min="0" value="{{ config.pump_control_config.flush }}" name="flush" class="form-control" id="flush" placeholder="Flush time in minutes" required>
         </div>
         <div class="form-group col-md">
-          <label for="wait">'Wait' time</label>
+          <label for="wait">'Wait</label>
           <input type="number" min="0" value="{{ config.pump_control_config.wait }}" name="wait" class="form-control" id="wait" placeholder="Wait time in minutes" required>
         </div>
         <div class="form-group col-md">
-          <label for="close">'Close' time</label>
+          <label for="close">'Close</label>
           <input type="number" min="0" value="{{ config.pump_control_config.close }}" name="close" class="form-control" id="close" placeholder="Close time in minutes" required>
         </div>
         <div class="form-group col-md">

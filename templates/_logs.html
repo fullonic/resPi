@@ -1,0 +1,14 @@
+<table class="table table-striped table-dark mt-4">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Name</th>
+      <th scope="col">File</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for log in logs %}
+    {% include "_log_list.html" %}
+    {% endfor %}
+  </tbody>
+</table>

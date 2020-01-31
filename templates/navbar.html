@@ -12,20 +12,14 @@
       <li class="nav-item">
         <a class="nav-link" href="#"><i class="fas fa-question"></i> Ajuda</a>
       </li>
-      <!-- <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Configuració</a>
-      </li> -->
       <li class="nav-item">
         <a class="nav-link" href="#" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog"></i> Configuració</a>
       </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Sistema
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="{{ url_for('logs') }}"><i class="fas fa-file-alt"></i> Logs</a>
-          <a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sortir</a>
-        </div>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#logsModal"><i class="fas fa-file-alt"></i> Logs</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sortir</a>
       </li>
     </ul>
   </div>
@@ -49,9 +43,6 @@
           </div>
         </div>
       </div>
-      <!-- <div class="modal-footer">
-        <a type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i></a>
-      </div> -->
     </div>
   </div>
 </div>

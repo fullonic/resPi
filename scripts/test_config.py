@@ -132,9 +132,7 @@ file_path = "/home/somnium/Desktop/fake_cycle.txt"
 from scripts.converter import FileFormater, ExperimentCycle
 from scripts.stats import ResumeDataFrame
 
-experiment = ExperimentCycle(
-    2, 3, 20, file_path
-)
+experiment = ExperimentCycle(2, 3, 20, file_path)
 experiment.loop_time * 60
 
 resume = ResumeDataFrame(experiment)
@@ -156,7 +154,12 @@ def create_config_file():
             "SAVE_LOOP_DF": True,
         },
         "file_cycle_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": 21.0},
-        "pump_control_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": "40.434"},
+        "pump_control_config": {
+            "flush": 3,
+            "wait": 2,
+            "close": 20,
+            "aqua_volume": "40.434",
+        },
     }
     with open("config.json", "w") as f:
         json.dump(config, f)

@@ -18,8 +18,8 @@ import plotly.express as px
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask import session, redirect, url_for
-SUPPORTED_FILES = {"txt", "xlsx"}
 
+SUPPORTED_FILES = {"txt", "xlsx"}
 
 
 def _set_time(user_time):
