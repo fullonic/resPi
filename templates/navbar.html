@@ -1,31 +1,59 @@
 <nav class="navbar navbar-collapse navbar-dark bg-dark">
-  <a class="navbar-brand" href="{{ url_for('respi') }}">ResPI</a>
-  <div class="text-left" id="files-progress"></div>
+  <!-- <a class="navbar-brand" href="{{ url_for('respi') }}"> <i class="fas fa-fish fa-2x"></i> resPi</a> -->
+  <a class="navbar-brand" href="{{ url_for('respi') }}"><img class="eel-icon" src="{{ url_for('static', filename='img/eel.png') }}"> resPi</a>
+  <a type="button" class="ml-auto mr-5 " data-toggle="modal" data-target="#powerModal">
+    <i class="fas fa-power-off fa-2x"></i>
+  </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
-
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" href="#">Ajuda</a>
+        <a class="nav-link" href="#"><i class="fas fa-question"></i> Ajuda</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('settings') }}">Configuració</a>
+        <a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Configuració</a>
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           Sistema
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="{{ url_for('logs') }}">Logs</a>
-          <a class="dropdown-item" href="{{ url_for('logout') }}">Sortir</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{{ url_for('restart') }}">Reiniciar</a>
-          <a class="dropdown-item" href="{{ url_for('turn_off') }}">Tancar</a>
+          <a class="dropdown-item" href="{{ url_for('logs') }}"><i class="fas fa-file-alt"></i> Logs</a>
+          <a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Sortir</a>
         </div>
       </li>
     </ul>
   </div>
 </nav>
+
+<!-- Modal -->
+<div class="modal fade" id="powerModal" tabindex="-1" role="dialog" aria-labelledby="powerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog" role="document">
+    <div class="modal-content">
+      <!-- <div class="modal-header">
+        <a type="button" data-dismiss="modal"><i class="fas fa-times fa-xs text-dark ml-auto"></i></a>
+      </div> -->
+      <div class="modal-body">
+        <div class="row text-center">
+          <div class="col text-center text-dark">
+            <a type="button" id="restart" href="{{ url_for('restart') }}">
+              <i class="fas fa-sync fa-2x text-dark"></i><br>
+              <small class="small text-dark">Reiniciar</small></a>
+          </div>
+          <div class="col-md-6 text-dark">
+            <a type="button" id="turn_off" href="{{ url_for('turn_off') }}">
+              <i class="fas fa-power-off fa-2x text-dark"></i><br>
+              <small class="small text-dark">Tancar</small></a>
+          </div>
+        </div>
+      </div>
+      <!-- <div class="modal-footer">
+        <a type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i></a>
+      </div> -->
+    </div>
+  </div>
+</div>
+
 {% include "messages.html" %}

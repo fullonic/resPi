@@ -7,6 +7,7 @@ import shutil
 import os
 import time
 import json
+import subprocess
 from datetime import datetime, timedelta
 
 import pandas as pd
@@ -14,7 +15,13 @@ import chardet
 
 import plotly.express as px
 
-SUPPORTED_FILES = ["txt", "xlsx"]
+SUPPORTED_FILES = {"txt", "xlsx"}
+
+
+def _set_time(user_time):
+    """Update server time based on user time when started the experiment."""
+    update_time = ["sudo", "date", "-s", "{user_time}"]
+    return subprocess.run(update_time)
 
 
 def string_to_float(n: str) -> float:

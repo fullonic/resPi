@@ -33,12 +33,12 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask_socketio import SocketIO
-
 from scripts.utils import (
     to_js_time,
     greeting,
     config_from_file,
     save_config_to_file,
+    _set_time
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
@@ -86,7 +86,7 @@ handler = RotatingFileHandler(
     backupCount=app.config["LOGS_BACKUP"],
 )
 # handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(message)s"))
-handler.setFormatter(logging.Formatter("%(message)s"))
+handler.setFormatter(logging.Formatter("%(asctime)s || %(message)s"))
 handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
@@ -154,7 +154,7 @@ def pump_cycle(cycle: int, period: int):
     started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     cache.set("total_loops", cache.get("total_loops") + 1)
     switch_on()
-    cycle_ends_in = to_js_time(cycle, "auto")
+    # cycle_ends_in = to_js_time(cycle, "auto")
     cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
     socketio.emit(
         "automatic_program",
@@ -195,6 +195,8 @@ def start_program(app=None):
 
     Creates a periodic task using user form input.
     """
+    _set_time(cache.get("user_time"))
+    
     # Save starting time programming
     cache.set("auto_run_since", (datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     user_program = cache.get("user_program")
@@ -208,8 +210,6 @@ def start_program(app=None):
         pump_cycle(cycle, period)
         # Send message about wait status
         cache.set("cycle_fase", "wait")
-        print("WAIT")
-        print(f'{cache.get("cycle_fase")=}')
         cache.set("cycle_ends_in", to_js_time(wait))
         socketio.emit(
             "automatic_program",
@@ -224,7 +224,6 @@ def start_program(app=None):
         )
         if not exit_thread.wait(timeout=(user_program.get("wait") * UNIT)):
             # Send message about close status
-            print("CLOSEEEE")
             cache.set("cycle_fase", "close")
             cache.set("cycle_ends_in", to_js_time(close))
             socketio.emit(
@@ -362,9 +361,15 @@ def read_log(log):
     """Open a log file and return it to a html page."""
     file_ = os.path.join(app.config["LOGS_FOLDER"], log)
     with open(file_, "r") as f:
-        log_text = [f"<p>{line}</p>" for line in f.readlines()]
-        log_ = "\n".join(log_text)
-    return log_
+        log_text = [
+            f"""<tr>
+          <th scope="row">{idx}</th>
+          <td>{line.split("||")[0]}</td>
+          <td>{line.split("||")[1]}</td>
+        </tr>"""
+            for idx, line in enumerate(f.readlines())
+        ]
+    return render_template("_read_log.html", tbody="".join(log_text))
 
 
 @app.route("/download_log/<log>")
@@ -443,9 +448,8 @@ def get_status():
 @app.route("/user_time/<local_time>", methods=["GET", "POST"])
 def update_time(local_time):
     """Get user local time to update server time."""
-    update_time = ["sudo", "date", "-s", "{local_time}"]
-    subprocess.run(update_time)
-    return redirect(url_for("login"))
+    print(f"{local_time=}")
+    return cache.set("user_time", local_time)
 
 
 if __name__ == "__main__":

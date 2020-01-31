@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="container mt-5">
+  <table class="table table-striped table-dark">
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Temps</th>
+        <th scope="col">MSG</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{ tbody | safe }}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

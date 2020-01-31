@@ -1,3 +1,14 @@
+.eel-icon {
+  height: 48px;
+  width: auto;
+}
+
+.chronos {
+  padding-left: 30px !important;
+  padding-right: 0px !important;
+  /* margin-right: 20px !important; */
+}
+
 .info-icon {
   height: 20px;
 }

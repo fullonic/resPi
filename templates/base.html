@@ -8,7 +8,8 @@
 
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css.map') }}">
+  <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css.map') }}"> -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/all.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 
@@ -24,7 +25,7 @@
   {% block footer %}
   <footer class="footer fixed-bottom mt-auto py-3">
     <!-- <div class="container"> -->
-    <span class="text-muted ml-2">version: Testing</span>
+    <span class="text-muted ml-2">version: Testing <i class="fas fa-user"></i></span>
     <!-- </div> -->
   </footer>
   {% endblock %}
@@ -32,7 +33,7 @@
 
   <!-- JavaScript -->
   <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='js/jquery.min.js.map') }}"></script>
+  <!-- <script src="{{ url_for('static', filename='js/jquery.min.js.map') }}"></script> -->
   <script src="{{ url_for('static', filename='js/popper.min.js') }}"></script>
   <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
   <!-- <script src="{{ url_for('static', filename='js/bootstrap.min.js.map') }}"></script> -->

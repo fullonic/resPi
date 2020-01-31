@@ -40,7 +40,7 @@
                 <div class="col-4">
                   <label title="" for="flush">Flush
                     <a class="ml-3" type="button" data-toggle="popover" data-content="Aquest és el valor entre cada vegada que la bomba s’encendrà. Si, per exemple, el valor és de 5 minuts, significa que la bomba s’encendrà 5 minuts després de la darrera vegada que es va apagar."
-                      data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
+                      data-placement="top"><i class="fas fa-info-circle"></i></a>
                   </label>
 
                   <input type="number" min="0" class="form-control" name="flush" id="flush" aria-describedby="flushHelp" placeholder="Minuts" value="{{ flush }}" required>
@@ -60,7 +60,7 @@
               </div>
               <div class="row mt-4">
                 <div class="col-6">
-                  <button type="submit" id="start_auto" name="action" class="btn btn-success btn-sm btn-block" value="start">Començar</button>
+                  <button type="submit" onclick="sendDate()" id="start_auto" name="action" class="btn btn-success btn-sm btn-block" value="start">Començar</button>
                 </div>
                 <div class="col-6">
                   <button type="submit" id="stop_auto" name="action" class="btn btn-danger btn-sm btn-block" value="stop">Parar</button>
@@ -76,4 +76,18 @@
   </div>
 </div>
 
+
+{% endblock %}
+
+{% block scripts %}
+<script type="text/javascript">
+  function sendDate() {
+    var date = Date()
+    console.log(date);
+    $.ajax({
+      type: "POST",
+      url: "/user_time/" + date,
+    });
+  }
+</script>
 {% endblock %}
