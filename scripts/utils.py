@@ -15,7 +15,11 @@ import chardet
 
 import plotly.express as px
 
+from functools import wraps
+from werkzeug.security import generate_password_hash, check_password_hash  # noqa
+from flask import session, redirect, url_for
 SUPPORTED_FILES = {"txt", "xlsx"}
+
 
 
 def _set_time(user_time):
@@ -185,5 +189,29 @@ def save_config_to_file(new_config):
     return config_keys
 
 
-def calculate_blank(df):
-    pass
+def login_required(fn):
+    """Decorate to protected against not authenticated users."""
+    # Functions warp
+    @wraps(fn)
+    def wrap(*args, **kwargs):
+        if not session.get("auth", False):
+            return redirect(url_for("login"))  # Not authenticated
+        return fn(*args, **kwargs)
+
+    return wrap
+
+
+def check_password(password):
+    """Check if password is corrected."""
+    # Get hash password from os environment to check if matches NOTE: Must be set on pi env
+    hash = os.getenv(
+        "hash2",
+        "pbkdf2:sha256:150000$pMreM10r$6dc02f2deb0725f1f3c70766f44e2aa45d8614556b48e9165740ac6384b4de79",  # noqa
+    )
+    check = check_password_hash(hash, password)
+    if check:
+        session["auth"] = True
+        return True
+    else:
+        session["auth"] = False
+        return False

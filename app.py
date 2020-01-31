@@ -38,7 +38,9 @@ from scripts.utils import (
     greeting,
     config_from_file,
     save_config_to_file,
-    _set_time
+    _set_time,
+    login_required,
+    check_password
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
@@ -76,8 +78,7 @@ cache.set_many((("run_manual", False), ("run_auto", False), ("running", False)))
 
 # SocketIO
 socketio = SocketIO(app, async_mode=None)
-# thread = None
-# thread_lock = Lock()
+
 # Setup logging
 logger = app.logger
 handler = RotatingFileHandler(
@@ -91,34 +92,6 @@ handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
 UNIT = 1  # 1 for seconds, 60 for minutes
-
-
-def login_required(fn):
-    """Decorate to protected against not authenticated users."""
-    # Functions warp
-    @wraps(fn)
-    def wrap(*args, **kwargs):
-        if not session.get("auth", False):
-            return redirect(url_for("login"))  # Not authenticated
-        return fn(*args, **kwargs)
-
-    return wrap
-
-
-def check_password(password):
-    """Check if password is corrected."""
-    # Get hash password from os environment to check if matches NOTE: Must be set on pi env
-    hash = os.getenv(
-        "hash2",
-        "pbkdf2:sha256:150000$pMreM10r$6dc02f2deb0725f1f3c70766f44e2aa45d8614556b48e9165740ac6384b4de79",  # noqa
-    )
-    check = check_password_hash(hash, password)
-    if check:
-        session["auth"] = True
-        return True
-    else:
-        session["auth"] = False
-        return False
 
 
 ####################
@@ -196,7 +169,7 @@ def start_program(app=None):
     Creates a periodic task using user form input.
     """
     _set_time(cache.get("user_time"))
-    
+
     # Save starting time programming
     cache.set("auto_run_since", (datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
     user_program = cache.get("user_program")
