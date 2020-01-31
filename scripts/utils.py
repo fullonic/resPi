@@ -173,36 +173,13 @@ def save_config_to_file(new_config):
             return value.strip()
 
     config_keys = {
-        "experiment_file_config": {},
-        "file_cycle_config": {},
         "pump_control_config": {},
     }
-
     for k, v in new_config.items():
-        if k.startswith("output_file"):
-            k = k.replace("output_file_", "")
-            config_keys["experiment_file_config"].update({k: v.strip()})
-        elif k.startswith("pump"):
-            k = k.replace("pump_", "")
-            if k == "aqua_volume":
-                config_keys["pump_control_config"].update({k: float(v)})
-            config_keys["pump_control_config"].update({k: string_to_int(v)})
+        config_keys["pump_control_config"].update({k: string_to_int(v)})
 
-        elif k.startswith("file"):
-            k = k.replace("file_", "")
-            if k == "aqua_volume":
-                config_keys["file_cycle_config"].update({k: float(v)})
-            else:
-                config_keys["file_cycle_config"].update({k: string_to_int(v)})
-        else:
-            print(f"Unexpected value {k}: {v}")
-    config_keys["experiment_file_config"].update(
-        {"SAVE_LOOP_DF": True if new_config.get("save_loop_df") else False}
-    )
-    config_keys["experiment_file_config"].update(
-        {"SAVE_CONVERTED": True if new_config.get("save_converted") else False}
-    )
-
+    if config_keys["pump_control_config"].setdefault("safe_fish", False):
+        config_keys["pump_control_config"]["safe_fish"] = True
     with open("config.json", "w") as f:
         json.dump(config_keys, f)
     return config_keys
