@@ -77,9 +77,18 @@
 
     </div>
   </div>
+
+  <!-- Settings Modal -->
+  <div class="modal" id="settingsModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-body settingsModal">
+          {% include "_settings_modal.html" %}
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
-
-
 {% endblock %}
 
 {% block scripts %}

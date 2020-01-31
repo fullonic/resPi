@@ -244,8 +244,7 @@ def pump_cycle(cycle: int, period: int):
             ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # Write information to logging file
             logger.warning(
-                f"""Programa actual [{cache.get("total_loops")}]:
-                Iniciat: {started} | Acabat: {ended}"""
+                f"""Programa actual [{cache.get("total_loops")}]: Iniciat: {started} | Acabat: {ended}"""  # noqa
             )
         else:  # Ignore previous. Pump is already off
             logger.warning(
@@ -340,8 +339,10 @@ def respi():
         flush = cache.get("user_program")["flush"]
         wait = cache.get("user_program")["wait"]
         close = cache.get("user_program")["close"]
+    config = config_from_file(ROOT)
 
-    return render_template("app.html", flush=flush, wait=wait, close=close)
+    return render_template("app.html", flush=flush, wait=wait, close=close, config=config)
+
 
 ####################
 # LOGS ROUTES
@@ -382,14 +383,11 @@ def download_log(log):
 ####################
 # AUTHENTICATION AND SYSTEM STUFF
 ####################
-@app.route("/settings", methods=["POST", "GET"])
+@app.route("/settings", methods=["POST"])
 def settings():
-    config = config_from_file(ROOT)
-    if request.method == "POST":
-        config = save_config_to_file(request.form.to_dict())
-        flash("S'ha actualitzat la configuració", "info")
-        return redirect("settings")
-    return render_template("settings.html", config=config)
+    save_config_to_file(request.form.to_dict())
+    flash("S'ha actualitzat la configuració", "info")
+    return redirect("respi")
 
 
 @app.route("/login", methods=["GET", "POST"])

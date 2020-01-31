@@ -12,8 +12,11 @@
       <li class="nav-item">
         <a class="nav-link" href="#"><i class="fas fa-question"></i> Ajuda</a>
       </li>
-      <li class="nav-item">
+      <!-- <li class="nav-item">
         <a class="nav-link" href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Configuració</a>
+      </li> -->
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog"></i> Configuració</a>
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -28,24 +31,21 @@
   </div>
 </nav>
 
-<!-- Modal -->
+<!-- POWER Modal -->
 <div class="modal fade" id="powerModal" tabindex="-1" role="dialog" aria-labelledby="powerModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog" role="document">
     <div class="modal-content">
-      <!-- <div class="modal-header">
-        <a type="button" data-dismiss="modal"><i class="fas fa-times fa-xs text-dark ml-auto"></i></a>
-      </div> -->
-      <div class="modal-body">
+      <div class="modal-body powerModal">
         <div class="row text-center">
-          <div class="col text-center text-dark">
+          <div class="col text-center">
             <a type="button" id="restart" href="{{ url_for('restart') }}">
-              <i class="fas fa-sync fa-2x text-dark power-btn"></i><br>
-              <small class="small text-dark ">Reiniciar</small></a>
+              <i class="fas fa-sync fa-2x power-btn"></i><br>
+              <small class="small ">Reiniciar</small></a>
           </div>
-          <div class="col-md-6 text-dark">
+          <div class="col-md-6">
             <a type="button" id="turn_off" href="{{ url_for('turn_off') }}">
-              <i class="fas fa-power-off fa-2x text-dark power-btn"></i><br>
-              <small class="small text-dark">Tancar</small></a>
+              <i class="fas fa-power-off fa-2x power-btn"></i><br>
+              <small class="small">Tancar</small></a>
           </div>
         </div>
       </div>

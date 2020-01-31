@@ -1,5 +1,10 @@
-body {
+body, .settingsModal, .powerModal {
   background-color: #31343A !important;
+  color: #FFF !important;
+  border: #FFF !important;
+}
+
+.powerModal a {
   color: #FFF !important;
 }
 
