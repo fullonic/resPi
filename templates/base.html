@@ -54,12 +54,6 @@
 
     function ledGreen() {
       ledsOFF();
-      $("#available").removeClass("d-none")
-    };
-
-
-    function ledBlue() {
-      ledsOFF();
       $("#led-flush").removeClass("led-off")
       // $("#led-flush").addClass("led-blue")
       $("#led-flush").addClass("led-green-blink")
@@ -88,7 +82,7 @@
 
     function runningManual() {
       blockStart();
-      ledBlue();
+      ledGreen();
       $("#stop_auto").addClass("deactivated")
       $("#stop_manual").removeClass("deactivated")
     }
@@ -105,7 +99,7 @@
     $(document).ready(function() {
       $.get("/status", function(system_info, status) {
         if (system_info.running && system_info.run_auto) { // Means that is running and in auto mode
-          ledBlue();
+          ledGreen();
           runningAuto();
           countDown(system_info.cycle_ends_in);
           blockStart();
@@ -120,12 +114,11 @@
           runningAuto();
           blockStart();
         } else if (system_info.running && system_info.run_manual) { // Means is running on manual mode
-          ledBlue();
+          ledGreen();
           blockStart();
           stopWatch(system_info.started_at);
           runningManual();
         } else { // Means that is not running
-          ledGreen();
           $("#stop_auto, #stop_manual").addClass("deactivated")
         }
         $("#led").removeClass("d-none")
@@ -144,7 +137,7 @@
       socket.on('automatic_program', function(system_info, cb) {
         console.log("ENDS " + system_info.cycle_ends_in);
         if (system_info.running && system_info.run_auto) {
-          ledBlue();
+          ledGreen();
           countDown(system_info.cycle_ends_in);
           $("#auto_run_since").text(system_info.auto_run_since);
           $("#total_loops").text(system_info.total_loops);
@@ -157,7 +150,7 @@
             countDown(system_info.cycle_ends_in)
           }
         } else {
-          ledGreen();
+          // ledGreen();
         }
         if (cb)
           cb();

@@ -1,3 +1,8 @@
+body {
+  background-color: #31343A !important;
+  color: #FFF !important;
+}
+
 .eel-icon {
   height: 48px;
   width: auto;
@@ -9,17 +14,17 @@
   /* margin-right: 20px !important; */
 }
 
+.fa-info-circle {
+  color: #25B7D3 !important;
+  font-size: 20px;
+}
+
 .info-icon {
   height: 20px;
 }
 
 #timer {
   font-family: 'Source Sans Pro', sans-serif;
-}
-
-body {
-  background-color: #31343A !important;
-  color: #FFF !important;
 }
 
 .bg-dark, .card, .card-header, .card-body, .card-footer {
@@ -53,6 +58,11 @@ body {
   pointer-events: none !important;
   cursor: not-allowed !important;
   opacity: 0.35;
+}
+
+/* POWER BTN */
+.power-btn:hover {
+  color: rgba(255, 0, 0, 0.4);
 }
 
 /* LED STYLE!important

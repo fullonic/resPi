@@ -12,7 +12,7 @@
       <div class="col-md-4 mb-2">
         <div class="card">
           <div class="card-header text-center">
-            Manual <a class="ml-3" type="button" data-toggle="popover" data-content="Mode manual. Tens el control !! La bomba s’encén i s’apaga quan premeu el botó" data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
+            Manual <a class="ml-3" type="button" data-toggle="popover" data-content="Mode manual. Tens el control !! La bomba s’encén i s’apaga quan premeu el botó" data-placement="top"><i class="fas fa-info-circle"></i></a>
           </div>
           <div class="card-body">
             <form class="" action="" method="POST">
@@ -47,13 +47,16 @@
                 </div>
                 <div class="col-4">
                   <label for="wait">Wait
-                    <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
+                    <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top">
+                      <!-- <img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"> -->
+                      <i class="fas fa-info-circle"></i>
+                    </a>
                   </label>
                   <input type="number" min="0" class="form-control" name="wait" id="wait" aria-describedby="waitHelp" placeholder="Minuts" value="{{ wait }}" required>
                 </div>
                 <div class="col-4">
                   <label for="close">Close
-                    <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top"><img class="info-icon" src="{{ url_for('static', filename='img/info.png') }}"></a>
+                    <a class="ml-3" type="button" data-toggle="popover" data-content="Quant de temps ha de funcionar la bomba per cicle. El valor és de minuts" data-placement="top"><i class="fas fa-info-circle"></i></a>
                   </label>
                   <input type="number" min="0" class="form-control" name="close" id="close" aria-describedby="closeHelp" placeholder="Minuts" value="{{ close }}" required>
                 </div>

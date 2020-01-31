@@ -1,8 +1,8 @@
 <nav class="navbar navbar-collapse navbar-dark bg-dark">
   <!-- <a class="navbar-brand" href="{{ url_for('respi') }}"> <i class="fas fa-fish fa-2x"></i> resPi</a> -->
   <a class="navbar-brand" href="{{ url_for('respi') }}"><img class="eel-icon" src="{{ url_for('static', filename='img/eel.png') }}"> resPi</a>
-  <a type="button" class="ml-auto mr-5 " data-toggle="modal" data-target="#powerModal">
-    <i class="fas fa-power-off fa-2x"></i>
+  <a type="button" class="ml-auto mr-5 btn-box" data-toggle="modal" data-target="#powerModal">
+    <i class="fas fa-power-off fa-2x power-btn"></i>
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
@@ -39,12 +39,12 @@
         <div class="row text-center">
           <div class="col text-center text-dark">
             <a type="button" id="restart" href="{{ url_for('restart') }}">
-              <i class="fas fa-sync fa-2x text-dark"></i><br>
-              <small class="small text-dark">Reiniciar</small></a>
+              <i class="fas fa-sync fa-2x text-dark power-btn"></i><br>
+              <small class="small text-dark ">Reiniciar</small></a>
           </div>
           <div class="col-md-6 text-dark">
             <a type="button" id="turn_off" href="{{ url_for('turn_off') }}">
-              <i class="fas fa-power-off fa-2x text-dark"></i><br>
+              <i class="fas fa-power-off fa-2x text-dark power-btn"></i><br>
               <small class="small text-dark">Tancar</small></a>
           </div>
         </div>

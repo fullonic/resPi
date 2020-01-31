@@ -6,10 +6,10 @@ import subprocess
 import logging
 from glob import glob
 from logging.handlers import RotatingFileHandler
-from functools import wraps
 from threading import Thread, Event
 from datetime import datetime
 from functools import partial  # noqa maybe can be used on save files
+from pathlib import Path
 
 try:
     import RPi.GPIO as GPIO
@@ -43,7 +43,9 @@ from scripts.utils import (
     check_password,
 )
 
-ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
+# ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
+ROOT = Path(__file__).parent  # app root dir
+print(f"{ROOT=}")
 # App basic configuration
 config = {
     "SECRET_KEY": "NONE",
@@ -62,7 +64,6 @@ if GPIO is not None:
 
 
 # DEFINE APP
-# app = Flask(__name__)
 if getattr(sys, "frozen", False):
     template_folder = os.path.join(sys._MEIPASS, "templates")
     static_folder = os.path.join(sys._MEIPASS, "static")
@@ -94,98 +95,6 @@ app.logger.addHandler(handler)
 UNIT = 1  # 1 for seconds, 60 for minutes
 
 
-#####################
-# Active SAFE FISH mode
-#####################
-def _safe_fish_flag(flag):
-    """It sets pump_was_running flag to True or False.
-
-    When experiment starts flag will be True. If user stop the experiment or turn off the
-    board using the "turn_off" or "restart" flag will be False.
-    In both cases, at the next system boot pump will be off by default.
-    However, if there is a power failure during an experiment, at the next startup (when power
-    returns), flag will be on True and will start a new cycle using the last experiment
-    configuration.
-    This is made to avoid fish death because lack of oxygen, related with grid power failure.
-    """
-    safe_cfg = config_from_file(ROOT)["pump_control_config"]
-    safe_cfg["pump_was_running"] = flag
-    save_config_to_file(safe_cfg)
-
-
-safe_cfg = config_from_file(ROOT)["pump_control_config"]
-if safe_cfg["safe_fish"] and safe_cfg.get("pump_was_running", False):
-    # Active last user experiment
-    # Write to log that failure happen
-    print("WAS RUNNING")
-    pass
-    t = Thread(target=start_program)
-    t.start()
-
-
-####################
-# PUMP SETUP AND CONFIGURATION
-####################
-def switch_on():
-    """Turn pump ON."""
-    if GPIO:
-        GPIO.output(PUMP_GPIO, GPIO.HIGH)  # on
-    cache.set("running", True)
-    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    logger.warning(f"Pump is running | Mode: {run_mode}")
-
-
-def switch_off():
-    """Turn pump OFF."""
-    if GPIO:
-        GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
-
-    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
-    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    logger.warning(f"Pump is off |  Mode: {run_mode}")
-
-
-# PUMP CYCLE
-def pump_cycle(cycle: int, period: int):
-    """Define how long pump is ON in order to full the fish tank.
-
-    cycle: pump flush time
-    period: wait time + close time
-    """
-    # Turn on the pump
-    started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    cache.set("total_loops", cache.get("total_loops") + 1)
-    switch_on()
-    # cycle_ends_in = to_js_time(cycle, "auto")
-    cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
-    socketio.emit(
-        "automatic_program",
-        {
-            "data": "Server generated event",
-            "running": cache.get("running"),
-            "cycle_fase": cache.set("cycle_fase", "flush"),
-            "run_auto": cache.get("running"),
-            "cycle_ends_in": cache.get("cycle_ends_in"),
-            "total_loops": cache.get("total_loops"),
-            "auto_run_since": cache.get("auto_run_since"),
-        },
-        namespace="/resPi",
-    )
-    # Wait until tank is full
-    if not exit_thread.wait(timeout=cycle):  # MINUTES
-        if cache.get("run_auto"):  # If still in current automatic program
-            # Turn off the pump
-            switch_off()
-            # cache.set("cycle_ends_in", to_js_time(period, "auto"))
-            ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # Write information to logging file
-            logger.warning(
-                f"""Current program [{cache.get("total_loops")}]: Started {started} | Ended: {ended}"""
-            )
-        else:  # Ignore previous. Pump is already off
-            logger.warning(f"Automatic program: Started {started} was closed forced by user")
-
-
 ####################
 # BACKGROUND TASKS
 ####################
@@ -200,7 +109,7 @@ def start_program(app=None):
     _set_time(cache.get("user_time"))
 
     # Save starting time programming
-    cache.set("auto_run_since", (datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
+    cache.set("auto_run_since", (datetime.now().strftime("%d-%m-%Y %H:%M:%S")))
     user_program = cache.get("user_program")
     wait = user_program.get("wait") * UNIT
     close = user_program.get("close") * UNIT
@@ -245,6 +154,105 @@ def start_program(app=None):
         return False
 
 
+#####################
+# Active SAFE FISH mode
+#####################
+def _safe_fish_flag(flag):
+    """It sets pump_was_running flag to True or False.
+
+    When experiment starts flag will be True. If user stop the experiment or turn off the
+    board using the "turn_off" or "restart" flag will be False.
+    In both cases, at the next system boot pump will be off by default.
+    However, if there is a power failure during an experiment, at the next startup (when power
+    returns), flag will be on True and will start a new cycle using the last experiment
+    configuration.
+    This is made to avoid fish death because lack of oxygen, related with grid power failure.
+    """
+    safe_cfg = config_from_file(ROOT)["pump_control_config"]
+    safe_cfg["pump_was_running"] = flag
+    save_config_to_file(safe_cfg)
+
+
+safe_cfg = config_from_file(ROOT)["pump_control_config"]
+if safe_cfg["safe_fish"] and safe_cfg.get("pump_was_running", False):
+    # Active last user experiment
+    # Write to log that failure happen
+    cache.set("run_auto", True)
+    cache.set(
+        "user_program",
+        dict(close=safe_cfg["close"], flush=safe_cfg["flush"], wait=safe_cfg["wait"]),
+    )
+    print("WAS RUNNING")
+    t = Thread(target=start_program)
+    t.start()
+
+
+####################
+# PUMP SETUP AND CONFIGURATION
+####################
+def switch_on():
+    """Turn pump ON."""
+    if GPIO:
+        GPIO.output(PUMP_GPIO, GPIO.HIGH)  # on
+    cache.set("running", True)
+    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
+    logger.warning(f"Bomba ON | Mode: {run_mode}")
+
+
+def switch_off():
+    """Turn pump OFF."""
+    if GPIO:
+        GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
+
+    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
+    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
+    logger.warning(f"Bomba OFF |  Mode: {run_mode}")
+
+
+# PUMP CYCLE
+def pump_cycle(cycle: int, period: int):
+    """Define how long pump is ON in order to full the fish tank.
+
+    cycle: pump flush time
+    period: wait time + close time
+    """
+    # Turn on the pump
+    started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    cache.set("total_loops", cache.get("total_loops") + 1)
+    switch_on()
+    # cycle_ends_in = to_js_time(cycle, "auto")
+    cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
+    socketio.emit(
+        "automatic_program",
+        {
+            "data": "Server generated event",
+            "running": cache.get("running"),
+            "cycle_fase": cache.set("cycle_fase", "flush"),
+            "run_auto": cache.get("running"),
+            "cycle_ends_in": cache.get("cycle_ends_in"),
+            "total_loops": cache.get("total_loops"),
+            "auto_run_since": cache.get("auto_run_since"),
+        },
+        namespace="/resPi",
+    )
+    # Wait until tank is full
+    if not exit_thread.wait(timeout=cycle):  # MINUTES
+        if cache.get("run_auto"):  # If still in current automatic program
+            # Turn off the pump
+            switch_off()
+            # cache.set("cycle_ends_in", to_js_time(period, "auto"))
+            ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # Write information to logging file
+            logger.warning(
+                f"""Programa actual [{cache.get("total_loops")}]:
+                Iniciat: {started} | Acabat: {ended}"""
+            )
+        else:  # Ignore previous. Pump is already off
+            logger.warning(
+                f"Programa automàtic: Iniciat {started} va ser tancat obligat per l'usuari"
+            )
+
+
 ####################
 # APP ROUTES
 ####################
@@ -259,7 +267,7 @@ def landing():
         )
         return redirect(url_for("respi"))
     else:
-        flash(f"Hey {greeting()}, benvingut {session['username']}", "info")
+        flash(f"{greeting()}, benvingut {session['username']}", "info")
         return redirect(url_for("login"))
 
 
@@ -312,7 +320,7 @@ def respi():
         ###########################
         # MANUAL MODE
         ###########################
-        if request.form.get("manual", False):
+        if request.form.get("manual", False):  # MUST BE CHECK IF CAN BE elif and not if
             if request.form["manual"] == "start_manual":
                 cache.set_many(
                     (("started_at", to_js_time(run_type="manual")), ("run_manual", True),)
@@ -334,20 +342,6 @@ def respi():
         close = cache.get("user_program")["close"]
 
     return render_template("app.html", flush=flush, wait=wait, close=close)
-
-
-####################
-# EXTRA ROUTES
-####################
-@app.route("/settings", methods=["POST", "GET"])
-def settings():
-    config = config_from_file(ROOT)
-    if request.method == "POST":
-        config = save_config_to_file(request.form.to_dict())
-        flash("Configuration updated", "info")
-        return redirect("settings")
-    return render_template("settings.html", config=config)
-
 
 ####################
 # LOGS ROUTES
@@ -388,6 +382,16 @@ def download_log(log):
 ####################
 # AUTHENTICATION AND SYSTEM STUFF
 ####################
+@app.route("/settings", methods=["POST", "GET"])
+def settings():
+    config = config_from_file(ROOT)
+    if request.method == "POST":
+        config = save_config_to_file(request.form.to_dict())
+        flash("S'ha actualitzat la configuració", "info")
+        return redirect("settings")
+    return render_template("settings.html", config=config)
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """User login page."""
@@ -396,7 +400,7 @@ def login():
         session["username"] = request.form.get("username", None)
         if check_password(password):
             logger.warning(f"{request.form.get('username')} connectado")
-            flash(f"Hey {greeting()}! Benvingut {session['username']}", "info")
+            flash(f"{greeting()}! Benvingut {session['username']}", "info")
             return redirect(url_for("respi"))
         flash("Contrasenya incorrecta", "danger")
     return render_template("login.html")
@@ -404,29 +408,29 @@ def login():
 
 @app.route("/logout")
 def logout():
-    """Log out user."""
+    """Log out user from browser session."""
     session["auth"] = False
-    logger.warning(f"{session['username']} left.")
+    logger.warning(f"{session['username']} va sortir.")
     flash(f"Adeu!! {session['username']}", "info")
     return redirect(url_for("landing"))
 
 
 @app.route("/turn_off")
 def turn_off():
-    """Turn off PI."""
+    """Turn off controller board."""
     _safe_fish_flag(False)
     subprocess.Popen(["sudo", "shutdown", "now"], shell=True)
-    flash(f"Apagar el sistema... Això pot trigar un parell, espereu si us plau", "info")
+    flash(f"Apagar el sistema... Espereu si us plau", "info")
     return redirect(url_for("landing"))
 
 
 @app.route("/restart")
 def restart():
-    """Restart PI."""
+    """Restart controller board."""
     _safe_fish_flag(False)
     subprocess.Popen(["sudo", "reboot"], shell=True)
     flash(
-        f"""Reinicieu el sistema. Això pot trigar un parell de segons, espereu si us plau.
+        f"""Reinicieu el sistema, espereu si us plau.
         Continuar prement F5 fins que torni a actualitzar la pàgina.
         """,
         "info",
@@ -455,7 +459,6 @@ def get_status():
 @app.route("/user_time/<local_time>", methods=["GET", "POST"])
 def update_time(local_time):
     """Get user local time to update server time."""
-    print(f"{local_time=}")
     return cache.set("user_time", local_time)
 
 
