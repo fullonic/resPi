@@ -40,7 +40,7 @@ from scripts.utils import (
     save_config_to_file,
     _set_time,
     login_required,
-    check_password
+    check_password,
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
@@ -92,6 +92,35 @@ handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
 UNIT = 1  # 1 for seconds, 60 for minutes
+
+
+#####################
+# Active SAFE FISH mode
+#####################
+def _safe_fish_flag(flag):
+    """It sets pump_was_running flag to True or False.
+
+    When experiment starts flag will be True. If user stop the experiment or turn off the
+    board using the "turn_off" or "restart" flag will be False.
+    In both cases, at the next system boot pump will be off by default.
+    However, if there is a power failure during an experiment, at the next startup (when power
+    returns), flag will be on True and will start a new cycle using the last experiment
+    configuration.
+    This is made to avoid fish death because lack of oxygen, related with grid power failure.
+    """
+    safe_cfg = config_from_file(ROOT)["pump_control_config"]
+    safe_cfg["pump_was_running"] = flag
+    save_config_to_file(safe_cfg)
+
+
+safe_cfg = config_from_file(ROOT)["pump_control_config"]
+if safe_cfg["safe_fish"] and safe_cfg.get("pump_was_running", False):
+    # Active last user experiment
+    # Write to log that failure happen
+    print("WAS RUNNING")
+    pass
+    t = Thread(target=start_program)
+    t.start()
 
 
 ####################
@@ -263,6 +292,9 @@ def respi():
                 _active_threads[t_name] = t  # noqa
                 exit_thread.clear()  # set all thread flags to false
                 t.start()  # start a fresh new thread with the current program
+                # Set up flag for safe fish mode
+                _safe_fish_flag(True)
+
         elif request.form.get("action", False) == "stop":
             switch_off()  # TODO: Must be checked first
             # Remove counters/timers and stop background thread
@@ -275,6 +307,8 @@ def respi():
                 )
             )
             exit_thread.set()
+            # Set up flag for safe fish mode
+            _safe_fish_flag(False)
         ###########################
         # MANUAL MODE
         ###########################
@@ -380,8 +414,8 @@ def logout():
 @app.route("/turn_off")
 def turn_off():
     """Turn off PI."""
-    cmd = "sudo shutdown now"
-    subprocess.Popen(cmd, shell=True)
+    _safe_fish_flag(False)
+    subprocess.Popen(["sudo", "shutdown", "now"], shell=True)
     flash(f"Apagar el sistema... Això pot trigar un parell, espereu si us plau", "info")
     return redirect(url_for("landing"))
 
@@ -389,8 +423,8 @@ def turn_off():
 @app.route("/restart")
 def restart():
     """Restart PI."""
-    cmd = "sudo reboot"
-    subprocess.Popen(cmd, shell=True)
+    _safe_fish_flag(False)
+    subprocess.Popen(["sudo", "reboot"], shell=True)
     flash(
         f"""Reinicieu el sistema. Això pot trigar un parell de segons, espereu si us plau.
         Continuar prement F5 fins que torni a actualitzar la pàgina.
