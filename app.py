@@ -102,7 +102,9 @@ UNIT = 1  # 1 for seconds, 60 for minutes
 # USER DEFINED PROGRAM
 def start_program(app=None):
     """Start a new background thread to run the user program."""
-    _set_time(cache.get("user_time"))
+    if GPIO is not None:
+        _set_time(cache.get("user_time"))
+
     logger.warning("S'ha iniciat un nou cicle d'experiments")
 
     # Save starting time programming
@@ -171,11 +173,15 @@ def _safe_fish_flag(flag):
 
 
 safe_cfg = config_from_file(ROOT)["pump_control_config"]
+global failure_timestamp
+failure_timestamp = None  # flag to be used in order to send a flash message to user
 if safe_cfg["safe_fish"] and safe_cfg.get("pump_was_running", False):
     # Write to log that failure happen
     logger.warning(
         "Hi ha una fallada d'energia al voltant del 10. El sistema s'està executant, però és possible que no sigui precís"
     )
+    failure_timestamp = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
     # Active last user experiment
     cache.set("run_auto", True)
     cache.set(
@@ -247,7 +253,7 @@ def pump_cycle(cycle: int, period: int):
             ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # Write information to logging file
             logger.warning(
-                f"""Programa actual [{cache.get("total_loops")}]: Iniciat: {started} | Acabat: {ended}"""  # noqa
+                f"""loop [{cache.get("total_loops")}]: Iniciat: {started} | Acabat: {ended}"""  # noqa
             )
         else:  # Ignore previous. Pump is already off
             logger.warning(
@@ -269,7 +275,7 @@ def landing():
         )
         return redirect(url_for("respi"))
     else:
-        flash(f"{greeting()}, benvingut {session['username']}", "info")
+        flash(f"{greeting()}", "info")
         return redirect(url_for("login"))
 
 
@@ -345,6 +351,11 @@ def respi():
     config = config_from_file(ROOT)
     logs = get_logs()
 
+    global failure_timestamp
+    if failure_timestamp is not None:
+        flash(f"Hi ha una fallada d'energia al voltant del {failure_timestamp}  "
+              "El sistema s'està executant, però és possible que no sigui precís", "danger")
+        failure_timestamp = None  # Avoids flash appears again after page reload
     return render_template(
         "app.html", flush=flush, wait=wait, close=close, config=config, logs=logs
     )
@@ -408,10 +419,10 @@ def login():
     """User login page."""
     if request.method == "POST":
         password = request.form.get("password", None)
-        session["username"] = request.form.get("username", None)
+        session["username"] = " "
         if check_password(password):
             logger.warning(f"{request.form.get('username')} connectado")
-            flash(f"{greeting()}! Benvingut {session['username']}", "info")
+            flash(f"{greeting()}! {session['username']}", "info")
             return redirect(url_for("respi"))
         flash("Contrasenya incorrecta", "danger")
     return render_template("login.html")
@@ -475,4 +486,4 @@ def update_time(local_time):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host="0.0.0.0")
+    socketio.run(app, debug=False, host="0.0.0.0")
