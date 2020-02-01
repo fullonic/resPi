@@ -1,6 +1,9 @@
 echo ------- moving venv out -------
 mv venv/ ../
 mv .git/ ../
+mv build/ ../
+mv dist/ ../
+
 
 echo ------- removing pycache and logs -------
 sudo rm -rf __pycache__
@@ -17,4 +20,6 @@ scp -r resPI/ pi@192.168.4.1:/home/pi
 echo ------- moving venv -------
 mv venv/ resPI/
 mv .git/ resPI/
+mv build/ resPI/
+mv dist/ resPI/
 echo ------- Done -------

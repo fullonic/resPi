@@ -45,7 +45,6 @@ from scripts.utils import (
 
 # ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
 ROOT = Path(__file__).parent  # app root dir
-print(f"{ROOT=}")
 # App basic configuration
 config = {
     "SECRET_KEY": "NONE",
@@ -92,7 +91,7 @@ handler.setFormatter(logging.Formatter("%(asctime)s || %(message)s"))
 handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
-UNIT = 1  # 1 for seconds, 60 for minutes
+UNIT = 60  # 1 for seconds, 60 for minutes
 
 
 ####################
@@ -464,4 +463,4 @@ def update_time(local_time):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, host="0.0.0.0")
+    socketio.run(app, debug=False, host="0.0.0.0")
