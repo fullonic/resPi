@@ -14,10 +14,8 @@ from pathlib import Path
 try:
     import RPi.GPIO as GPIO
 
-    ROOT = os.path.join(os.getcwd(), "resPI")
 except RuntimeError:
-    GPIO = None  # None means that is not running on raspberry pi
-    ROOT = Path(__file__).parent  # app root dir
+    GPIO = None  # Means that is not running on raspberry pi
 
 from flask_caching import Cache
 from flask import (
@@ -33,6 +31,7 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask_socketio import SocketIO
+
 from scripts.utils import (
     to_js_time,
     greeting,
@@ -43,8 +42,7 @@ from scripts.utils import (
     check_password,
 )
 
-# ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
-
+ROOT = Path(__file__).parent  # app root dir
 # App basic configuration
 config = {
     "SECRET_KEY": "NONE",
@@ -79,7 +77,7 @@ cache.set_many(
 )
 
 # SocketIO
-socketio = SocketIO(app, async_mode=None)
+socketio = SocketIO(app, async_mode="gevent")
 
 # Setup logging
 logger = app.logger
@@ -201,20 +199,18 @@ def switch_on():
         GPIO.output(PUMP_GPIO, GPIO.HIGH)  # on
     except AttributeError:  # means that is not running on pi board
         pass
-
     cache.set("running", True)
-    # run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    # logger.warning(f"Bomba ON | Mode: {run_mode}")
 
 
 def switch_off():
     """Turn pump OFF."""
-    if GPIO:
+    try:
         GPIO.output(PUMP_GPIO, GPIO.LOW)  # off
-
-    cache.set_many((("cycle_ends_in", None), ("next_cycle_at", None), ("running", False)))
-    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
-    # logger.warning(f"Bomba OFF |  Mode: {run_mode}")
+    except AttributeError:
+        pass
+    cache.set_many(
+        (("cycle_ends_in", None), ("next_cycle_at", None), ("running", False))
+    )
 
 
 # PUMP CYCLE
@@ -244,7 +240,7 @@ def pump_cycle(cycle: int, period: int):
         },
         namespace="/resPi",
     )
-    # Wait until tank is full
+    # Wait until tank is full or break if user forces stop
     if not exit_thread.wait(timeout=cycle):  # MINUTES
         if cache.get("run_auto"):  # If still in current automatic program
             # Turn off the pump
@@ -331,7 +327,10 @@ def respi():
         if request.form.get("manual", False):  # MUST BE CHECK IF CAN BE elif and not if
             if request.form["manual"] == "start_manual":
                 cache.set_many(
-                    (("started_at", to_js_time(run_type="manual")), ("run_manual", True),)
+                    (
+                        ("started_at", to_js_time(run_type="manual")),
+                        ("run_manual", True),
+                    )
                 )
                 switch_on()
             else:
@@ -353,8 +352,11 @@ def respi():
 
     global failure_timestamp
     if failure_timestamp is not None:
-        flash(f"Hi ha una fallada d'energia al voltant del {failure_timestamp}  "
-              "El sistema s'està executant, però és possible que no sigui precís", "danger")
+        flash(
+            f"Hi ha una fallada d'energia al voltant del {failure_timestamp}  "
+            "El sistema s'està executant, però és possible que no sigui precís",
+            "danger",
+        )
         failure_timestamp = None  # Avoids flash appears again after page reload
     return render_template(
         "app.html", flush=flush, wait=wait, close=close, config=config, logs=logs
@@ -474,6 +476,7 @@ def get_status():
             "generating_files": cache.get("generating_files"),
             "total_loops": cache.get("total_loops"),
             "auto_run_since": cache.get("auto_run_since"),
+            "current_time": datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
         }
     )
 
