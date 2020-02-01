@@ -24,7 +24,7 @@ SUPPORTED_FILES = {"txt", "xlsx"}
 
 def _set_time(user_time):
     """Update server time based on user time when started the experiment."""
-    update_time = ["sudo", "date", "-s", "{user_time}"]
+    update_time = ["sudo", "date", "-s", f"{user_time}"]
     return subprocess.run(update_time)
 
 
@@ -168,7 +168,7 @@ def config_from_file(ROOT):
     return config
 
 
-def save_config_to_file(new_config):
+def save_config_to_file(new_config, ROOT=None):
     def string_to_int(value):
         """Convert config float type string into float type."""
         try:
@@ -184,7 +184,8 @@ def save_config_to_file(new_config):
 
     if config_keys["pump_control_config"].setdefault("safe_fish", False):
         config_keys["pump_control_config"]["safe_fish"] = True
-    with open("config.json", "w") as f:
+    fname = f"{ROOT}/config.json" if ROOT else "config.json"
+    with open(fname, "w") as f:
         json.dump(config_keys, f)
     return config_keys
 

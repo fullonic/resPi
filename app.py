@@ -14,10 +14,8 @@ from pathlib import Path
 try:
     import RPi.GPIO as GPIO
 
-    # ROOT = os.path.join(os.getcwd(), "resPI")
 except RuntimeError:
-    GPIO = None  # None means that is not running on raspberry pi
-    # ROOT = os.getcwd()
+    GPIO = None  # Means that is not running on raspberry pi
 
 from flask_caching import Cache
 from flask import (
@@ -43,7 +41,6 @@ from scripts.utils import (
     check_password,
 )
 
-# ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
 ROOT = Path(__file__).parent  # app root dir
 # App basic configuration
 config = {
@@ -74,7 +71,9 @@ _active_threads = {}
 exit_thread = Event()
 # Setup cache
 cache = Cache(app)
-cache.set_many((("run_manual", False), ("run_auto", False), ("running", False)))
+cache.set_many(
+    (("run_manual", False), ("run_auto", False), ("running", False), ("total_loops", 0))
+)
 
 # SocketIO
 socketio = SocketIO(app, async_mode=None)
@@ -100,7 +99,9 @@ UNIT = 60  # 1 for seconds, 60 for minutes
 # USER DEFINED PROGRAM
 def start_program(app=None):
     """Start a new background thread to run the user program."""
-    _set_time(cache.get("user_time"))
+    if GPIO is not None:
+        _set_time(cache.get("user_time"))
+
     logger.warning("S'ha iniciat un nou cicle d'experiments")
 
     # Save starting time programming
@@ -161,23 +162,29 @@ def _safe_fish_flag(flag):
     However, if there is a power failure during an experiment, at the next startup (when power
     returns), flag will be on True and will start a new cycle using the last experiment
     configuration.
-    This is made to avoid fish death because lack of oxygen, related with grid power failure.
+    This is made to avoid fish death because lack of oxygen after a grid power failure.
     """
     safe_cfg = config_from_file(ROOT)["pump_control_config"]
     safe_cfg["pump_was_running"] = flag
-    save_config_to_file(safe_cfg)
+    save_config_to_file(safe_cfg, ROOT)
 
 
 safe_cfg = config_from_file(ROOT)["pump_control_config"]
+global failure_timestamp
+failure_timestamp = None  # flag to be used in order to send a flash message to user
 if safe_cfg["safe_fish"] and safe_cfg.get("pump_was_running", False):
-    # Active last user experiment
     # Write to log that failure happen
+    logger.warning(
+        "Hi ha una fallada d'energia al voltant del 10. El sistema s'està executant, però és possible que no sigui precís"
+    )
+    failure_timestamp = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
+    # Active last user experiment
     cache.set("run_auto", True)
     cache.set(
         "user_program",
         dict(close=safe_cfg["close"], flush=safe_cfg["flush"], wait=safe_cfg["wait"]),
     )
-    print("WAS RUNNING")
     t = Thread(target=start_program)
     t.start()
 
@@ -187,10 +194,13 @@ if safe_cfg["safe_fish"] and safe_cfg.get("pump_was_running", False):
 ####################
 def switch_on():
     """Turn pump ON."""
-    if GPIO:
+    try:
         GPIO.output(PUMP_GPIO, GPIO.HIGH)  # on
+    except AttributeError:  # means that is not running on pi board
+        pass
+
     cache.set("running", True)
-    run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
+    # run_mode = "automatic" if cache.get("run_auto") else "manual"  # only for logging
     # logger.warning(f"Bomba ON | Mode: {run_mode}")
 
 
@@ -213,6 +223,7 @@ def pump_cycle(cycle: int, period: int):
     """
     # Turn on the pump
     started = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # loops = 0 if not cache.get("total_loops") else cache.get("total_loops")
     cache.set("total_loops", cache.get("total_loops") + 1)
     switch_on()
     # cycle_ends_in = to_js_time(cycle, "auto")
@@ -239,7 +250,7 @@ def pump_cycle(cycle: int, period: int):
             ended = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # Write information to logging file
             logger.warning(
-                f"""Programa actual [{cache.get("total_loops")}]: Iniciat: {started} | Acabat: {ended}"""  # noqa
+                f"""loop [{cache.get("total_loops")}]: Iniciat: {started} | Acabat: {ended}"""  # noqa
             )
         else:  # Ignore previous. Pump is already off
             logger.warning(
@@ -261,7 +272,7 @@ def landing():
         )
         return redirect(url_for("respi"))
     else:
-        flash(f"{greeting()}, benvingut {session['username']}", "info")
+        flash(f"{greeting()}", "info")
         return redirect(url_for("login"))
 
 
@@ -337,6 +348,11 @@ def respi():
     config = config_from_file(ROOT)
     logs = get_logs()
 
+    global failure_timestamp
+    if failure_timestamp is not None:
+        flash(f"Hi ha una fallada d'energia al voltant del {failure_timestamp}  "
+              "El sistema s'està executant, però és possible que no sigui precís", "danger")
+        failure_timestamp = None  # Avoids flash appears again after page reload
     return render_template(
         "app.html", flush=flush, wait=wait, close=close, config=config, logs=logs
     )
@@ -364,15 +380,18 @@ def get_logs():
 def read_log(log):
     """Open a log file and return it to a html page."""
     file_ = os.path.join(app.config["LOGS_FOLDER"], log)
-    with open(file_, "r") as f:
-        log_text = [
-            f"""<tr>
-          <th scope="row">{idx}</th>
-          <td>{line.split("||")[0]}</td>
-          <td>{line.split("||")[1]}</td>
-        </tr>"""
-            for idx, line in enumerate(f.readlines())
-        ]
+    try:
+        with open(file_, "r") as f:
+            log_text = [
+                f"""<tr>
+              <th scope="row">{idx}</th>
+              <td>{line.split("||")[0]}</td>
+              <td>{line.split("||")[1]}</td>
+            </tr>"""
+                for idx, line in enumerate(f.readlines())
+            ]
+    except IndexError:
+        log_text = ["Empty", ""]
     return render_template("_read_log.html", tbody="".join(log_text))
 
 
@@ -387,7 +406,7 @@ def download_log(log):
 ####################
 @app.route("/settings", methods=["POST"])
 def settings():
-    save_config_to_file(request.form.to_dict())
+    save_config_to_file(request.form.to_dict(), ROOT)
     flash("S'ha actualitzat la configuració", "info")
     return redirect("respi")
 
@@ -397,10 +416,10 @@ def login():
     """User login page."""
     if request.method == "POST":
         password = request.form.get("password", None)
-        session["username"] = request.form.get("username", None)
+        session["username"] = " "
         if check_password(password):
             logger.warning(f"{request.form.get('username')} connectado")
-            flash(f"{greeting()}! Benvingut {session['username']}", "info")
+            flash(f"{greeting()}! {session['username']}", "info")
             return redirect(url_for("respi"))
         flash("Contrasenya incorrecta", "danger")
     return render_template("login.html")
@@ -419,7 +438,7 @@ def logout():
 def turn_off():
     """Turn off controller board."""
     _safe_fish_flag(False)
-    subprocess.Popen(["sudo", "shutdown", "now"], shell=True)
+    subprocess.run(["sudo", "shutdown", "now"])
     flash(f"Apagar el sistema... Espereu si us plau", "info")
     return redirect(url_for("landing"))
 
@@ -428,7 +447,7 @@ def turn_off():
 def restart():
     """Restart controller board."""
     _safe_fish_flag(False)
-    subprocess.Popen(["sudo", "reboot"], shell=True)
+    subprocess.run(["sudo", "reboot"])
     flash(
         f"""Reinicieu el sistema, espereu si us plau.
         Continuar prement F5 fins que torni a actualitzar la pàgina.
@@ -459,7 +478,8 @@ def get_status():
 @app.route("/user_time/<local_time>", methods=["GET", "POST"])
 def update_time(local_time):
     """Get user local time to update server time."""
-    return cache.set("user_time", local_time)
+    cache.set("user_time", local_time)
+    return jsonify({"code": 200})
 
 
 if __name__ == "__main__":
