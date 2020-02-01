@@ -9,13 +9,8 @@ import time
 import json
 import subprocess
 from datetime import datetime, timedelta
-
-import pandas as pd
-import chardet
-
-import plotly.express as px
-
 from functools import wraps
+
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask import session, redirect, url_for
 
@@ -31,73 +26,6 @@ def _set_time(user_time):
 def string_to_float(n: str) -> float:
     """Convert str item to float."""
     return float(n.replace(",", "."))
-
-
-def generate_plot(df, plot_name, folder_dst):
-    """Create a plot with value from O2 saturation and time stamp code."""
-    y, x = df.columns[-2:]
-    fig = px.line(df, x=x, y=y, title="O2 Evolution")
-    path = os.path.join(folder_dst, plot_name)
-    fig.write_html(path)
-
-
-def file_formatter(file_):
-    """Format the original user upload file.
-
-    After uploaded, the file encoding is discovered by using the chardet library.
-    Once getting the encode, a data frame is generated only containing the useful information.
-
-    Returns the file path of the cleaned file in format .csv
-    """
-    # Original file encode
-    def get_file_encoding(file_):
-        """Get the file path of a file and returns the encoding format."""
-        with open(file_, "rb") as f:
-            raw = b"".join([f.readline() for _ in range(20)])
-
-        return chardet.detect(raw)["encoding"]
-
-    df_original = pd.read_table(file_, encoding=get_file_encoding(file_))
-    df = pd.read_table(file_, encoding=get_file_encoding(file_))
-
-    # Remove top document information
-    def get_col_idx(df):
-        for index, dt in enumerate(df):
-            if df.iloc[index][0] == "Date &Time [DD-MM-YYYY HH:MM:SS]":
-                return index
-
-    col_idx = get_col_idx(df)
-    df = df_original[col_idx:]
-
-    # NOTE: A flag must be created to check were this line of information real is.
-    columns_name = list(df_original.iloc[col_idx])[:6]
-    # Drop all NaN columns
-    df = df.dropna(axis=1)
-    # Set new columns names
-    df.columns = columns_name
-    df.reset_index(inplace=True, drop=True)
-    df.drop(0, 0, inplace=True)  # remove the line were was the columns name
-
-    # Change date time column to a python datetime object
-    dt_col_name = "Date &Time [DD-MM-YYYY HH:MM:SS]"
-    # if not (dt_col_name in df.columns): TODO: Must create a column name checker
-    #     return f"File is missing a column with name {dt_col_name}"
-    df[dt_col_name] = df[dt_col_name].map(convert_datetime)
-    folder_dst = os.path.dirname(file_)
-    fname = os.path.basename(file_).split(".")[0]
-
-    df.to_excel(f"{folder_dst}/{fname}.xlsx")
-    return (f"{folder_dst}/{fname}.xlsx", dt_col_name)
-
-
-def file_reader(ext):
-    """File reader function dispatcher based file input extension.
-
-    Using the file extension, here we use return the appropriate pandas method to open that
-    specific file type.
-    """
-    reader = {"xlsx": pd.read_excel, "csv": pd.read_csv, "txt": pd.read_table}
-    return reader[ext]
 
 
 def to_mbyte(size, round_=3):
