@@ -37,6 +37,7 @@ function countDown(cycle_ends_in) {
     if (distance < 0) {
       clearInterval(count_down);
       document.getElementById("timer").innerHTML = "00:00:00";
+      getResPiStatus();
     }
   }, 1000);
 };

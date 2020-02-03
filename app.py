@@ -77,7 +77,7 @@ cache.set_many(
 )
 
 # SocketIO
-socketio = SocketIO(app, async_mode=None)
+socketio = SocketIO(app, async_mode="gevent")
 
 # Setup logging
 logger = app.logger
@@ -91,7 +91,7 @@ handler.setFormatter(logging.Formatter("%(asctime)s || %(message)s"))
 handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
-UNIT = 1  # 1 for seconds, 60 for minutes
+UNIT = 60  # 1 for seconds, 60 for minutes
 
 
 ####################
@@ -119,32 +119,32 @@ def start_program(app=None):
         # Send message about wait status
         cache.set("cycle_fase", "wait")
         cache.set("cycle_ends_in", to_js_time(wait))
-        socketio.emit(
-            "automatic_program",
-            {
-                "data": "Server generated event",
-                "running": cache.get("running"),
-                "cycle_fase": cache.get("cycle_fase"),
-                "run_auto": True,
-                "cycle_ends_in": cache.get("cycle_ends_in"),
-            },
-            namespace="/resPi",
-        )
+        # socketio.emit(
+        #     "automatic_program",
+        #     {
+        #         "data": "Server generated event",
+        #         "running": cache.get("running"),
+        #         "cycle_fase": cache.get("cycle_fase"),
+        #         "run_auto": True,
+        #         "cycle_ends_in": cache.get("cycle_ends_in"),
+        #     },
+        #     namespace="/resPi",
+        # )
         if not exit_thread.wait(timeout=(user_program.get("wait") * UNIT)):
             # Send message about close status
             cache.set("cycle_fase", "close")
             cache.set("cycle_ends_in", to_js_time(close))
-            socketio.emit(
-                "automatic_program",
-                {
-                    "data": "Server generated event",
-                    "running": cache.get("running"),
-                    "cycle_fase": cache.get("cycle_fase"),
-                    "run_auto": True,
-                    "cycle_ends_in": cache.get("cycle_ends_in"),
-                },
-                namespace="/resPi",
-            )
+            # socketio.emit(
+            #     "automatic_program",
+            #     {
+            #         "data": "Server generated event",
+            #         "running": cache.get("running"),
+            #         "cycle_fase": cache.get("cycle_fase"),
+            #         "run_auto": True,
+            #         "cycle_ends_in": cache.get("cycle_ends_in"),
+            #     },
+            #     namespace="/resPi",
+            # )
             if not exit_thread.wait(timeout=(user_program.get("close") * UNIT)):
                 continue
     else:
@@ -227,20 +227,20 @@ def pump_cycle(cycle: int, period: int):
     switch_on()
     # cycle_ends_in = to_js_time(cycle, "auto")
     cache.set("cycle_ends_in", to_js_time(cycle, "auto"))
-    socketio.emit(
-        "automatic_program",
-        {
-            "data": "Server generated event",
-            "running": cache.get("running"),
-            "cycle_fase": cache.set("cycle_fase", "flush"),
-            "run_auto": cache.get("running"),
-            "cycle_ends_in": cache.get("cycle_ends_in"),
-            "total_loops": cache.get("total_loops"),
-            "auto_run_since": cache.get("auto_run_since"),
-        },
-        namespace="/resPi",
-    )
-    # Wait until tank is full
+    # socketio.emit(
+    #     "automatic_program",
+    #     {
+    #         "data": "Server generated event",
+    #         "running": cache.get("running"),
+    #         "cycle_fase": cache.set("cycle_fase", "flush"),
+    #         "run_auto": cache.get("running"),
+    #         "cycle_ends_in": cache.get("cycle_ends_in"),
+    #         "total_loops": cache.get("total_loops"),
+    #         "auto_run_since": cache.get("auto_run_since"),
+    #     },
+    #     namespace="/resPi",
+    # )
+    # Wait until tank is full or break if user forces stop
     if not exit_thread.wait(timeout=cycle):  # MINUTES
         if cache.get("run_auto"):  # If still in current automatic program
             # Turn off the pump

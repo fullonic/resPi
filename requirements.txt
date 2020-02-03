@@ -1,5 +1,6 @@
-Flask
-Flask-Caching
-Flask-SocketIO
-gevent
-gevent-websocket
+Flask==1.1.1
+Flask-Caching==1.8.0
+Flask-SocketIO==4.2.1
+gevent==1.4.0
+gevent-websocket==0.10.1
+RPi.GPIO==0.7.0

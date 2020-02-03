@@ -39,6 +39,7 @@
   <!-- <script src="{{ url_for('static', filename='js/bootstrap.min.js.map') }}"></script> -->
   <script src="{{ url_for('static', filename='js/socket.io.js') }}"></script>
   <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
+  <!-- <script src="{{ url_for('static', filename='js/main.js') }}"></script> -->
   <script type="text/javascript">
     function ledsOFF() {
       // $("#available").addClass("led-off")
@@ -98,7 +99,7 @@
       runningAuto();
     })
 
-    $(document).ready(function() {
+    function getResPiStatus() {
       $.get("/status", function(system_info, status) {
         if (system_info.running && system_info.run_auto) { // Means that is running and in auto mode
           ledGreen();
@@ -127,48 +128,11 @@
         $("#auto_run_since").text(system_info.auto_run_since);
         $("#total_loops").text(system_info.total_loops);
       });
+    };
+    $(document).ready(function() {
+      getResPiStatus();
+    });
 
-      // SOCKER IO
-
-      namespace = '/resPi';
-      // Connect to the Socket.IO server.
-      // The connection URL has the following format, relative to the current page:
-      //     http[s]://<domain>:<port>[/<namespace>]
-      var socket = io(namespace);
-
-      socket.on('automatic_program', function(system_info, cb) {
-        console.log("ENDS " + system_info.cycle_ends_in);
-        if (system_info.running && system_info.run_auto) {
-          ledGreen();
-          countDown(system_info.cycle_ends_in);
-          $("#auto_run_since").text(system_info.auto_run_since);
-          $("#total_loops").text(system_info.total_loops);
-        } else if (system_info.run_auto && !system_info.running) {
-          if (system_info.cycle_fase === "wait") {
-            ledYellow();
-            countDown(system_info.cycle_ends_in)
-          } else {
-            ledRed();
-            countDown(system_info.cycle_ends_in)
-          }
-        } else {
-          // ledGreen();
-        }
-        if (cb)
-          cb();
-      });
-
-
-      socket.on('processing_files', function(data, cb) {
-        // if (data.generating_files) {
-        $("#files-progress").text(data.msg)
-        // }
-        if (cb)
-          cb();
-      });
-
-      // UPDATE IF THERE IS ANY DOCUMENT BEEN PROCCESSED
-    }); // end of document ready
     $(function() {
       $('[data-toggle="popover"]').popover()
     })
