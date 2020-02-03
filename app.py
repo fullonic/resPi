@@ -191,15 +191,7 @@ def process_excel_files(
 def landing():
     """Endpoint dispatcher to redirect user to the proper route."""
     # Check if user is authenticated
-    if not (session.get("auth", False)):
-        flash(
-            f"{greeting()}, primer cal iniciar la sessió abans d’utilitzar aquesta aplicació",
-            "info",
-        )
-        return redirect(url_for("excel_files"))
-    else:
-        flash(f"Hey {greeting()}, benvingut {session['username']}", "info")
-        return redirect(url_for("login"))
+    return redirect(url_for("excel_files"))
 
 
 @app.route("/excel_files", methods=["POST", "GET"])
@@ -227,8 +219,10 @@ def excel_files():
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
         plot = True if request.form.get("plot") else False  # if generate or no loop plots
-        ignore_loops = [int(loop) for loop in request.form["ignore_loops"].split(",")]
-        print(f"{ignore_loops=}")
+        try:
+            ignore_loops = [int(loop) for loop in request.form["ignore_loops"].split(",")]
+        except ValueError:  # If user didn't insert any value
+            ignore_loops = None
 
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):

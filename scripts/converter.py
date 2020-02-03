@@ -135,13 +135,21 @@ class ExperimentCycle:
         self.ignore_loops = ignore_loops or []
 
     def format_file(self, original_file):
+        """For OLSystem output file into a pandas DF."""
         txt_file = FileFormater(original_file)
         txt_file.to_dataframe()
         df = txt_file.df
         for col in df.columns[1:]:
             df[col] = df[col].astype(str)
         self.df = df
+        # Solves issues with temperature symbol °C or ?C. Outputs always °C
+        columns_name = list(self.df.columns)
+        if "SDWA0003000061      , CH 1 temp [?C]" in self.df.columns:
+            idx = columns_name.index("SDWA0003000061      , CH 1 temp [?C]")
+            columns_name.remove("SDWA0003000061      , CH 1 temp [?C]")
+            columns_name.insert(idx, "SDWA0003000061      , CH 1 temp [°C]")
 
+        self.df.columns = columns_name
         self.original_file = txt_file
         self.experiment_plot()
 
@@ -255,6 +263,7 @@ class ExperimentCycle:
 
     @progress_bar
     def create_plot(self, format_="html"):
+        """Proxy for Plot object."""
         print("Creating Plots", end="\n")
         step = 100 / len(self.df_close_list)
         for i, df_close in enumerate(self.df_close_list):
@@ -272,13 +281,16 @@ class ExperimentCycle:
             yield round(step * k)
 
     def save(self, df_loop, name):
+        """Save data frame into a excel file."""
         return df_loop.to_excel(f"{self.original_file.folder_dst}/df_loop_{name}.xlsx")
 
 
 class Plot:
+    """Generate all necessary kind of application plots."""
+
     def __init__(
         self, data, x_axis, y_axis, title, *, dst=None, fname="dataframe", output="html",
-    ):
+    ):  # noqa
         self.data = data
         self.x_axis = x_axis
         self.y_axis = y_axis
@@ -288,6 +300,7 @@ class Plot:
         self.dst = dst
 
     def create(self):
+        """Create a plot for each close loop data."""
         x = self.data[self.x_axis]
         y = self.data[self.y_axis]
         fig = go.Figure()
@@ -304,10 +317,11 @@ class Plot:
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
 
     def simple_plot(self, markers=[]):
+        """Plot all information from document before any kind of data manipulation."""
         from plotly.subplots import make_subplots
 
-        x = self.data[self.x_axis][:100]
-        y = self.data[self.y_axis][:100]
+        x = self.data[self.x_axis]
+        y = self.data[self.y_axis]
         # fig = go.Figure()
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -318,8 +332,7 @@ class Plot:
             secondary_y=False,
         )
         temp = [
-            string_to_float(t)
-            for t in list(self.data["SDWA0003000061      , CH 1 temp [?C]"])[:100]
+            string_to_float(t) for t in list(self.data["SDWA0003000061      , CH 1 temp [°C]"])
         ]
 
         fig.add_trace(
