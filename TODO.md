@@ -12,6 +12,7 @@ FrontEnd
  - [ ] Delete volume from pump control settings
  - [ ] Add setting to change default saved DF file name
  - [ ] Add setting to change default saved plot file name
+ - [ ] Change download data format
  -------------------------------
  - [ ] Change "process please" name when "abrir grafic" is selected
  - [ ] Only allow one checkbox selected at the time

@@ -98,11 +98,8 @@ class ResumeDataFrame:
             if k in self.experiment.ignore_loops:
                 continue
             O2_col_name = "SDWA0003000061      , CH 1 O2 [mg/L]"
-            # O2_col_name = "SDWA0003000061      , CH 1 O2 [% air saturation]"
-
             O2 = O2_data(df_close[O2_col_name])
             r2_a_b = trendline_data(df_close, self.experiment.x, self.experiment.y)
-            # slope = r2_a_b.b * 60
             slope = r2_a_b.b
             O2_HR = slope * aqua_volume
 

@@ -223,7 +223,6 @@ class ExperimentCycle:
         start: int = 0
         end: int = 0
         for k, v in self.loop_data_range.items():  # It will ignore
-            # print(f"{k=}")
             # if k in self.ignore_loops:
             #     k += 1
             #     continue
@@ -308,11 +307,13 @@ class Plot:
         )
         fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
         trendline = fig1.data[1]
-        print(f"{trendline=}")
         fig.add_trace(trendline)
-        fig.update_layout(dict(title=self.title))
+        formula, rsqt = trendline.hovertemplate.split("<br>")[1:3]
+        title = f"""<b>{self.title}</b><br>{formula}<br>{rsqt}"""
+        fig.update_layout(dict(title=title, showlegend=True))
 
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
+        return fig1
 
     def simple_plot(self, markers=[]):
         """Plot all information from document before any kind of data manipulation."""
@@ -320,7 +321,6 @@ class Plot:
 
         x = self.data[self.x_axis]
         y = self.data[self.y_axis]
-        # fig = go.Figure()
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(
@@ -344,9 +344,9 @@ class Plot:
             secondary_y=True,
         )
         # # MARKERS
-        y = [9.5 for i in range(len(markers))]
-        size = [2 for i in range(len(markers))]
-        loop = [f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i in range(len(markers))]
+        y = [9.5] * len(markers)
+        size = [2] * len(markers)
+        loop = [f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i, _ in enumerate(markers)]
 
         points = px.scatter(x=markers, y=y, size=size, text=loop)
         fig.add_trace(points.data[0])
