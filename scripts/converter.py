@@ -253,12 +253,11 @@ class ExperimentCycle:
         # Create the new column of oxygen evolution
         #  Create a new column for o2 evolution and calculate_ox_evolution
         start_value = df_close[self.time_stamp_code].iloc[0]
-        df_close["Temps (min)"] = df_close[self.time_stamp_code].apply(
+        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(
             calculate_ox, args=(start_value,)
         )
-        df_close[self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
-        df_close[self.y] = df_close[self.O2_COL].map(string_to_float)
-        # df_close[self.y] = df_close[self.O2_COL]
+        df_close.loc[:, self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
+        df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
     @progress_bar
@@ -268,8 +267,6 @@ class ExperimentCycle:
         step = 100 / len(self.df_close_list)
         for i, df_close in enumerate(self.df_close_list):
             k = i + 1
-            # print(f"[ {'=' * i}", end=" ")
-            # print(f"] {i + 1}/{len(self.df_close_list)}", end="\r")
             Plot(
                 df_close,
                 self.x,
@@ -311,6 +308,7 @@ class Plot:
         )
         fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
         trendline = fig1.data[1]
+        print(f"{trendline=}")
         fig.add_trace(trendline)
         fig.update_layout(dict(title=self.title))
 
