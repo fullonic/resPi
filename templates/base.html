@@ -155,6 +155,27 @@
     function saySomething() {
       console.log("You called!!!");
     }
+
+    $("#generatePlotComplet").on("click", function() {
+      if ($("#generatePlotComplet").prop("checked")) {
+        $("#generatePlots").prop("checked", false);
+        $("#submit_files").text("Preview global plot")
+        $("#submit_files").addClass("btn-success")
+      }
+    })
+    $("#generatePlots").on("click", function() {
+      if ($("#generatePlots").prop("checked")) {
+        $("#generatePlotComplet").prop("checked", false);
+        $("#submit_files").text("Generar data")
+        $("#submit_files").removeClass("btn-success")
+
+
+      }
+    })
+
+    function test() {
+      console.log("PRESS MARKER");
+    }
   </script>
   {% block scripts %}{% endblock %}
 
