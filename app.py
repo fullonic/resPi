@@ -228,7 +228,7 @@ def excel_files():
         if request.form.get("experiment_plot"):
             show_preview(flush, wait, close, data_file)
             cache.set("generating_files", False)
-            return render_template("global_graph_preview.html")
+            return redirect(url_for("show_global_plot"))
         # Contains a list of all uploaded file in a single uploaded request
         uploaded_excel_files = []
         # Generate the folder name
@@ -279,6 +279,11 @@ def excel_files():
     config = session.get("excel_config")
     config["ignore_loops"] = session.get("ignore_loops")
     return render_template("excel_files.html", config=config)
+
+
+@app.route("/show_global_plot")
+def show_global_plot():
+    return render_template("global_graph_preview.html")
 
 
 ####################
