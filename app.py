@@ -91,35 +91,6 @@ handler.setFormatter(logging.Formatter("%(message)s"))
 handler.setLevel(logging.WARNING)
 
 app.logger.addHandler(handler)
-UNIT = 60  # 1 for seconds, 60 for minutes
-
-
-def login_required(fn):
-    """Decorate to protected against not authenticated users."""
-    # Functions warp
-    @wraps(fn)
-    def wrap(*args, **kwargs):
-        if not session.get("auth", False):
-            return redirect(url_for("login"))  # Not authenticated
-        return fn(*args, **kwargs)
-
-    return wrap
-
-
-def check_password(password):
-    """Check if password is corrected."""
-    # Get hash password from os environment to check if matches NOTE: Must be set on pi env
-    hash = os.getenv(
-        "hash2",
-        "pbkdf2:sha256:150000$pMreM10r$6dc02f2deb0725f1f3c70766f44e2aa45d8614556b48e9165740ac6384b4de79",  # noqa
-    )
-    check = check_password_hash(hash, password)
-    if check:
-        session["auth"] = True
-        return True
-    else:
-        session["auth"] = False
-        return False
 
 
 def show_preview(flush, wait, close, file_):
@@ -215,6 +186,7 @@ def excel_files():
                 return redirect("excel_files")
 
         # Get basic information about the data set
+        filename = data_file.filename.split(".")[0]
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
@@ -374,55 +346,6 @@ def download_log(log):
     return send_from_directory(app.config["LOGS_FOLDER"], log)
 
 
-####################
-# AUTHENTICATION AND SYSTEM STUFF
-####################
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    """User login page."""
-    if request.method == "POST":
-        password = request.form.get("password", None)
-        session["username"] = request.form.get("username", None)
-        if check_password(password):
-            logger.warning(f"{request.form.get('username')} connectado")
-            flash(f"Hey {greeting()}! Benvingut {session['username']}", "info")
-            return redirect(url_for("excel_files"))
-        flash("Contrasenya incorrecta", "danger")
-    return render_template("login.html")
-
-
-@app.route("/logout")
-def logout():
-    """Log out user."""
-    session["auth"] = False
-    logger.warning(f"{session['username']} left.")
-    flash(f"Adeu!! {session['username']}", "info")
-    return redirect(url_for("login"))
-
-
-@app.route("/turn_off")
-def turn_off():
-    """Turn off PI."""
-    cmd = "sudo shutdown now"
-    subprocess.Popen(cmd, shell=True)
-    flash(f"Apagar el sistema...", "info")
-    return redirect(url_for("login"))
-
-
-@app.route("/restart")
-def restart():
-    """Restart PI."""
-    cmd = "sudo reboot"
-    subprocess.Popen(cmd, shell=True)
-    flash(
-        f"""Reinicieu el sistema. Això pot trigar un parell de segons, espereu si us plau.
-        Continuar prement F5 fins que torni a actualitzar la pàgina.
-        """,
-        "info",
-    )
-    return redirect(url_for("landing"))
-
-
 @app.route("/status", methods=["GET"])
 def get_status():
     """Return information about the different components of the system."""
@@ -458,6 +381,6 @@ def update_time(local_time):
 
 if __name__ == "__main__":
     port = 5000
-    # webbrowser.open(f"http://localhost:{port}/excel_files")
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    webbrowser.open(f"http://localhost:{port}/excel_files")
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)

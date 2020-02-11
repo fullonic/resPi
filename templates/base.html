@@ -16,6 +16,12 @@
 </head>
 
 <body>
+  <!-- Spinner  -->
+  <div id="spinner-front" class="d-none">
+    <img src="static/js/ajax-loader.gif" /><br>
+    Processing...
+  </div>
+  <div id="spinner-back" class="d-none"></div>
   {% block body %}
 
   {% endblock %}
@@ -159,23 +165,30 @@
     $("#generatePlotComplet").on("click", function() {
       if ($("#generatePlotComplet").prop("checked")) {
         $("#generatePlots").prop("checked", false);
-        $("#submit_files").text("Preview global plot")
+        $("#submit_files").text("Vista prèvia del gràfic global")
         $("#submit_files").addClass("btn-success")
+      } else {
+        $("#submit_files").text("Processar dades");
+        $("#submit_files").removeClass("btn-success")
       }
     })
     $("#generatePlots").on("click", function() {
       if ($("#generatePlots").prop("checked")) {
         $("#generatePlotComplet").prop("checked", false);
-        $("#submit_files").text("Generar data")
+        $("#submit_files").text("Processar dades")
         $("#submit_files").removeClass("btn-success")
-
-
       }
     })
 
     function test() {
       console.log("PRESS MARKER");
     }
+
+    // SPINNER
+    $("#submit_files").on("click", function() {
+      document.getElementById("spinner-front").classList.add("d-none");
+      document.getElementById("spinner-back").classList.add("d-none");
+    });
   </script>
   {% block scripts %}{% endblock %}
 

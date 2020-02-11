@@ -66,7 +66,9 @@ class FileFormater:
                 return index
 
     def to_dataframe(self, output="xlsx"):
-        df = pd.read_table(self.file_, encoding=self.file_encoding, decimal=",")
+        df = pd.read_table(
+            self.file_, encoding=self.file_encoding, decimal=",", low_memory=False
+        )
         for index, dt in enumerate(df):
             if df.iloc[index][0] == self.dt_col_name:
                 break
@@ -94,9 +96,11 @@ class FileFormater:
         # TODO: Allow user pass a new name for the exported file
         if self.output == "csv":
             self.converted_file = f"{self.file_output}.csv"
+            self.df.reset_index(inplace=True, drop=True)
             self.df.to_csv(self.converted_file)
         else:
             self.converted_file = f"{self.file_output}.xlsx"
+            self.df.reset_index(inplace=True, drop=True)
             self.df.to_excel(self.converted_file, index=False)
 
 

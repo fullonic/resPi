@@ -4,8 +4,9 @@
 
   {% if request.path == "/show_global_plot" %}
   <form action="{{ url_for('remove_loops') }}" method="POST" enctype="multipart/form-data">
-    <input placeholder="Loops per eliminar" id="ignore_loops" type="text" name="ignore_loops">
-    <button type="submit" class="btn btn-primary mr-3">Eliminar</button>
+    <a class="ml-3" type="button" data-toggle="popover" data-content="Inseriu el número del bucle que voleu ignorar. Separeu-los amb " ,". ex: 1,5,7,10" data-placement="top"><i class="fas fa-info-circle"></i>
+      <input placeholder="Loops per eliminar" id="ignore_loops" type="text" name="ignore_loops">
+      <button type="submit" class="btn btn-primary mr-3">Eliminar</button>
   </form>
   {% endif %}
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -21,18 +22,6 @@
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('settings') }}">Configuració</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Sistema
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" href="{{ url_for('logs') }}">Logs</a>
-          <a class="dropdown-item" href="{{ url_for('logout') }}">Sortir</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="{{ url_for('restart') }}">Reiniciar</a>
-          <a class="dropdown-item" href="{{ url_for('turn_off') }}">Tancar</a>
-        </div>
       </li>
     </ul>
   </div>
