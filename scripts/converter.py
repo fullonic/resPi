@@ -96,11 +96,9 @@ class FileFormater:
         # TODO: Allow user pass a new name for the exported file
         if self.output == "csv":
             self.converted_file = f"{self.file_output}.csv"
-            self.df.reset_index(inplace=True, drop=True)
             self.df.to_csv(self.converted_file)
         else:
             self.converted_file = f"{self.file_output}.xlsx"
-            self.df.reset_index(inplace=True, drop=True)
             self.df.to_excel(self.converted_file, index=False)
 
 
@@ -282,7 +280,9 @@ class ExperimentCycle:
 
     def save(self, df_loop, name):
         """Save data frame into a excel file."""
-        return df_loop.to_excel(f"{self.original_file.folder_dst}/df_loop_{name}.xlsx")
+        return df_loop.to_excel(
+            f"{self.original_file.folder_dst}/df_loop_{name}.xlsx", index=False
+        )
 
 
 class Plot:

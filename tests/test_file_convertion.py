@@ -51,4 +51,4 @@ def get_trend_plot_data():
     dir(p.data[1])
     p.data[1].hovertemplate
 
-test_full_file_process(plot=True)
+test_full_file_process(plot=False, save=True)

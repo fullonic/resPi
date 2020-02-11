@@ -132,8 +132,7 @@ class ResumeDataFrame:
         if ext == "csv":
             self.resume_df.to_csv(fname)
         else:
-            self.resume_df.reset_index(inplace=True, drop=True)
-            self.resume_df.to_excel(fname)
+            self.resume_df.to_excel(fname, index=False)
 
         self.zip_folder()
 
@@ -149,7 +148,7 @@ class ResumeDataFrame:
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        # delete_excel_files(location)
+        delete_excel_files(location)
 
 
 class Control(ResumeDataFrame):
