@@ -17,20 +17,20 @@
         <div class="card-body">
           <div class="form-row">
             <div class="form-group col-md">
-              <label for="flush">'Flush' time</label>
-              <input type="number" min="0" value="{{ config.file_cycle_config.flush }}" name="file_flush" class="form-control" id="flush" placeholder="Flush time in minutes" required>
+              <label for="flush">'Flush' temps</label>
+              <input type="number" min="0" value="{{ config.file_cycle_config.flush }}" name="file_flush" class="form-control" id="flush" placeholder="Flush temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="wait">'Wait' time</label>
-              <input type="number" min="0" value="{{ config.file_cycle_config.wait }}" name="file_wait" class="form-control" id="wait" placeholder="Wait time in minutes" required>
+              <label for="wait">'Wait' temps</label>
+              <input type="number" min="0" value="{{ config.file_cycle_config.wait }}" name="file_wait" class="form-control" id="wait" placeholder="Wait temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="close">'Close' time</label>
-              <input type="number" min="0" value="{{ config.file_cycle_config.close }}" name="file_close" class="form-control" id="close" placeholder="Close time in minutes" required>
+              <label for="close">'Close' temps</label>
+              <input type="number" min="0" value="{{ config.file_cycle_config.close }}" name="file_close" class="form-control" id="close" placeholder="Close temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="aqua_volume">Volume (L)</label>
-              <input type="number" min="0" step="0.0001" value="{{ config.file_cycle_config.aqua_volume }}" name="file_aqua_volume" class="form-control" id="aqua_volume" placeholder="Close time in minutes" required>
+              <label for="aqua_volume">Volum (L)</label>
+              <input type="number" min="0" step="0.0001" value="{{ config.file_cycle_config.aqua_volume }}" name="file_aqua_volume" class="form-control" id="aqua_volume" placeholder="Close temps en minuts" required>
             </div>
           </div>
         </div>
@@ -39,43 +39,43 @@
       <div class="card mt-3">
         <div class="card-header">
           <div class="row">
-            <div class="col-md-10">Experiment Output File</div>
+            <div class="col-md-10">Fitxer de sortida de la prova</div>
           </div>
         </div>
         <div class="card-body">
           <div class="form-row">
             <div class="form-group col-md">
-              <label for="DT_COL">Date & Time Column Name</label>
-              <input type="text" value="{{ config.experiment_file_config.DT_COL }}" name="output_file_DT_COL" class="form-control" id="DT_COL" placeholder="Flush time in minutes" required>
+              <label for="DT_COL">Nom de la columna "Date & Time"</label>
+              <input type="text" value="{{ config.experiment_file_config.DT_COL }}" name="output_file_DT_COL" class="form-control" id="DT_COL" placeholder="Flush temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="TSCODE">Time Stamp Code Column Name</label>
-              <input type="text" value="{{ config.experiment_file_config.TSCODE }}" name="output_file_TSCODE" class="form-control" id="TSCODE" placeholder="Wait time in minutes" required>
+              <label for="TSCODE">Nom de la columna "Time Stamp Code"</label>
+              <input type="text" value="{{ config.experiment_file_config.TSCODE }}" name="output_file_TSCODE" class="form-control" id="TSCODE" placeholder="Wait temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="O2_COL">O2 Column Name</label>
-              <input type="text" value="{{ config.experiment_file_config.O2_COL }}" name="output_file_O2_COL" class="form-control" id="O2_COL" placeholder="Close time in minutes" required>
+              <label for="O2_COL">Nom de la columna O2</label>
+              <input type="text" value="{{ config.experiment_file_config.O2_COL }}" name="output_file_O2_COL" class="form-control" id="O2_COL" placeholder="Close temps en minuts" required>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group col-md">
-              <label for="PLOT_TITLE">Graph Title</label>
-              <input type="text" value="{{ config.experiment_file_config.PLOT_TITLE }}" name="output_file_PLOT_TITLE" class="form-control" id="PLOT_TITLE" placeholder="Close time in minutes" required>
+              <label for="PLOT_TITLE">Títol del gràfic</label>
+              <input type="text" value="{{ config.experiment_file_config.PLOT_TITLE }}" name="output_file_PLOT_TITLE" class="form-control" id="PLOT_TITLE" placeholder="Close temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="X_COL">X Column Name</label>
-              <input type="text" value="{{ config.experiment_file_config.X_COL }}" name="output_file_X_COL" class="form-control" id="X_COL" placeholder="Close time in minutes" required>
+              <label for="X_COL">Nom de la columna X</label>
+              <input type="text" value="{{ config.experiment_file_config.X_COL }}" name="output_file_X_COL" class="form-control" id="X_COL" placeholder="Close temps en minuts" required>
             </div>
             <div class="form-group col-md">
-              <label for="Y_COL">Y Column Name</label>
-              <input type="text" value="{{ config.experiment_file_config.Y_COL }}" name="output_file_Y_COL" class="form-control" id="Y_COL" placeholder="Close time in minutes" required>
+              <label for="Y_COL">Nom de la columna Y</label>
+              <input type="text" value="{{ config.experiment_file_config.Y_COL }}" name="output_file_Y_COL" class="form-control" id="Y_COL" placeholder="Close temps en minuts" required>
             </div>
           </div>
           <div class="form-row">
             <div class="form-check mr-3">
               <input class="form-check-input" name="save_loop_df" type="checkbox" value="yes" id="saveLoopsDF" {% if config.experiment_file_config.SAVE_LOOP_DF %}checked{% endif %}>
               <label class="form-check-label" for="saveLoopsDF">
-                Save individual loop data
+                Deseu les dades del bucle individual en un fitxer
               </label>
             </div>
             <div class="form-check mr-3">
@@ -83,7 +83,7 @@
 
 
               <label class="form-check-label" for="saveConvertedFile">
-                Save experiment data file as excel table
+                Desa el fitxer de dades d’experiment com a taula excel
               </label>
             </div>
 

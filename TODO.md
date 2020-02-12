@@ -14,5 +14,5 @@ FrontEnd
  - [ ] Add setting to change default saved plot file name
  - [ ] Change download data format
  -------------------------------
- - [ ] Change "process please" name when "abrir grafic" is selected
- - [ ] Only allow one checkbox selected at the time
+ - [x] Change "process please" name when "abrir grafic" is selected
+ - [x] Only allow one checkbox selected at the time

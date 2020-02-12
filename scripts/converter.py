@@ -60,46 +60,43 @@ class FileFormater:
 
         return chardet.detect(raw)["encoding"]
 
-    def information_index(self, df):
-        for index, dt in enumerate(df):
-            if df.iloc[index][0] == self.dt_col_name:
-                return index
-
+    # def information_index(self, df):
+    #     for index, dt in enumerate(df):
+    #         if df.iloc[index][0] == self.dt_col_name:
+    #             return index
+    #
     def to_dataframe(self, output="xlsx"):
         df = pd.read_table(
             self.file_, encoding=self.file_encoding, decimal=",", low_memory=False
         )
-        for index, dt in enumerate(df):
-            if df.iloc[index][0] == self.dt_col_name:
-                break
+        # for col_idx, dt in enumerate(df):
+        #     if df.iloc[col_idx][0] == self.dt_col_name:
+        #         break
 
-        col_idx = index
+        col_idx = 8
+        print(f"{col_idx=}")
         df = df[col_idx:]
         columns_name = list(df.iloc[0])[:6]
         # Drop all NaN columns
-        df = df.dropna(axis=1)
-        df = df.iloc[:, 0:6]
+        df.dropna(axis=1, inplace=True)
+        # df = df.iloc[:, 0:6]
         # Set new columns names
         df.columns = columns_name
         df.reset_index(inplace=True, drop=True)
         df.drop(0, 0, inplace=True)  # remove the line were was the columns name
 
         # Change date time column to a python datetime object
-        df[self.dt_col_name] = df[self.dt_col_name].map(convert_datetime)
-        self.df = df
+        df.loc[:, self.dt_col_name] = df[self.dt_col_name].map(convert_datetime)
         self.output = output
         if self.save_converted:
             self.save(output)
+        self.df = df.copy()
 
     def save(self, name=None):
         """Export converted DF to a new file."""
         # TODO: Allow user pass a new name for the exported file
-        if self.output == "csv":
-            self.converted_file = f"{self.file_output}.csv"
-            self.df.to_csv(self.converted_file)
-        else:
-            self.converted_file = f"{self.file_output}.xlsx"
-            self.df.to_excel(self.converted_file, index=False)
+        self.converted_file = f"{self.file_output}.xlsx"
+        self.df.to_excel(self.converted_file, index=False)
 
 
 class ExperimentCycle:
@@ -220,8 +217,6 @@ class ExperimentCycle:
 
     @property
     def df_close_list(self):  # NOTE:  must pass here list to ignore
-        # k = 0
-        lst: list = []
         start: int = 0
         end: int = 0
         for k, v in self.loop_data_range.items():  # It will ignore
@@ -237,9 +232,8 @@ class ExperimentCycle:
             end += 1
             if self.save_loop_df:
                 self.save(df_close, name=str(k))
-            lst.append(df_close)
-            k += 1
-        return lst
+            yield df_close
+
 
     def _close_df(self, start: datetime, end: datetime) -> pd.DataFrame:
         """Create a DF with the close information.
@@ -254,18 +248,18 @@ class ExperimentCycle:
         # Create the new column of oxygen evolution
         #  Create a new column for o2 evolution and calculate_ox_evolution
         start_value = df_close[self.time_stamp_code].iloc[0]
-        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(
-            calculate_ox, args=(start_value,)
+        df_close.loc[:, "Temps (min)"] = list(
+            df_close[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
         )
-        df_close.loc[:, self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
-        df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
+        df_close.loc[:, self.x] = list(df_close["Temps (min)"].map(lambda x: x / 60))
+        df_close.loc[:, self.y] = list(df_close[self.O2_COL].map(string_to_float))
         return df_close
 
     @progress_bar
     def create_plot(self, format_="html"):
         """Proxy for Plot object."""
         print("Creating Plots", end="\n")
-        step = 100 / len(self.df_close_list)
+        step = 100 / self.total_of_loops
         for i, df_close in enumerate(self.df_close_list):
             k = i + 1
             Plot(
@@ -316,7 +310,9 @@ class Plot:
         title = f"""<b>{self.title}</b><br>{formula}<br>{rsqt}"""
         fig.update_layout(dict(title=title, showlegend=True))
 
-        fig.write_html(f"{self.dst}/{self.fname}.{self.output}")
+        config = {"editable": True, "displaylogo": False}
+
+        fig.write_html(f"{self.dst}/{self.fname}.{self.output}", config=config)
         return fig1
 
     def simple_plot(self, markers=[]):
@@ -358,6 +354,7 @@ class Plot:
         fig.update_xaxes(title_text="<b>Temps (hr)</b>")
         fig.update_yaxes(title_text="<b>mg O2/l</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
+        fig.update_layout(title="<b>Gràfic global</b>")
         template_folder = os.path.join(os.getcwd(), "templates")
         fig.write_html(f"{template_folder}/_preview.html")
 

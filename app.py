@@ -381,6 +381,6 @@ def update_time(local_time):
 
 if __name__ == "__main__":
     port = 5000
-    webbrowser.open(f"http://localhost:{port}/excel_files")
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    # webbrowser.open(f"http://localhost:{port}/excel_files")
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)
