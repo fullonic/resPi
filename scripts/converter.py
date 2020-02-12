@@ -60,37 +60,30 @@ class FileFormater:
 
         return chardet.detect(raw)["encoding"]
 
-    # def information_index(self, df):
-    #     for index, dt in enumerate(df):
-    #         if df.iloc[index][0] == self.dt_col_name:
-    #             return index
-    #
     def to_dataframe(self, output="xlsx"):
         df = pd.read_table(
             self.file_, encoding=self.file_encoding, decimal=",", low_memory=False
         )
-        # for col_idx, dt in enumerate(df):
-        #     if df.iloc[col_idx][0] == self.dt_col_name:
-        #         break
+        for col_idx, dt in enumerate(df):
+            if df.iloc[col_idx][0] == self.dt_col_name:
+                break
 
-        col_idx = 8
-        print(f"{col_idx=}")
         df = df[col_idx:]
         columns_name = list(df.iloc[0])[:6]
         # Drop all NaN columns
         df.dropna(axis=1, inplace=True)
-        # df = df.iloc[:, 0:6]
+        df = df.iloc[:, 0:6]
         # Set new columns names
         df.columns = columns_name
         df.reset_index(inplace=True, drop=True)
         df.drop(0, 0, inplace=True)  # remove the line were was the columns name
 
         # Change date time column to a python datetime object
-        df.loc[:, self.dt_col_name] = df[self.dt_col_name].map(convert_datetime)
+        df.loc[:, self.dt_col_name] = df.loc[:, self.dt_col_name].map(convert_datetime)
         self.output = output
         if self.save_converted:
             self.save(output)
-        self.df = df.copy()
+        self.df = df
 
     def save(self, name=None):
         """Export converted DF to a new file."""
@@ -139,16 +132,17 @@ class ExperimentCycle:
         txt_file.to_dataframe()
         df = txt_file.df
         for col in df.columns[1:]:
-            df[col] = df[col].astype(str)
-        self.df = df
+            df.loc[:, col] = df[col].astype(str)
+
         # Solves issues with temperature symbol °C or ?C. Outputs always °C
-        columns_name = list(self.df.columns)
-        if "SDWA0003000061      , CH 1 temp [?C]" in self.df.columns:
+        columns_name = list(df.columns)
+        if "SDWA0003000061      , CH 1 temp [?C]" in df.columns:
             idx = columns_name.index("SDWA0003000061      , CH 1 temp [?C]")
             columns_name.remove("SDWA0003000061      , CH 1 temp [?C]")
             columns_name.insert(idx, "SDWA0003000061      , CH 1 temp [°C]")
 
-        self.df.columns = columns_name
+        df.columns = columns_name
+        self.df = df
         self.original_file = txt_file
         self.experiment_plot()
 
@@ -160,13 +154,15 @@ class ExperimentCycle:
             pt = timer + (self.loop_time)
             markers.append(pt)
             timer = pt
-        data = self.df
-        start_value = data[self.time_stamp_code].iloc[0]
-        data[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
-        data[self.y] = data[self.O2_COL].map(string_to_float)
-        data.head()
+        # self.df = self.df
+
+        start_value = self.df[self.time_stamp_code].iloc[0]
+        self.df.loc[:, self.x] = self.df[self.time_stamp_code].apply(
+            calculate_ox, args=(start_value,)
+        )
+        self.df.loc[:, self.y] = self.df[self.O2_COL].map(string_to_float)
         plot = Plot(
-            data,
+            self.df,
             self.x,
             self.y,
             "Experiment",
@@ -184,10 +180,11 @@ class ExperimentCycle:
         by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
-        time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
-        time_diff.seconds
+        # time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
+        # print(time_diff.seconds)
         # Put every time value into seconds
-        total = (time_diff).seconds / (self.loop_time * 60)
+        # total = (time_diff).seconds / (self.loop_time * 60)
+        total = 9575 / (self.loop_time * 60)
         # rounds up the decimal number
         return math.ceil(total)
 
@@ -220,9 +217,6 @@ class ExperimentCycle:
         start: int = 0
         end: int = 0
         for k, v in self.loop_data_range.items():  # It will ignore
-            # if k in self.ignore_loops:
-            #     k += 1
-            #     continue
             end += get_loop_seconds(v)
             try:
                 df_close = self._close_df(start, end)
@@ -234,7 +228,6 @@ class ExperimentCycle:
                 self.save(df_close, name=str(k))
             yield df_close
 
-
     def _close_df(self, start: datetime, end: datetime) -> pd.DataFrame:
         """Create a DF with the close information.
 
@@ -243,14 +236,15 @@ class ExperimentCycle:
         """
         # Create a new DF with close information
         start = start + (self.discard_time * 60)
-        df_close = self.df[start:end]
+        df_close = self.df[start:end].copy()
         df_close.reset_index(inplace=True, drop=True)
         # Create the new column of oxygen evolution
         #  Create a new column for o2 evolution and calculate_ox_evolution
         start_value = df_close[self.time_stamp_code].iloc[0]
-        df_close.loc[:, "Temps (min)"] = list(
-            df_close[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
+        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(
+            calculate_ox, args=(start_value,)
         )
+
         df_close.loc[:, self.x] = list(df_close["Temps (min)"].map(lambda x: x / 60))
         df_close.loc[:, self.y] = list(df_close[self.O2_COL].map(string_to_float))
         return df_close
