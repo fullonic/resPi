@@ -18,11 +18,14 @@
         <a class="nav-link" href="{{ url_for('help') }}"><i class="fas fa-question"></i> Ajuda</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('excel_files') }}">Arxius Excel</a>
+        <a class="nav-link" href="{{ url_for('excel_files') }}"><i class="fas fa-table"></i> Arxius Excel</a>
       </li>
+      {% if request.path == "/excel_files" %}
       <li class="nav-item">
         <a class="nav-link" href="#" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog"></i> Configuració</a>
       </li>
+      {% endif %}
+
     </ul>
   </div>
 </nav>

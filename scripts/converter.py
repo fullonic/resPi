@@ -118,14 +118,18 @@ class ExperimentCycle:
         self.flush = flush
         self.wait = wait
         self.close = close
-        self.discard_time = flush + wait  # time-span to discard from each information cycle
+        self.discard_time = (
+            flush + wait
+        )  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
 
         # LOAD ALL CONFIG FROM FILE
         config = config_from_file()["experiment_file_config"]
         self.dt_col_name = config["DT_COL"]
         self.time_stamp_code = config["TSCODE"]  # Get data column name
-        self.O2_COL = config["O2_COL"]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
+        self.O2_COL = config[
+            "O2_COL"
+        ]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
         self.x = config["X_COL"]  # column of oxygen evolution self.x
         self.y = config["Y_COL"]
         self.plot_title = config["PLOT_TITLE"]
@@ -190,7 +194,9 @@ class ExperimentCycle:
         by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
-        time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
+        time_diff = (
+            self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
+        )
         # Put every time value into seconds
         total = (time_diff).seconds / (self.loop_time * 60)
         return math.ceil(total)  # rounds up the decimal to number
@@ -288,7 +294,15 @@ class Plot:
     """Generate all necessary kind of application plots."""
 
     def __init__(
-        self, data, x_axis, y_axis, title, *, dst=None, fname="dataframe", output="html",
+        self,
+        data,
+        x_axis,
+        y_axis,
+        title,
+        *,
+        dst=None,
+        fname="dataframe",
+        output="html",
     ):  # noqa
         self.data = data
         self.x_axis = x_axis
@@ -305,7 +319,11 @@ class Plot:
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(
-                x=x, y=y, name=self.title, line=dict(color="red", width=1), showlegend=True,
+                x=x,
+                y=y,
+                name=self.title,
+                line=dict(color="red", width=1),
+                showlegend=True,
             )
         )
         fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
@@ -330,12 +348,17 @@ class Plot:
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(
             go.Scatter(
-                x=x, y=y, name=self.title, line=dict(color="blue", width=1), showlegend=True,
+                x=x,
+                y=y,
+                name=self.title,
+                line=dict(color="blue", width=1),
+                showlegend=True,
             ),
             secondary_y=False,
         )
         temp = [
-            string_to_float(t) for t in list(self.data["SDWA0003000061      , CH 1 temp [°C]"])
+            string_to_float(t)
+            for t in list(self.data["SDWA0003000061      , CH 1 temp [°C]"])
         ]
 
         fig.add_trace(
@@ -351,7 +374,9 @@ class Plot:
         # # MARKERS
         y = [9.5] * len(markers)
         size = [2] * len(markers)
-        loop = [f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i, _ in enumerate(markers)]
+        loop = [
+            f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i, _ in enumerate(markers)
+        ]
 
         points = px.scatter(x=markers, y=y, size=size, text=loop)
         fig.add_trace(points.data[0])

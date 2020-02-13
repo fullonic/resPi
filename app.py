@@ -66,7 +66,6 @@ else:
 
 
 app.config.from_mapping(config)
-_active_threads = {}
 exit_thread = Event()
 # Setup cache
 cache = Cache(app)
@@ -113,7 +112,7 @@ def process_excel_files(
     control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
 
     for idx, c in enumerate([control_file_1, control_file_2]):
-        C = ControlFile(flush, wait, close, c, file_type=f"control_{idx}")
+        C = ControlFile(flush, wait, close, c, file_type=f"control_{idx + 1}")
         C_Total = Control(C)
         C_Total.get_bank()
     control = C_Total.calculate_blank()
@@ -124,9 +123,7 @@ def process_excel_files(
     ######################
     now = time.perf_counter()
     total_files = len(uploaded_excel_files)
-    logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
-        # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
         experiment = ExperimentCycle(
             flush, wait, close, file_path, ignore_loops, file_type="data"
         )
@@ -140,17 +137,21 @@ def process_excel_files(
 
         resume = ResumeDataFrame(experiment)
 
-        logger.warning(f"Task concluded {i+1}/{total_files}")
+        # logger.warning(f"Task concluded {i+1}/{total_files}")
+        print("Tasca conclosa")
         socketio.emit(
             "processing_files",
-            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
+            {
+                "generating_files": True,
+                "msg": f"fitxers processats {i+1}/{total_files}",
+            },
             namespace="/resPi",
         )
     cache.set("generating_files", False)
     socketio.emit(
         "processing_files", {"generating_files": False, "msg": ""}, namespace="/resPi"
     )
-    print(f"Total time {time.perf_counter() - now}")
+    print(f"processament de temps total {round(time.perf_counter() - now)}")
 
 
 ####################
@@ -188,9 +189,13 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False  # if generate or no loop plots
+        plot = (
+            True if request.form.get("plot") else False
+        )  # if generate or no loop plots
         try:
-            ignore_loops = [int(loop) for loop in request.form["ignore_loops"].split(",")]
+            ignore_loops = [
+                int(loop) for loop in request.form["ignore_loops"].split(",")
+            ]
         except ValueError:  # If user didn't insert any value
             ignore_loops = None
 
@@ -209,7 +214,9 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            project_folder = os.path.join(
+                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
+            )
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -243,12 +250,13 @@ def excel_files():
             estaran disponibles a la secció de descàrregues..""",
             "info",
         )
-        # session["ignore_loops"] = None
+        session["ignore_loops"] = None
         return redirect("excel_files")
 
-    config = session.get("excel_config")
-    config["ignore_loops"] = session.get("ignore_loops")
-    return render_template("excel_files.html", config=config)
+    exp_config = session.get("excel_config")
+    exp_config["ignore_loops"] = session.get("ignore_loops")
+    config = config_from_file()
+    return render_template("excel_files.html", exp_config=exp_config, config=config)
 
 
 @app.route("/show_global_plot")
@@ -304,14 +312,18 @@ def remove_file(file_):
 
 
 @app.route("/settings", methods=["POST", "GET"])
+# def settings():
+#     """User define app settings."""
+#     config = config_from_file()
+#     if request.method == "POST":
+#         config = save_config_to_file(request.form.to_dict())
+#         flash("Configuration updated", "info")
+#         return redirect("settings")
+#     return render_template("settings.html", config=config)
 def settings():
-    """User define app settings."""
-    config = config_from_file()
-    if request.method == "POST":
-        config = save_config_to_file(request.form.to_dict())
-        flash("Configuration updated", "info")
-        return redirect("settings")
-    return render_template("settings.html", config=config)
+    save_config_to_file(request.form.to_dict())
+    flash("S'ha actualitzat la configuració", "info")
+    return redirect("excel_files")
 
 
 @app.route("/help", methods=["GET"])
@@ -384,6 +396,6 @@ def update_time(local_time):
 
 if __name__ == "__main__":
     port = 5000
-    # webbrowser.open(f"http://localhost:{port}/excel_files")
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    webbrowser.open(f"http://localhost:{port}/excel_files")
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)

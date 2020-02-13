@@ -32,21 +32,21 @@
           <div class="form-row">
             <div class="form-group col-md-4">
               <label for="inputFlush">'Flush' time</label>
-              <input type="number" value="{{ config.flush }}" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
+              <input type="number" value="{{ exp_config.flush }}" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
             </div>
             <div class="form-group col-md-4">
               <label for="inputWait">'Wait' time</label>
-              <input type="number" value="{{ config.wait }}" name="wait" class="form-control" id="inputWait" placeholder="Wait time in minutes" required>
+              <input type="number" value="{{ exp_config.wait }}" name="wait" class="form-control" id="inputWait" placeholder="Wait time in minutes" required>
             </div>
             <div class="form-group col-md-4">
               <label for="inputClose">'Close' time</label>
-              <input type="number" value="{{ config.close }}" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
+              <input type="number" value="{{ exp_config.close }}" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
             </div>
           </div>
           <div class="row">
             <div class="form-group col-md-4">
               <label for="inputIgnoreLoops">Loops que seran ignorados</label>
-              <input type="text" value="{{ config.ignore_loops }}" name="ignore_loops" class="form-control" id="inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops }}" name="ignore_loops" class="form-control" id="inputIgnoreLoops" placeholder="Close time in minutes">
             </div>
           </div>
           <div class="row ml-auto">
@@ -68,5 +68,17 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog mw-100 w-75" role="document">
+    <div class="modal-content">
+      <div class="modal-body settingsModal">
+        {% include "_settings_modal.html" %}
+      </div>
+    </div>
+  </div>
+</div>
 </div>
 {% endblock %}

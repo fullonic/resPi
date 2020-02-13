@@ -9,7 +9,7 @@ FrontEnd
  - [x] Allows save DF loops and converted file
  - [ ] change original file  name when saved
  - [x] add info led on title
- - [ ] Delete volume from pump control settings
+ - [x] Delete volume from pump control settings
  - [ ] Add setting to change default saved DF file name
  - [ ] Add setting to change default saved plot file name
  - [ ] Change download data format
