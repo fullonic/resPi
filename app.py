@@ -5,11 +5,9 @@ import sys
 import os
 import shutil
 import time
-import subprocess
 import logging
 from glob import glob
 from logging.handlers import RotatingFileHandler
-from functools import wraps
 from threading import Thread, Event
 from datetime import datetime
 from functools import partial  # noqa maybe can be used on save files
@@ -37,10 +35,8 @@ from scripts.error_handler import checker
 from scripts.utils import (
     to_mbyte,
     delete_zip_file,
-    to_js_time,
     check_extensions,
     SUPPORTED_FILES,
-    greeting,
     config_from_file,
     save_config_to_file,
 )
@@ -90,7 +86,7 @@ handler = RotatingFileHandler(
 handler.setFormatter(logging.Formatter("%(message)s"))
 handler.setLevel(logging.WARNING)
 
-app.logger.addHandler(handler)
+logger.addHandler(handler)
 
 
 def show_preview(flush, wait, close, file_):
@@ -116,8 +112,8 @@ def process_excel_files(
     control_file_1 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C1.txt")
     control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
 
-    for c in [control_file_1, control_file_2]:
-        C = ControlFile(flush, wait, close, c)
+    for idx, c in enumerate([control_file_1, control_file_2]):
+        C = ControlFile(flush, wait, close, c, file_type=f"control_{idx}")
         C_Total = Control(C)
         C_Total.get_bank()
     control = C_Total.calculate_blank()
@@ -131,7 +127,9 @@ def process_excel_files(
     logger.warning(f"A total of {total_files} files received")
     for i, file_path in enumerate(uploaded_excel_files):
         # generate_data(flush, wait, close, file_path, new_column_name, plot, plot_title)
-        experiment = ExperimentCycle(flush, wait, close, file_path, ignore_loops)
+        experiment = ExperimentCycle(
+            flush, wait, close, file_path, ignore_loops, file_type="data"
+        )
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
@@ -382,5 +380,5 @@ def update_time(local_time):
 if __name__ == "__main__":
     port = 5000
     # webbrowser.open(f"http://localhost:{port}/excel_files")
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)

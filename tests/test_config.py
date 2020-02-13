@@ -120,6 +120,8 @@ def fake_control():
     frames = [df_loop for i in range(1)]
     results = pd.concat(frames, ignore_index=True)
     return results
+
+
 # r = fake_control()
 lst = fake_data()
 lst = lst[:8178]
@@ -128,13 +130,11 @@ file_path = "/home/somnium/Desktop/fake_cycle.txt"
 from scripts.converter import FileFormater, ExperimentCycle
 from scripts.stats import ResumeDataFrame
 
-experiment = ExperimentCycle(
-    2, 3, 20, file_path
-)
+experiment = ExperimentCycle(2, 3, 20, file_path)
 experiment.loop_time * 60
 
 resume = ResumeDataFrame(experiment)
-experiment.df_close_list[3]
+experiment.df_loop_generator[3]
 
 
 def create_config_file():
@@ -152,7 +152,12 @@ def create_config_file():
             "SAVE_LOOP_DF": True,
         },
         "file_cycle_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": 21.0},
-        "pump_control_config": {"flush": 3, "wait": 2, "close": 20, "aqua_volume": "40.434"},
+        "pump_control_config": {
+            "flush": 3,
+            "wait": 2,
+            "close": 20,
+            "aqua_volume": "40.434",
+        },
     }
     with open("config.json", "w") as f:
         json.dump(config, f)

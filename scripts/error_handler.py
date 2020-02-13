@@ -89,10 +89,11 @@ class GUIChecker:
         self.file_ = file_
 
     def match(self):
-        exp = ExperimentCycle(1, 1, 1, self.file_)
+        exp = ExperimentCycle(1, 1, 1, self.file_, file_type="test")
         h = HeadersChecker(exp.df.columns)
         try:
             h.check()
+            print("")
             return True
         except (WrongDT, WrongO2, WrongTimeStamp):
             return h.missing

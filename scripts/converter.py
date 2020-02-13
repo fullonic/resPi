@@ -2,6 +2,7 @@
 import os
 import math
 import datetime
+import sys
 
 import chardet
 import pandas as pd
@@ -12,9 +13,6 @@ from scripts.utils import string_to_float, config_from_file, progress_bar
 
 experiment_file_config = config_from_file()["experiment_file_config"]
 
-
-def background_plot():
-    pass
 
 def get_loop_seconds(data: dict) -> int:
     """Calculate total loop time in seconds"""
@@ -109,7 +107,13 @@ class ExperimentCycle:
     """
 
     def __init__(
-        self, flush: int, wait: int, close: int, original_file: str, ignore_loops: list = None
+        self,
+        flush: int,
+        wait: int,
+        close: int,
+        original_file: str,
+        ignore_loops: list = None,
+        file_type: str = None,
     ):  # noqa
         self.flush = flush
         self.wait = wait
@@ -128,6 +132,11 @@ class ExperimentCycle:
         self.save_loop_df = config["SAVE_LOOP_DF"]
         self.format_file(original_file)
         self.ignore_loops = ignore_loops or []
+        if file_type != "test":
+            self.file_type = file_type
+            print(f"Processament del fitxer {file_type.title()}")
+        else:
+            print(f"Comprovació de capçaleres de fitxers ...")
 
     def format_file(self, original_file):
         """For OLSystem output file into a pandas DF."""
@@ -158,7 +167,9 @@ class ExperimentCycle:
             markers.append(pt)
             timer = pt
         start_value = self.df[self.time_stamp_code].iloc[0]
-        self.df[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
+        self.df[self.x] = self.df[self.time_stamp_code].apply(
+            calculate_ox, args=(start_value,)
+        )
         self.df[self.y] = self.df[self.O2_COL].map(string_to_float)
         plot = Plot(
             self.df,
@@ -179,14 +190,10 @@ class ExperimentCycle:
         by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
-        # time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
-        # print(time_diff.seconds)
+        time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
         # Put every time value into seconds
-        # total = (time_diff).seconds / (self.loop_time * 60)
-        total = 9575 / (self.loop_time * 60)
-        # rounds up the decimal number
-        print(f"{total=}")
-        return math.ceil(total)
+        total = (time_diff).seconds / (self.loop_time * 60)
+        return math.ceil(total)  # rounds up the decimal to number
 
     @property
     def loop_data_range(self) -> dict:
@@ -213,9 +220,11 @@ class ExperimentCycle:
         return close_range
 
     @property
-    def df_close_list(self):  # NOTE:  must pass here list to ignore
+    def df_loop_generator(self):
+        """Return a generator with all df loops."""
         start: int = 0
         end: int = 0
+        step = 100 / self.total_of_loops
         for k, v in self.loop_data_range.items():  # It will ignore
             end += get_loop_seconds(v)
             try:
@@ -225,7 +234,11 @@ class ExperimentCycle:
             start = end + 1
             end += 1
             if self.save_loop_df:
-                self.save(df_close, name=str(k))
+                if self.file_type == "data":
+                    self.save(df_close, name=str(k))
+                else:
+                    self.save(df_close, name=f"control_{str(k)}")
+
             yield df_close
 
     def _close_df(self, start: datetime, end: datetime) -> pd.DataFrame:
@@ -240,7 +253,9 @@ class ExperimentCycle:
         df_close.reset_index(inplace=True, drop=True)
         # Create a new column for o2 evolution and calculate_ox_evolution
         start_value = df_close[self.time_stamp_code].iloc[0]
-        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
+        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(
+            calculate_ox, args=(start_value,)
+        )
         df_close.loc[:, self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
         df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
@@ -248,9 +263,9 @@ class ExperimentCycle:
     @progress_bar
     def create_plot(self, format_="html"):
         """Proxy for Plot object."""
-        print("Creating Plots", end="\n")
+        print("Generació de gràfics", end="\n")
         step = 100 / self.total_of_loops
-        for i, df_close in enumerate(self.df_close_list):
+        for i, df_close in enumerate(self.df_loop_generator):
             k = i + 1
             Plot(
                 df_close,

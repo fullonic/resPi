@@ -8,13 +8,15 @@ import datetime
 import os
 import shutil
 from functools import namedtuple
+from pathlib import Path
 
 import statsmodels.api as sm
 import pandas as pd
 
 from scripts.utils import string_to_float, delete_excel_files, config_from_file
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
+# ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
+ROOT = Path(__file__).parent.parent  # app root dir
 O2Data = namedtuple("O2Data", "min max avg")
 R2AB = namedtuple("R2AB", "rsquared a b")
 COLS_NAME = [
@@ -74,9 +76,7 @@ class ResumeDataFrame:
         self.experiment = experiment
         self.dt_col_name = experiment.dt_col_name
         self.df_lists = []
-        self.phase_time = (
-            f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
-        )
+        self.phase_time = f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
 
     @property
     def loop_data_range(self) -> dict:
@@ -93,7 +93,7 @@ class ResumeDataFrame:
         """Create a the daily experiment resume."""
         resume_df = pd.DataFrame(columns=COLS_NAME)
         aqua_volume = config["file_cycle_config"]["aqua_volume"]
-        for i, df_close in enumerate(self.experiment.df_close_list):
+        for i, df_close in enumerate(self.experiment.df_loop_generator):
             k = i + 1
             if k in self.experiment.ignore_loops:
                 continue
@@ -139,16 +139,18 @@ class ResumeDataFrame:
     def zip_folder(self):
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
-        location = os.path.dirname(os.path.abspath(self.experiment.original_file.file_output))
+        location = os.path.dirname(
+            os.path.abspath(self.experiment.original_file.file_output)
+        )
 
         # Same as app.config["ZIP_FOLDER"]
         ZIP_FOLDER = os.path.abspath(f"{ROOT}/static/uploads/zip_files")
         # Create the zip file
         zipped = shutil.make_archive(location, "zip", location)
         # Move it to the app zip files folder
-        # shutil.move(zipped, ZIP_FOLDER)
+        shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        # delete_excel_files(location)
+        delete_excel_files(location)
 
 
 class Control(ResumeDataFrame):
@@ -157,8 +159,7 @@ class Control(ResumeDataFrame):
     def get_bank(self):
         self.generate_resume(0)
         self.values.append(
-            self.resume_df["MO2 [mgO2/hr]"].sum()
-            / len(self.resume_df["MO2 [mgO2/hr]"])
+            self.resume_df["MO2 [mgO2/hr]"].sum() / len(self.resume_df["MO2 [mgO2/hr]"])
         )
 
     def calculate_blank(self):

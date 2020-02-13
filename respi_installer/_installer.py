@@ -47,7 +47,9 @@ desktop_icons = tk.BooleanVar()
 
 
 welcome_label.grid(row=0, column=0, sticky="ew")
-btn_download.grid(row=1, column=0, sticky="ew",)
+btn_download.grid(
+    row=1, column=0, sticky="ew",
+)
 
 fr_buttons.grid(row=1, column=0, sticky="ns")
 # btn_checkbox = tk.Checkbutton(window, text="Create desktop icon?").grid(row=1, column=1)
