@@ -1,5 +1,5 @@
 <nav class="navbar navbar-collapse navbar-dark bg-dark">
-  <a class="navbar-brand" href="{{ url_for('excel_files') }}">Convert</a>
+  <a class="navbar-brand" href="{{ url_for('excel_files') }}"> <img class="eel-icon" src="{{ url_for('static', filename='img/eel.png') }}"> Convert</a>
   <div class="text-left" id="files-progress"></div>
 
   {% if request.path == "/show_global_plot" %}
@@ -15,13 +15,13 @@
   <div class="collapse navbar-collapse" id="navbarNav">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" href="#">Ajuda</a>
+        <a class="nav-link" href="{{ url_for('help') }}"><i class="fas fa-question"></i> Ajuda</a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('excel_files') }}">Arxius Excel</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('settings') }}">Configuració</a>
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog"></i> Configuració</a>
       </li>
     </ul>
   </div>

@@ -2,6 +2,11 @@
   height: 20px;
 }
 
+.eel-icon {
+  height: 48px;
+  width: auto;
+}
+
 #timer {
   font-family: 'Source Sans Pro', sans-serif;
 }

@@ -94,7 +94,7 @@ def show_preview(flush, wait, close, file_):
     file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", file_.filename)
     file_.save(file_path)
 
-    ExperimentCycle(flush, wait, close, file_path)
+    ExperimentCycle(flush, wait, close, file_path, file_type="preview")
     os.remove(file_path)
 
 
@@ -314,6 +314,11 @@ def settings():
     return render_template("settings.html", config=config)
 
 
+@app.route("/help", methods=["GET"])
+def help():
+    return render_template("help.html")
+
+
 ####################
 # LOGS ROUTES
 ####################
@@ -380,5 +385,5 @@ def update_time(local_time):
 if __name__ == "__main__":
     port = 5000
     # webbrowser.open(f"http://localhost:{port}/excel_files")
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)
