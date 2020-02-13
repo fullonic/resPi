@@ -3,7 +3,7 @@
   <div class="card mt-3">
     <div class="card-header">
       <div class="row">
-        <div class="col-md-10">Dades d’experimentació</div>
+        <div class="col-md-10">Configuració</div>
       </div>
     </div>
     <div class="card-body">
@@ -27,11 +27,36 @@
       </div>
     </div>
   </div>
+
+  <!-- Graphics CONTROL CARD -->
+  <div class="card mt-3">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-10">Gràfics</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group col-md">
+          <label for="PLOT_TITLE">Títol del gràfic</label>
+          <input type="text" value="{{ config.experiment_file_config.PLOT_TITLE }}" name="output_file_PLOT_TITLE" class="form-control" id="PLOT_TITLE" placeholder="Close temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="X_COL">Nom de l'eix X</label>
+          <input type="text" value="{{ config.experiment_file_config.X_COL }}" name="output_file_X_COL" class="form-control" id="X_COL" placeholder="Close temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="Y_COL">Nom de l'eix Y</label>
+          <input type="text" value="{{ config.experiment_file_config.Y_COL }}" name="output_file_Y_COL" class="form-control" id="Y_COL" placeholder="Close temps en minuts" required>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Excel Files CONTROL CARD -->
   <div class="card mt-3">
     <div class="card-header">
       <div class="row">
-        <div class="col-md-10">Fitxer de sortida de la prova</div>
+        <div class="col-md-10">Fitxer de sortida</div>
       </div>
     </div>
     <div class="card-body">
@@ -49,33 +74,19 @@
           <input title='"loligo system" arxiu' type="text" value="{{ config.experiment_file_config.O2_COL }}" name="output_file_O2_COL" class="form-control" id="O2_COL" placeholder="Close temps en minuts" required>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group col-md">
-          <label for="PLOT_TITLE">Títol del gràfic</label>
-          <input type="text" value="{{ config.experiment_file_config.PLOT_TITLE }}" name="output_file_PLOT_TITLE" class="form-control" id="PLOT_TITLE" placeholder="Close temps en minuts" required>
-        </div>
-        <div class="form-group col-md">
-          <label for="X_COL">Nom de l'eix X</label>
-          <input type="text" value="{{ config.experiment_file_config.X_COL }}" name="output_file_X_COL" class="form-control" id="X_COL" placeholder="Close temps en minuts" required>
-        </div>
-        <div class="form-group col-md">
-          <label for="Y_COL">Nom de l'eix Y</label>
-          <input type="text" value="{{ config.experiment_file_config.Y_COL }}" name="output_file_Y_COL" class="form-control" id="Y_COL" placeholder="Close temps en minuts" required>
-        </div>
-      </div>
+
       <div class="form-row">
         <div class="form-check mr-3">
           <input class="form-check-input" name="save_loop_df" type="checkbox" value="yes" id="saveLoopsDF" {% if config.experiment_file_config.SAVE_LOOP_DF %}checked{% endif %}>
           <label class="form-check-label" for="saveLoopsDF">
-            Deseu les dades del bucle individual en un fitxer
+            Crear un fitxer excel per a cada loop
           </label>
         </div>
         <div class="form-check mr-3">
           <input class="form-check-input" name="save_converted" type="checkbox" value="yes" id="saveConvertedFile" {% if config.experiment_file_config.SAVE_CONVERTED %}checked{% endif %}>
 
-
           <label class="form-check-label" for="saveConvertedFile">
-            Desa el fitxer de dades d’experiment com a taula excel
+            Crear una copia del cicle complet (.txt) en arxiu excel
           </label>
         </div>
 

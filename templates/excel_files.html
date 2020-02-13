@@ -8,20 +8,19 @@
     <div class="card">
       <div class="card-header">
         <div class="row">
-          <div class="col-md-10">Introduïu la informació sobre els temps d’experiment</div>
+          <div class="col-md-10">Introduïu els arxius corresponents</div>
           <div class="col-md"><a href="{{ url_for('downloads') }}" class="badge badge-warning">Arxius</a></div>
         </div>
       </div>
       <div class="card-body">
         <form action="" method="POST" enctype="multipart/form-data">
-          <!-- <form onsubmit="return confirm('estàs segur?')" action="" method="POST" enctype="multipart/form-data"> -->
           <div class="form-row">
             <div class="form-group col-md">
               <label for="control_file_1">Control 1</label>
               <input type="file" accept=".txt" class="form-control" name="control_file_1" id="control_file_1" required>
             </div>
             <div class="form-group col-md">
-              <label for="data_file">Experiment Data</label>
+              <label for="data_file">Cicle nocturn</label>
               <input type="file" accept=".txt" class="form-control" name="data_file" id="data_file" required>
             </div>
             <div class="form-group col-md">
@@ -31,21 +30,21 @@
           </div>
           <div class="form-row">
             <div class="form-group col-md-4">
-              <label for="inputFlush">'Flush' time</label>
+              <label for="inputFlush">'Flush' temps</label>
               <input type="number" value="{{ exp_config.flush }}" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
             </div>
             <div class="form-group col-md-4">
-              <label for="inputWait">'Wait' time</label>
+              <label for="inputWait">'Wait' temps</label>
               <input type="number" value="{{ exp_config.wait }}" name="wait" class="form-control" id="inputWait" placeholder="Wait time in minutes" required>
             </div>
             <div class="form-group col-md-4">
-              <label for="inputClose">'Close' time</label>
+              <label for="inputClose">'Close' temps</label>
               <input type="number" value="{{ exp_config.close }}" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
             </div>
           </div>
           <div class="row">
             <div class="form-group col-md-4">
-              <label for="inputIgnoreLoops">Loops que seran ignorados</label>
+              <label for="inputIgnoreLoops">Loops que seran ignorats</label>
               <input type="text" value="{{ exp_config.ignore_loops }}" name="ignore_loops" class="form-control" id="inputIgnoreLoops" placeholder="Close time in minutes">
             </div>
           </div>
@@ -54,13 +53,13 @@
             <div class="form-check  mr-3">
               <input class="form-check-input" name="plot" type="checkbox" value="yes" id="generatePlots" checked>
               <label class="form-check-label" for="generatePlots">
-                Generar gràfics
+                Generar un gràfic per cada loop
               </label>
             </div>
             <div class="form-check">
               <input class="form-check-input" name="experiment_plot" type="checkbox" value="yes" id="generatePlotComplet">
-              <label class="form-check-label" for="generatePlotComplet">
-                Abrir gràfics complet
+              <label class="form-check-label" for="generatePlotComplet" title="esta te gsg">
+                Generar el gràfic del cicle complet
               </label>
             </div>
           </div>
