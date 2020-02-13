@@ -1,6 +1,6 @@
 import time
 import sys
-
+from pathlib import Path
 sys.path.append("/home/somnium/Desktop/Projects/resPI/")
 import pandas as pd
 
@@ -29,6 +29,9 @@ def test_full_file_process(plot=False, save=False):
     if save:
         resume.save()
     print(time.perf_counter() - now)
+    # for f in Path("/home/somnium/Desktop/ANGULA/RealData/D3/").glob("*.xlsx"):
+    #     f.unlink()
+
 
 
 test_full_file_process(plot=True, save=True)
@@ -48,3 +51,17 @@ def get_trend_plot_data():
 
     # dir(p.data[1])
     p.data[1].hovertemplate
+
+
+# x_axis = "Temps (Hr)"
+# y_axis = "mg 02/L"
+# data = pd.read_excel("/home/somnium/Desktop/ANGULA/TESTDATA/df_loop_1.xlsx")
+# title = "test"
+# dst = "/home/somnium/Desktop/ANGULA/TESTDATA/"
+# plot = Plot(data, x_axis, y_axis, title, dst=dst)
+# p = plot.create()
+#
+# # dir(p.data[1])
+# p.data[1].hovertemplate
+# p.show()
+test_full_file_process(plot=False, save=True)

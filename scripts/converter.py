@@ -13,6 +13,9 @@ from scripts.utils import string_to_float, config_from_file, progress_bar
 experiment_file_config = config_from_file()["experiment_file_config"]
 
 
+def background_plot():
+    pass
+
 def get_loop_seconds(data: dict) -> int:
     """Calculate total loop time in seconds"""
     return (data["end"] - data["start"]).seconds
@@ -154,13 +157,9 @@ class ExperimentCycle:
             pt = timer + (self.loop_time)
             markers.append(pt)
             timer = pt
-        # self.df = self.df
-
         start_value = self.df[self.time_stamp_code].iloc[0]
-        self.df.loc[:, self.x] = self.df[self.time_stamp_code].apply(
-            calculate_ox, args=(start_value,)
-        )
-        self.df.loc[:, self.y] = self.df[self.O2_COL].map(string_to_float)
+        self.df[self.x] = self.df[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
+        self.df[self.y] = self.df[self.O2_COL].map(string_to_float)
         plot = Plot(
             self.df,
             self.x,
@@ -186,6 +185,7 @@ class ExperimentCycle:
         # total = (time_diff).seconds / (self.loop_time * 60)
         total = 9575 / (self.loop_time * 60)
         # rounds up the decimal number
+        print(f"{total=}")
         return math.ceil(total)
 
     @property
@@ -238,15 +238,11 @@ class ExperimentCycle:
         start = start + (self.discard_time * 60)
         df_close = self.df[start:end].copy()
         df_close.reset_index(inplace=True, drop=True)
-        # Create the new column of oxygen evolution
-        #  Create a new column for o2 evolution and calculate_ox_evolution
+        # Create a new column for o2 evolution and calculate_ox_evolution
         start_value = df_close[self.time_stamp_code].iloc[0]
-        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(
-            calculate_ox, args=(start_value,)
-        )
-
-        df_close.loc[:, self.x] = list(df_close["Temps (min)"].map(lambda x: x / 60))
-        df_close.loc[:, self.y] = list(df_close[self.O2_COL].map(string_to_float))
+        df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(calculate_ox, args=(start_value,))
+        df_close.loc[:, self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
+        df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
     @progress_bar
