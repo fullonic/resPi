@@ -2,7 +2,15 @@
 {% include "navbar.html" %}
 {% block body %}
 <div class="" id="myDiv">
-  {% include "_preview.html" %}
+  {% for plot in plots %}
+  {% include plot %}
+  <form action="{{ url_for('remove_loops') }}" method="POST" enctype="multipart/form-data">
+    <a class="ml-3" type="button" data-toggle="popover" data-content="Inseriu el número del bucle que voleu ignorar. Separeu-los amb " ,". ex: 1,5,7,10" data-placement="top"><i class="fas fa-info-circle"></i>
+      <input placeholder="Loops per eliminar" id="ignore_loops" type="text" name="ignore_loops">
+      <button type="submit" class="btn btn-primary mr-3">Eliminar</button>
+  </form>
+  {% endfor %}
+
 </div>
 {% endblock %}
 {% block footer %}

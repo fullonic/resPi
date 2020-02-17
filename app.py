@@ -11,6 +11,7 @@ from logging.handlers import RotatingFileHandler
 from threading import Thread, Event
 from datetime import datetime
 from functools import partial  # noqa maybe can be used on save files
+from pathlib import Path
 
 from flask_caching import Cache
 from flask import (
@@ -88,13 +89,14 @@ handler.setLevel(logging.WARNING)
 logger.addHandler(handler)
 
 
-def show_preview(flush, wait, close, file_):
+def show_preview(flush, wait, close, files):
     """Proxy function to generate a global plot preview."""
-    file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", file_.filename)
-    file_.save(file_path)
+    for f in files:
+        file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", f.filename)
+        f.save(file_path)
 
-    ExperimentCycle(flush, wait, close, file_path, file_type="preview")
-    os.remove(file_path)
+        ExperimentCycle(flush, wait, close, file_path, file_type="preview")
+        os.remove(file_path)
 
 
 ####################
@@ -115,6 +117,8 @@ def process_excel_files(
         C = ControlFile(flush, wait, close, c, file_type=f"control_{idx + 1}")
         C_Total = Control(C)
         C_Total.get_bank()
+        if plot:
+            C.create_plot()
     control = C_Total.calculate_blank()
     print(f"Valor 'Blanco' {control}")
 
@@ -141,17 +145,14 @@ def process_excel_files(
         print("Tasca conclosa")
         socketio.emit(
             "processing_files",
-            {
-                "generating_files": True,
-                "msg": f"fitxers processats {i+1}/{total_files}",
-            },
+            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
             namespace="/resPi",
         )
     cache.set("generating_files", False)
     socketio.emit(
         "processing_files", {"generating_files": False, "msg": ""}, namespace="/resPi"
     )
-    print(f"processament de temps total {round(time.perf_counter() - now)}")
+    print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
 
 
 ####################
@@ -189,19 +190,15 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = (
-            True if request.form.get("plot") else False
-        )  # if generate or no loop plots
+        plot = True if request.form.get("plot") else False  # if generate or no loop plots
         try:
-            ignore_loops = [
-                int(loop) for loop in request.form["ignore_loops"].split(",")
-            ]
+            ignore_loops = [int(loop) for loop in request.form["ignore_loops"].split(",")]
         except ValueError:  # If user didn't insert any value
             ignore_loops = None
 
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
-            show_preview(flush, wait, close, data_file)
+            show_preview(flush, wait, close, [control_file_1, data_file, control_file_2])
             cache.set("generating_files", False)
             return redirect(url_for("show_global_plot"))
         # Contains a list of all uploaded file in a single uploaded request
@@ -214,9 +211,7 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(
-                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
-            )
+            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -261,7 +256,12 @@ def excel_files():
 
 @app.route("/show_global_plot")
 def show_global_plot():
-    return render_template("global_graph_preview.html")
+    plots = [
+        f"previews/{f.name}"
+        for f in Path(Path().resolve() / "templates/previews").glob("*.html")
+    ]
+    print(f"{plots=}")
+    return render_template("global_graph_preview.html", plots=plots)
 
 
 ####################

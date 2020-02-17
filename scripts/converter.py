@@ -183,7 +183,7 @@ class ExperimentCycle:
             "Experiment",
             dst=os.path.dirname(self.original_file.file_output),
         )
-        plot.create_global_plot(markers)
+        plot.create_global_plot(fname=self.original_file.fname, markers=markers)
 
     @property
     def total_of_loops(self) -> int:
@@ -279,14 +279,14 @@ class ExperimentCycle:
                 self.y,
                 self.plot_title,
                 dst=os.path.dirname(self.original_file.file_output),
-                fname=f"df_plot_{k}",  # TODO: must be user o decides name
+                fname=f"{self.original_file.fname}_loop{k}",
             ).create()
             yield round(step * k)
 
     def save(self, df_loop, name):
         """Save data frame into a excel file."""
         return df_loop.to_excel(
-            f"{self.original_file.folder_dst}/df_loop_{name}.xlsx", index=False
+            f"{self.original_file.folder_dst}/[Dades]df_loop_{name}.xlsx", index=False
         )
 
 

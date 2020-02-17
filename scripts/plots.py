@@ -54,12 +54,17 @@ class Plot:
         fig.write_html(f"{self.dst}/{self.fname}.{self.output}", config=config)
         return fig1
 
-    def create_global_plot(self, markers=[]):
+    def create_global_plot(self, fname=None, markers=[]):
         """Plot all information from document before any kind of data manipulation."""
         from plotly.subplots import make_subplots
 
-        x = self.data[self.x_axis][::20]
-        y = self.data[self.y_axis][::20]
+        if fname not in ["C1", "C2"]:
+            x = self.data[self.x_axis][::30]
+            y = self.data[self.y_axis][::30]
+        else:
+            x = self.data[self.x_axis]
+            y = self.data[self.y_axis]
+
         # Create figure with secondary y-axis
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         fig.add_trace(
@@ -101,6 +106,6 @@ class Plot:
         fig.update_xaxes(title_text="<b>Temps (hr)</b>")
         fig.update_yaxes(title_text="<b>mg O2/l</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
-        fig.update_layout(title="<b>Gràfic global</b>")
-        template_folder = Path().resolve() / "templates"
-        fig.write_html(f"{template_folder}/_preview.html")
+        fig.update_layout(title=f"<b>{fname.title()} Gràfic global</b>")
+        template_folder = Path().resolve() / "templates/previews"
+        fig.write_html(f"{template_folder}/{fname}.html")
