@@ -312,14 +312,6 @@ def remove_file(file_):
 
 
 @app.route("/settings", methods=["POST", "GET"])
-# def settings():
-#     """User define app settings."""
-#     config = config_from_file()
-#     if request.method == "POST":
-#         config = save_config_to_file(request.form.to_dict())
-#         flash("Configuration updated", "info")
-#         return redirect("settings")
-#     return render_template("settings.html", config=config)
 def settings():
     save_config_to_file(request.form.to_dict())
     flash("S'ha actualitzat la configuració", "info")
@@ -396,6 +388,6 @@ def update_time(local_time):
 
 if __name__ == "__main__":
     port = 5000
-    webbrowser.open(f"http://localhost:{port}/excel_files")
+    # webbrowser.open(f"http://localhost:{port}/excel_files")
     # socketio.run(app, debug=False, host="0.0.0.0", port=port)
     socketio.run(app, debug=True, host="0.0.0.0", port=port)

@@ -1,0 +1,106 @@
+from pathlib import Path
+
+import plotly.express as px
+import plotly.graph_objects as go
+
+from scripts.utils import string_to_float
+
+
+class Plot:
+    """Generate all necessary kind of application plots."""
+
+    def __init__(
+        self,
+        data,
+        x_axis,
+        y_axis,
+        title,
+        *,
+        dst=None,
+        fname="dataframe",
+        output="html",
+    ):  # noqa
+        self.data = data
+        self.x_axis = x_axis
+        self.y_axis = y_axis
+        self.title = title
+        self.output = output
+        self.fname = fname
+        self.dst = dst
+
+    def create(self):
+        """Create a plot for each close loop data."""
+        x = self.data[self.x_axis]
+        y = self.data[self.y_axis]
+        fig = go.Figure()
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=y,
+                name=self.title,
+                line=dict(color="red", width=1),
+                showlegend=True,
+            )
+        )
+        fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
+        trendline = fig1.data[1]
+        fig.add_trace(trendline)
+        formula, rsqt = trendline.hovertemplate.split("<br>")[1:3]
+        title = f"""<b>{self.title}</b><br>{formula}<br>{rsqt}"""
+        fig.update_layout(dict(title=title, showlegend=True))
+
+        config = {"editable": True, "displaylogo": False}
+
+        fig.write_html(f"{self.dst}/{self.fname}.{self.output}", config=config)
+        return fig1
+
+    def create_global_plot(self, markers=[]):
+        """Plot all information from document before any kind of data manipulation."""
+        from plotly.subplots import make_subplots
+
+        x = self.data[self.x_axis][::20]
+        y = self.data[self.y_axis][::20]
+        # Create figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=y,
+                name=self.title,
+                line=dict(color="blue", width=1),
+                showlegend=True,
+            ),
+            secondary_y=False,
+        )
+        temp = [
+            string_to_float(t)
+            for t in list(self.data["SDWA0003000061      , CH 1 temp [°C]"])
+        ]
+
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=temp,
+                name="Temperature",
+                line=dict(color="red", width=1),
+                showlegend=True,
+            ),
+            secondary_y=True,
+        )
+        # MARKERS
+        y = [9.5] * len(markers)
+        size = [2] * len(markers)
+        loop = [
+            f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i, _ in enumerate(markers)
+        ]
+
+        points = px.scatter(x=markers, y=y, size=size, text=loop)
+        fig.add_trace(points.data[0])
+
+        # Set x-axis title
+        fig.update_xaxes(title_text="<b>Temps (hr)</b>")
+        fig.update_yaxes(title_text="<b>mg O2/l</b>", secondary_y=False)
+        fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
+        fig.update_layout(title="<b>Gràfic global</b>")
+        template_folder = Path().resolve() / "templates"
+        fig.write_html(f"{template_folder}/_preview.html")
