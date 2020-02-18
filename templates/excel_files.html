@@ -47,15 +47,15 @@
           <div class="row">
             <div class="form-group col-md-4">
               <label for="C1_inputIgnoreLoops">Control 1</label>
-              <input type="text" value="{{ exp_config.ignore_loops }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="Close time in minutes">
             </div>
             <div class="form-group col-md-4">
               <label for="Data_inputIgnoreLoops">Data</label>
-              <input type="text" value="{{ exp_config.ignore_loops }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops.Data }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="Close time in minutes">
             </div>
             <div class="form-group col-md-4">
               <label for="C2_inputIgnoreLoops">Control 2</label>
-              <input type="text" value="{{ exp_config.ignore_loops }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="Close time in minutes">
             </div>
           </div>
           <div class="row ml-auto">
@@ -99,6 +99,9 @@
     console.log("Making request for ignore_loops");
     $.get("/ignored_loops", function(data) {
       console.log(data);
+      document.getElementById("C1_inputIgnoreLoops").value = data.C1;
+      document.getElementById("Data_inputIgnoreLoops").value = data.Data;
+      document.getElementById("C2_inputIgnoreLoops").value = data.C2;
     });
   });
 </script>

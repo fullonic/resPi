@@ -1,2 +1,2 @@
 from .converter import ControlFile, ExperimentCycle, FileFormater, Plot  # noqa
-from .stats import ResumeDataFrame, Control  # noqa
+from .stats import ResumeDataFrame, ResumeControl  # noqa

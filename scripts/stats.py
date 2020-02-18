@@ -95,8 +95,14 @@ class ResumeDataFrame:
         aqua_volume = config["file_cycle_config"]["aqua_volume"]
         for i, df_close in enumerate(self.experiment.df_loop_generator):
             k = i + 1
-            if k in self.experiment.ignore_loops:
-                continue
+            try:
+                if (
+                    str(k)
+                    in self.experiment.ignore_loops[self.experiment.original_file.fname]
+                ):
+                    continue
+            except KeyError:
+                pass
             O2_col_name = "SDWA0003000061      , CH 1 O2 [mg/L]"
             O2 = O2_data(df_close[O2_col_name])
             r2_a_b = trendline_data(df_close, self.experiment.x, self.experiment.y)
@@ -128,13 +134,13 @@ class ResumeDataFrame:
 
     def save(self):
         ext = self.experiment.original_file.output
-        fname = f"{self.experiment.original_file.file_output}.{ext}"
+        file_dest = f"{self.experiment.original_file.file_output}.{ext}"
         if ext == "csv":
-            self.resume_df.to_csv(fname)
+            self.resume_df.to_csv(file_dest)
         else:
-            self.resume_df.to_excel(fname, index=False)
+            self.resume_df.to_excel(file_dest, index=False)
 
-        self.zip_folder()
+        # self.zip_folder()
 
     def zip_folder(self):
         """Zip the most recent folder created with excel files."""
@@ -153,14 +159,18 @@ class ResumeDataFrame:
         delete_excel_files(location)
 
 
-class Control(ResumeDataFrame):
+class ResumeControl(ResumeDataFrame):
+
     values = []
 
     def get_bank(self):
         self.generate_resume(0)
+        self.save()
         self.values.append(
             self.resume_df["MO2 [mgO2/hr]"].sum() / len(self.resume_df["MO2 [mgO2/hr]"])
         )
 
     def calculate_blank(self):
+        # print(self.values)
+        print(sum(self.values) / len(self.values))
         return sum(self.values) / len(self.values)

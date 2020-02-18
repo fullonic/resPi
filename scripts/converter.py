@@ -44,6 +44,8 @@ class FileFormater:
         self.file_ = file_
         self.folder_dst = os.path.dirname(file_)
         self.fname = os.path.basename(file_).split(".")[0]
+        if self.fname not in ["C1", "C2"]:
+            self.fname = "Data"
         self.file_output = f"{self.folder_dst}/{self.fname}"
         config = config_from_file()["experiment_file_config"]
         self.save_converted = config["SAVE_CONVERTED"]
@@ -113,7 +115,7 @@ class ExperimentCycle:
         wait: int,
         close: int,
         original_file: str,
-        ignore_loops: list = None,
+        ignore_loops: dict = None,
         file_type: str = None,
     ):  # noqa
         self.flush = flush
@@ -136,7 +138,7 @@ class ExperimentCycle:
         self.plot_title = config["PLOT_TITLE"]
         self.save_loop_df = config["SAVE_LOOP_DF"]
         self.format_file(original_file)
-        self.ignore_loops = ignore_loops or []
+        self.ignore_loops = ignore_loops or {}
         if file_type != "test":
             self.file_type = file_type
             print(f"Processament del fitxer {file_type.title()}")
@@ -188,7 +190,7 @@ class ExperimentCycle:
     @property
     def total_of_loops(self) -> int:
         """Calculate the total amount of time that last the experiment.
-
+º
         Using the first record and the last one we calculate here the total time.
         Using this total
         (timedelta object) seconds are calculated and divided by the portion of each cycle

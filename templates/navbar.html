@@ -3,11 +3,11 @@
   <div class="text-left" id="files-progress"></div>
 
   {% if request.path == "/show_global_plot" %}
-  <form action="{{ url_for('remove_loops') }}" method="POST" enctype="multipart/form-data">
-    <a class="ml-3" type="button" data-toggle="popover" data-content="Inseriu el número del bucle que voleu ignorar. Separeu-los amb " ,". ex: 1,5,7,10" data-placement="top"><i class="fas fa-info-circle"></i>
-      <input placeholder="Loops per eliminar" id="ignore_loops" type="text" name="ignore_loops">
-      <button type="submit" class="btn btn-primary mr-3">Eliminar</button>
-  </form>
+<form action="{{ url_for('remove_loops') }}" method="POST" enctype="multipart/form-data">
+  <a class="ml-3" type="button" data-toggle="popover" data-content="Inseriu el número del bucle que voleu ignorar. Separeu-los amb " ,". ex: 1,5,7,10" data-placement="top"><i class="fas fa-info-circle"></i>
+    <input placeholder="Loops per eliminar" id="ignore_loops" type="text" name="ignore_loops">
+    <button type="submit" class="btn btn-primary mr-3">Eliminar</button>
+</form>
   {% endif %}
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>

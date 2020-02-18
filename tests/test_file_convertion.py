@@ -9,7 +9,7 @@ from scripts import (
     Plot,
     ExperimentCycle,
     ControlFile,
-    Control,
+    ResumeControl,
     ResumeDataFrame,
     FileFormater,
 )
@@ -22,13 +22,27 @@ def test_full_file_process(plot=False, save=False):
     C2 = "/home/somnium/Desktop/ANGULA/RealData/D3/C2.txt"
     file_path = "/home/somnium/Desktop/ANGULA/RealData/D3/Angula.txt"
     dst = "/home/somnium/Desktop/ANGULA/RealData/results"
+    # ignore_loops = {"C2": ["2", "3"], "Data": [], "C1": ["1"]}
+    ignore_loops = {"C2": [], "Data": ["1", "2"], "C1": []}
     flush, wait, close = 3, 10, 40
     for idx, c in enumerate([C1, C2]):
-        C = ControlFile(flush, wait, close, c, file_type=f"control_{idx+1}")
-        C_Total = Control(C)
+        C = ControlFile(
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx+1}",
+            ignore_loops=ignore_loops,
+        )
+        C_Total = ResumeControl(C)
+        # C_Total.generate_resume(0)
+        # C_Total.save()
         C_Total.get_bank()
     control = C_Total.calculate_blank()
-    experiment = ExperimentCycle(flush, wait, close, file_path, file_type="data")
+
+    experiment = ExperimentCycle(
+        flush, wait, close, file_path, file_type="data", ignore_loops=ignore_loops
+    )
 
     if plot:
         experiment.create_plot()
@@ -36,14 +50,13 @@ def test_full_file_process(plot=False, save=False):
     resume.generate_resume(control)
     if save:
         resume.save()
+    # resume.zip_folder()
     print(time.perf_counter() - now)
     # for f in Path("/home/somnium/Desktop/ANGULA/RealData/D3/").glob("*.xlsx"):
     #     f.unlink()
 
 
-test_full_file_process(plot=True, save=True)
-
-
+# -0.1195239775296602
 ########
 # Test plot
 ########
@@ -58,3 +71,11 @@ def get_trend_plot_data():
 
     # dir(p.data[1])
     p.data[1].hovertemplate
+
+
+def test_route_upload():
+    pass
+
+
+test_full_file_process(plot=True, save=True)
+# -0.1195239775296602

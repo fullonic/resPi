@@ -31,7 +31,7 @@ from flask_socketio import SocketIO
 from engineio.async_drivers import gevent  # noqa
 
 from scripts.converter import ExperimentCycle, ControlFile
-from scripts.stats import ResumeDataFrame, Control
+from scripts.stats import ResumeDataFrame, ResumeControl
 from scripts.error_handler import checker
 
 from scripts.utils import (
@@ -76,7 +76,7 @@ cache.set_many(
         ("run_manual", False),
         ("run_auto", False),
         ("running", False),
-        ("ignored_loops", dict()),
+        ("ignored_loops", {"C1": [], "Data": [], "C2": []}),
     )
 )
 
@@ -111,7 +111,7 @@ def show_preview(flush, wait, close, files):
 # BACKGROUND TASKS
 ####################
 def process_excel_files(
-    flush, wait, close, uploaded_excel_files, plot, ignore_loops: list = None
+    flush, wait, close, uploaded_excel_files, plot, ignore_loops: dict = None
 ):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
@@ -120,13 +120,23 @@ def process_excel_files(
     # CALCULATE BLANKS
     control_file_1 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C1.txt")
     control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
+    ignore_loops = cache.get("ignored_loops")
+    print("IGNORED", ignore_loops)
 
     for idx, c in enumerate([control_file_1, control_file_2]):
-        C = ControlFile(flush, wait, close, c, file_type=f"control_{idx + 1}")
-        C_Total = Control(C)
+        C = ControlFile(
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx + 1}",
+            ignore_loops=ignore_loops,
+        )
+        C_Total = ResumeControl(C)
         C_Total.get_bank()
         if plot:
             C.create_plot()
+
     control = C_Total.calculate_blank()
     print(f"Valor 'Blanco' {control}")
 
@@ -137,7 +147,7 @@ def process_excel_files(
     total_files = len(uploaded_excel_files)
     for i, file_path in enumerate(uploaded_excel_files):
         experiment = ExperimentCycle(
-            flush, wait, close, file_path, ignore_loops, file_type="data"
+            flush, wait, close, file_path, ignore_loops=ignore_loops, file_type="data"
         )
         if save_converted:
             experiment.original_file.save()
@@ -153,7 +163,10 @@ def process_excel_files(
         print("Tasca conclosa")
         socketio.emit(
             "processing_files",
-            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
+            {
+                "generating_files": True,
+                "msg": f"fitxers processats {i+1}/{total_files}",
+            },
             namespace="/resPi",
         )
     cache.set("generating_files", False)
@@ -178,10 +191,15 @@ def excel_files():
     """User GUI for upload and deal with excel files."""
     session["excel_config"] = config_from_file()["file_cycle_config"]
     ignore_loops = cache.get("ignored_loops")
-    print(f"{ignore_loops=}")
-
     if request.method == "POST":
         cache.set("generating_files", True)
+        # IGNORED
+        C1_ignore = {"C1": [_ for _ in request.form.get("c1_ignore_loops").split(",")]}
+        Data_ignore = {"Data": [_ for _ in request.form.get("data_ignore_loops").split(",")]}
+        C2_ignore = {"C2": [_ for _ in request.form.get("c2_ignore_loops").split(",")]}
+        ignore_loops = {**C1_ignore, **Data_ignore, **C2_ignore}
+        cache.set("ignored_loops", ignore_loops)
+        print(f"{ignore_loops=}")
         # Get all uploaded files and do validation
         data_file = request.files.get("data_file")
         control_file_1 = request.files.get("control_file_1")
@@ -200,16 +218,14 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False  # if generate or no loop plots
-        # try:
-        #     ignore_loops = [int(loop) for loop in request.form.get["ignore_loops"].split(",")]
-        # except ValueError:  # If user didn't insert any value
-        #     ignore_loops = None
-        #
-        ignore_loops = None
+        plot = (
+            True if request.form.get("plot") else False
+        )  # if generate or no loop plots
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
-            show_preview(flush, wait, close, [control_file_1, data_file, control_file_2])
+            show_preview(
+                flush, wait, close, [control_file_1, data_file, control_file_2]
+            )
             cache.set("generating_files", False)
             return redirect(url_for("show_global_plot"))
         # Contains a list of all uploaded file in a single uploaded request
@@ -222,7 +238,9 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            project_folder = os.path.join(
+                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
+            )
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -245,7 +263,7 @@ def excel_files():
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
             target=process_excel_files,
-            args=(flush, wait, close, uploaded_excel_files, plot, ignore_loops),
+            args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -260,7 +278,7 @@ def excel_files():
         return redirect("excel_files")
 
     exp_config = session.get("excel_config")
-    exp_config["ignore_loops"] = session.get("ignore_loops")
+    exp_config["ignore_loops"] = cache.get("ignore_loops")
     config = config_from_file()
     return render_template("excel_files.html", exp_config=exp_config, config=config)
 
@@ -389,7 +407,7 @@ def get_status():
 def remove_loops():
     """Save user selected loops to be deleted on user session"""
     # session["ignore_loops"] = [int(loop) for loop in request.form["ignore_loops"].split(",")]
-    session["ignore_loops"] = request.form["ignore_loops"]
+    cache = request.form["ignore_loops"]
     return redirect(url_for("excel_files"))
 
 
@@ -425,4 +443,4 @@ if __name__ == "__main__":
     # socketio.run(app, debug=False, host="0.0.0.0", port=port)
     socketio.run(app, debug=True, host="0.0.0.0", port=port)
 
-d = dict()
+    # -0.1195239775296602 
