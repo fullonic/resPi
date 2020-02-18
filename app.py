@@ -6,6 +6,7 @@ import os
 import shutil
 import time
 import logging
+import json
 from glob import glob
 from logging.handlers import RotatingFileHandler
 from threading import Thread, Event
@@ -70,7 +71,14 @@ app.config.from_mapping(config)
 exit_thread = Event()
 # Setup cache
 cache = Cache(app)
-cache.set_many((("run_manual", False), ("run_auto", False), ("running", False)))
+cache.set_many(
+    (
+        ("run_manual", False),
+        ("run_auto", False),
+        ("running", False),
+        ("ignored_loops", dict()),
+    )
+)
 
 # SocketIO
 socketio = SocketIO(app, async_mode="gevent")
@@ -169,6 +177,8 @@ def landing():
 def excel_files():
     """User GUI for upload and deal with excel files."""
     session["excel_config"] = config_from_file()["file_cycle_config"]
+    ignore_loops = cache.get("ignored_loops")
+    print(f"{ignore_loops=}")
 
     if request.method == "POST":
         cache.set("generating_files", True)
@@ -191,11 +201,12 @@ def excel_files():
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
         plot = True if request.form.get("plot") else False  # if generate or no loop plots
-        try:
-            ignore_loops = [int(loop) for loop in request.form["ignore_loops"].split(",")]
-        except ValueError:  # If user didn't insert any value
-            ignore_loops = None
-
+        # try:
+        #     ignore_loops = [int(loop) for loop in request.form.get["ignore_loops"].split(",")]
+        # except ValueError:  # If user didn't insert any value
+        #     ignore_loops = None
+        #
+        ignore_loops = None
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
             show_preview(flush, wait, close, [control_file_1, data_file, control_file_2])
@@ -245,7 +256,7 @@ def excel_files():
             estaran disponibles a la secció de descàrregues..""",
             "info",
         )
-        session["ignore_loops"] = None
+        cache.set("ignored_loops", {})
         return redirect("excel_files")
 
     exp_config = session.get("excel_config")
@@ -257,7 +268,7 @@ def excel_files():
 @app.route("/show_global_plot")
 def show_global_plot():
     plots = [
-        f"previews/{f.name}"
+        {"name": f.name.split(".")[0], "path": f"previews/{f.name}"}
         for f in Path(Path().resolve() / "templates/previews").glob("*.html")
     ]
     print(f"{plots=}")
@@ -353,6 +364,9 @@ def download_log(log):
     return send_from_directory(app.config["LOGS_FOLDER"], log)
 
 
+####################
+# API ROUTES
+####################
 @app.route("/status", methods=["GET"])
 def get_status():
     """Return information about the different components of the system."""
@@ -379,11 +393,30 @@ def remove_loops():
     return redirect(url_for("excel_files"))
 
 
-@app.route("/user_time/<local_time>", methods=["GET", "POST"])
-def update_time(local_time):
-    """Get user local time to update server time."""
-    print(local_time)
-    return redirect(url_for("login"))
+@app.route("/ignore_loops/<data>", methods=["POST"])
+def ignore_loops(data: str) -> dict:
+    """Add loops from multiple data sets to be ignored.
+
+    data:
+    key: Data set name: C1, Data, C2
+    value: list of loops to be ignored
+    """
+    if request.method == "POST":
+        if cache.get("ignored_loops") is None:
+            cache.set("ignored_loops", {})
+        print(f"{data=}")
+        fname, loops = data.split(":")
+        loops = [l for l in loops.split(",")]
+        # Update cache information about ignored loops
+        update = cache.get("ignored_loops")
+        update.update({fname: loops})
+        cache.set("ignored_loops", update)
+        return "ok", 201
+
+
+@app.route("/ignored_loops", methods=["GET"])
+def ignored_loops():
+    return jsonify(cache.get("ignored_loops"))
 
 
 if __name__ == "__main__":
@@ -391,3 +424,5 @@ if __name__ == "__main__":
     # webbrowser.open(f"http://localhost:{port}/excel_files")
     # socketio.run(app, debug=False, host="0.0.0.0", port=port)
     socketio.run(app, debug=True, host="0.0.0.0", port=port)
+
+d = dict()

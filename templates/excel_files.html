@@ -42,10 +42,20 @@
               <input type="number" value="{{ exp_config.close }}" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
             </div>
           </div>
+          <div class="form-row">Loops que seran ignorats</div>
+          <hr>
           <div class="row">
             <div class="form-group col-md-4">
-              <label for="inputIgnoreLoops">Loops que seran ignorats</label>
-              <input type="text" value="{{ exp_config.ignore_loops }}" name="ignore_loops" class="form-control" id="inputIgnoreLoops" placeholder="Close time in minutes">
+              <label for="C1_inputIgnoreLoops">Control 1</label>
+              <input type="text" value="{{ exp_config.ignore_loops }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="Close time in minutes">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="Data_inputIgnoreLoops">Data</label>
+              <input type="text" value="{{ exp_config.ignore_loops }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="Close time in minutes">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="C2_inputIgnoreLoops">Control 2</label>
+              <input type="text" value="{{ exp_config.ignore_loops }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="Close time in minutes">
             </div>
           </div>
           <div class="row ml-auto">
@@ -80,4 +90,16 @@
   </div>
 </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    console.log("Making request for ignore_loops");
+    $.get("/ignored_loops", function(data) {
+      console.log(data);
+    });
+  });
+</script>
 {% endblock %}
