@@ -141,9 +141,10 @@ class ExperimentCycle:
         self.ignore_loops = ignore_loops or {}
         if file_type != "test":
             self.file_type = file_type
-            print(f"Processament del fitxer {file_type.title()}")
+            print(f"Processament del fitxer <{file_type.title()}>")
         else:
             print(f"Comprovació de capçaleres de fitxers ...")
+
 
     def format_file(self, original_file):
         """For OLSystem output file into a pandas DF."""

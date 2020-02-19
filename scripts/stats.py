@@ -13,7 +13,7 @@ from pathlib import Path
 import statsmodels.api as sm
 import pandas as pd
 
-from scripts.utils import string_to_float, delete_excel_files, config_from_file
+from scripts.utils import string_to_float, delete_excel_files, config_from_file, global_plots
 
 # ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
 ROOT = Path(__file__).parent.parent  # app root dir
@@ -76,7 +76,18 @@ class ResumeDataFrame:
         self.experiment = experiment
         self.dt_col_name = experiment.dt_col_name
         self.df_lists = []
-        self.phase_time = f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
+        self.phase_time = (
+            f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
+        )
+
+    @property
+    def experiment_files(self) -> list:
+        """Return the file path of each experiment file.
+
+        List contains: C1, Data file and C2 full path.
+        """
+
+        return [f for f in Path(self.experiment.original_file.folder_dst).glob("*.txt")]
 
     @property
     def loop_data_range(self) -> dict:
@@ -96,10 +107,7 @@ class ResumeDataFrame:
         for i, df_close in enumerate(self.experiment.df_loop_generator):
             k = i + 1
             try:
-                if (
-                    str(k)
-                    in self.experiment.ignore_loops[self.experiment.original_file.fname]
-                ):
+                if str(k) in self.experiment.ignore_loops[self.experiment.original_file.fname]:
                     continue
             except KeyError:
                 pass
@@ -122,9 +130,7 @@ class ResumeDataFrame:
                 "max O2 [mgO2/L]": O2.max,
                 "min O2 [mgO2/L]": O2.min,
                 "avg O2 [mgO2/L]": O2.avg,
-                "avg temp [°C]": temp_mean(
-                    df_close["SDWA0003000061      , CH 1 temp [°C]"]
-                ),
+                "avg temp [°C]": temp_mean(df_close["SDWA0003000061      , CH 1 temp [°C]"]),
                 "O2 after blank": O2_HR - control,
             }
 
@@ -133,6 +139,7 @@ class ResumeDataFrame:
         self.resume_df = resume_df
 
     def save(self):
+        """Save resume table file to disk."""
         ext = self.experiment.original_file.output
         file_dest = f"{self.experiment.original_file.file_output}.{ext}"
         if ext == "csv":
@@ -140,14 +147,10 @@ class ResumeDataFrame:
         else:
             self.resume_df.to_excel(file_dest, index=False)
 
-        # self.zip_folder()
-
     def zip_folder(self):
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
-        location = os.path.dirname(
-            os.path.abspath(self.experiment.original_file.file_output)
-        )
+        location = os.path.dirname(os.path.abspath(self.experiment.original_file.file_output))
 
         # Same as app.config["ZIP_FOLDER"]
         ZIP_FOLDER = os.path.abspath(f"{ROOT}/static/uploads/zip_files")
@@ -166,9 +169,13 @@ class ResumeControl(ResumeDataFrame):
     def get_bank(self):
         self.generate_resume(0)
         self.save()
-        self.values.append(
-            self.resume_df["MO2 [mgO2/hr]"].sum() / len(self.resume_df["MO2 [mgO2/hr]"])
-        )
+        try:
+            self.values.append(
+                self.resume_df["MO2 [mgO2/hr]"].sum() / len(self.resume_df["MO2 [mgO2/hr]"])
+            )
+        except ZeroDivisionError:
+            print("Control table empty")
+            self.values.append(0)
 
     def calculate_blank(self):
         # print(self.values)

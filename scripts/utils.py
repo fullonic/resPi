@@ -6,16 +6,38 @@ All the operations here must be independent of the application requests.
 import shutil
 import sys
 import os
-import time
 import json
-from datetime import datetime, timedelta
-
-import pandas as pd
-import chardet
-
-import plotly.express as px
+from datetime import datetime
+from pathlib import Path
 
 SUPPORTED_FILES = ["txt", "xlsx"]
+
+
+def add_global_plots(preview_folder, folder_dst):
+    print(f"{preview_folder=}")
+    print(f"{folder_dst=}")
+    # Loop throw preview files and move it into project folder
+    for f in Path(preview_folder).glob("*.html"):
+        shutil.move(str(f), folder_dst)
+
+
+
+def global_plots(flush: int, wait: int, close: int, files: list, preview_folder, keep=False, folder_dst=None):
+    """Proxy function to deal with global graphs."""
+    from scripts import ExperimentCycle
+
+    if not keep:
+        for f in files:
+            file_path = str(Path(preview_folder) / f.filename)
+            f.save(file_path)
+
+            ExperimentCycle(flush, wait, close, file_path, file_type="preview")
+            os.remove(file_path)
+    else:
+        for f in files:
+            ExperimentCycle(flush, wait, close, f, file_type="Global grafic")
+
+        add_global_plots(preview_folder, folder_dst)
 
 
 def string_to_float(n: str) -> float:

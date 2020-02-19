@@ -41,10 +41,12 @@ from scripts.utils import (
     SUPPORTED_FILES,
     config_from_file,
     save_config_to_file,
+    global_plots,
+    add_global_plots,
 )
 
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
-
+# ROOT = Path(__file__).parent
 # App basic configuration
 config = {
     "SECRET_KEY": "NONE",
@@ -64,6 +66,7 @@ if getattr(sys, "frozen", False):
     static_folder = os.path.join(sys._MEIPASS, "static")
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
+    template_folder = Path("templates").resolve()
     app = Flask(__name__)
 
 
@@ -96,17 +99,6 @@ handler.setLevel(logging.WARNING)
 
 logger.addHandler(handler)
 
-
-def show_preview(flush, wait, close, files):
-    """Proxy function to generate a global plot preview."""
-    for f in files:
-        file_path = os.path.join(f"{app.config['UPLOAD_FOLDER']}/preview", f.filename)
-        f.save(file_path)
-
-        ExperimentCycle(flush, wait, close, file_path, file_type="preview")
-        os.remove(file_path)
-
-
 ####################
 # BACKGROUND TASKS
 ####################
@@ -121,16 +113,10 @@ def process_excel_files(
     control_file_1 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C1.txt")
     control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
     ignore_loops = cache.get("ignored_loops")
-    print("IGNORED", ignore_loops)
 
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush,
-            wait,
-            close,
-            c,
-            file_type=f"control_{idx + 1}",
-            ignore_loops=ignore_loops,
+            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
@@ -145,17 +131,27 @@ def process_excel_files(
     ######################
     now = time.perf_counter()
     total_files = len(uploaded_excel_files)
-    for i, file_path in enumerate(uploaded_excel_files):
+    for i, data_file in enumerate(uploaded_excel_files):
+        print(f"{i=}")
         experiment = ExperimentCycle(
-            flush, wait, close, file_path, ignore_loops=ignore_loops, file_type="data"
+            flush, wait, close, data_file, ignore_loops=ignore_loops, file_type="data"
         )
         if save_converted:
             experiment.original_file.save()
         resume = ResumeDataFrame(experiment)
         resume.generate_resume(control)
+        resume.save()
         if plot:
             experiment.create_plot()
-        resume.save()
+            global_plots(
+                flush,
+                wait,
+                close,
+                files=resume.experiment_files,
+                preview_folder=Path(template_folder) / "previews",
+                keep=True,
+                folder_dst=resume.experiment.original_file.folder_dst,
+            )
         # TODO: MOVE PREVIEW MAPS TO EXP FOLDER
         resume.zip_folder()
 
@@ -163,10 +159,7 @@ def process_excel_files(
         print("Tasca conclosa")
         socketio.emit(
             "processing_files",
-            {
-                "generating_files": True,
-                "msg": f"fitxers processats {i+1}/{total_files}",
-            },
+            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
             namespace="/resPi",
         )
     cache.set("generating_files", False)
@@ -218,13 +211,16 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = (
-            True if request.form.get("plot") else False
-        )  # if generate or no loop plots
+        plot = True if request.form.get("plot") else False  # if generate or no loop plots
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
-            show_preview(
-                flush, wait, close, [control_file_1, data_file, control_file_2]
+            global_plots(
+                flush,
+                wait,
+                close,
+                [control_file_1, data_file, control_file_2],
+                preview_folder=f"{app.config['UPLOAD_FOLDER']}/preview",
+                keep=False,
             )
             cache.set("generating_files", False)
             return redirect(url_for("show_global_plot"))
@@ -238,9 +234,7 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(
-                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
-            )
+            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -262,16 +256,15 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files,
-            args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
         # Fixed
         session["excel_config"] = {"flush": flush, "wait": wait, "close": close}
         flash(
-            f"""El fitxer s'ha carregat correctament. Quan totes les dades s’hagin processat,
-            estaran disponibles a la secció de descàrregues..""",
+            f"""El fitxer s'ha carregat. Quan totes les dades s’hagin processat,
+            estaran disponibles a la secció de arxius..""",
             "info",
         )
         cache.set("ignored_loops", {})

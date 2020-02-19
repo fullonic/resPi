@@ -16,6 +16,6 @@ FrontEnd
  -------------------------------
  - [x] Change "process please" name when "abrir grafic" is selected
  - [x] Only allow one checkbox selected at the time
- - [ ] SAVE GLOBAL PLOT OF CONTROL AND DATA
+ - [x] SAVE GLOBAL PLOT OF CONTROL AND DATA
 
  - [x] ADD IGNORE LOOPS TO CONTROL 1 AND 2
