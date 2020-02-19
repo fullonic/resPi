@@ -38,11 +38,15 @@ class Plot:
                 x=x,
                 y=y,
                 name=self.title,
-                line=dict(color="red", width=1),
+                line=dict(color="blue", width=1),
                 showlegend=True,
             )
         )
+
         fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
+        fig1.update_traces(line=dict(color="#861d4f", width=2))
+        fig.update_xaxes(title_text="<b>Temps (hr)</b>")
+        fig.update_yaxes(title_text="<b>mg O2/l</b>")
         trendline = fig1.data[1]
         fig.add_trace(trendline)
         formula, rsqt = trendline.hovertemplate.split("<br>")[1:3]
@@ -86,7 +90,7 @@ class Plot:
             go.Scatter(
                 x=x,
                 y=temp,
-                name="Temperature",
+                name="Temperatura",
                 line=dict(color="red", width=1),
                 showlegend=True,
             ),

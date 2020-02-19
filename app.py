@@ -116,7 +116,12 @@ def process_excel_files(
 
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx + 1}",
+            ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
@@ -132,7 +137,6 @@ def process_excel_files(
     now = time.perf_counter()
     total_files = len(uploaded_excel_files)
     for i, data_file in enumerate(uploaded_excel_files):
-        print(f"{i=}")
         experiment = ExperimentCycle(
             flush, wait, close, data_file, ignore_loops=ignore_loops, file_type="data"
         )
@@ -152,14 +156,16 @@ def process_excel_files(
                 keep=True,
                 folder_dst=resume.experiment.original_file.folder_dst,
             )
-        # TODO: MOVE PREVIEW MAPS TO EXP FOLDER
         resume.zip_folder()
 
         # logger.warning(f"Task concluded {i+1}/{total_files}")
         print("Tasca conclosa")
         socketio.emit(
             "processing_files",
-            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
+            {
+                "generating_files": True,
+                "msg": f"fitxers processats {i+1}/{total_files}",
+            },
             namespace="/resPi",
         )
     cache.set("generating_files", False)
@@ -188,11 +194,12 @@ def excel_files():
         cache.set("generating_files", True)
         # IGNORED
         C1_ignore = {"C1": [_ for _ in request.form.get("c1_ignore_loops").split(",")]}
-        Data_ignore = {"Data": [_ for _ in request.form.get("data_ignore_loops").split(",")]}
+        Data_ignore = {
+            "Data": [_ for _ in request.form.get("data_ignore_loops").split(",")]
+        }
         C2_ignore = {"C2": [_ for _ in request.form.get("c2_ignore_loops").split(",")]}
         ignore_loops = {**C1_ignore, **Data_ignore, **C2_ignore}
         cache.set("ignored_loops", ignore_loops)
-        print(f"{ignore_loops=}")
         # Get all uploaded files and do validation
         data_file = request.files.get("data_file")
         control_file_1 = request.files.get("control_file_1")
@@ -211,7 +218,9 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False  # if generate or no loop plots
+        plot = (
+            True if request.form.get("plot") else False
+        )  # if generate or no loop plots
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
             global_plots(
@@ -234,7 +243,9 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            project_folder = os.path.join(
+                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
+            )
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -256,7 +267,8 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files,
+            args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -282,7 +294,6 @@ def show_global_plot():
         {"name": f.name.split(".")[0], "path": f"previews/{f.name}"}
         for f in Path(Path().resolve() / "templates/previews").glob("*.html")
     ]
-    print(f"{plots=}")
     return render_template("global_graph_preview.html", plots=plots)
 
 
@@ -396,14 +407,6 @@ def get_status():
     )
 
 
-@app.route("/remove_loops", methods=["POST"])
-def remove_loops():
-    """Save user selected loops to be deleted on user session"""
-    # session["ignore_loops"] = [int(loop) for loop in request.form["ignore_loops"].split(",")]
-    cache = request.form["ignore_loops"]
-    return redirect(url_for("excel_files"))
-
-
 @app.route("/ignore_loops/<data>", methods=["POST"])
 def ignore_loops(data: str) -> dict:
     """Add loops from multiple data sets to be ignored.
@@ -415,7 +418,7 @@ def ignore_loops(data: str) -> dict:
     if request.method == "POST":
         if cache.get("ignored_loops") is None:
             cache.set("ignored_loops", {})
-        print(f"{data=}")
+        print(f"Ignorar 'loops'{data}")
         fname, loops = data.split(":")
         loops = [l for l in loops.split(",")]
         # Update cache information about ignored loops

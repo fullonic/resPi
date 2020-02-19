@@ -2,16 +2,20 @@
 {% include "navbar.html" %}
 {% block body %}
 <div class="" id="myDiv">
+
   {% for plot in plots %}
   {% include plot.path %}
-  <a class="ml-3" type="button"><i data-toggle="popover" data-content='Inseriu el número del bucle que voleu ignorar. Separeu-los amb " ,". ex: 1,5,7,10' data-placement="top" class="fas fa-info-circle"></i>
-    <input placeholder="Loops per eliminar" id="{{ plot.name }}" type="text" name="{{ plot.name }}">
-    <button onclick="addIgnoreLoop(this.name)" name="{{ plot.name }}" class="btn btn-primary mr-3">Ignorar</button>
+  <div class="m-1">
 
-    {% endfor %}
+    <a class="ml-3" type="button"><i data-toggle="popover" data-content='[{{ plot.name }}] Inseriu el número del "loop" que voleu ignorar. Separeu-los amb una "coma". ex: 1,5,7,10' data-placement="top" class="fas fa-info-circle"></i>
+      <input placeholder="Loops per eliminar" id="{{ plot.name }}" type="text" name="{{ plot.name }}">
+      <button onclick="addIgnoreLoop(this.name)" name="{{ plot.name }}" class="btn btn-primary mr-3">Ignorar</button>
+  </div>
+
+  {% endfor %}
 
 </div>
-<button type="button" onclick="topFunction()" id="myBtn" name="button">TOP</button>
+<button type="button" onclick="topFunction()" id="myBtn" name="button"><i class="fas fa-chevron-up"></i></button>
 {% endblock %}
 {% block footer %}
 <!-- <div class="container">

@@ -12,7 +12,6 @@ from scripts import (
     ResumeControl,
     ResumeDataFrame,
     FileFormater,
-
 )
 from scripts.utils import string_to_float, global_plots
 
@@ -28,7 +27,12 @@ def test_full_file_process(plot=False, save=False):
     flush, wait, close = 3, 10, 40
     for idx, c in enumerate([C1, C2]):
         C = ControlFile(
-            flush, wait, close, c, file_type=f"control_{idx+1}", ignore_loops=ignore_loops,
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx+1}",
+            ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         # C_Total.generate_resume(0)

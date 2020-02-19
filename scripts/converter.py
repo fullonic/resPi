@@ -145,7 +145,6 @@ class ExperimentCycle:
         else:
             print(f"Comprovació de capçaleres de fitxers ...")
 
-
     def format_file(self, original_file):
         """For OLSystem output file into a pandas DF."""
         txt_file = FileFormater(original_file)
@@ -183,7 +182,7 @@ class ExperimentCycle:
             self.df,
             self.x,
             self.y,
-            "Experiment",
+            "mg 02/L",
             dst=os.path.dirname(self.original_file.file_output),
         )
         plot.create_global_plot(fname=self.original_file.fname, markers=markers)
