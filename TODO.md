@@ -18,4 +18,4 @@ FrontEnd
  - [x] Only allow one checkbox selected at the time
  - [ ] SAVE GLOBAL PLOT OF CONTROL AND DATA
 
- - [ ] ADD IGNORE LOOPS TO CONTROL 1 AND 2
+ - [x] ADD IGNORE LOOPS TO CONTROL 1 AND 2

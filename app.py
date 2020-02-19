@@ -156,8 +156,8 @@ def process_excel_files(
         if plot:
             experiment.create_plot()
         resume.save()
-
-        resume = ResumeDataFrame(experiment)
+        # TODO: MOVE PREVIEW MAPS TO EXP FOLDER
+        resume.zip_folder()
 
         # logger.warning(f"Task concluded {i+1}/{total_files}")
         print("Tasca conclosa")
@@ -443,4 +443,4 @@ if __name__ == "__main__":
     # socketio.run(app, debug=False, host="0.0.0.0", port=port)
     socketio.run(app, debug=True, host="0.0.0.0", port=port)
 
-    # -0.1195239775296602 
+    # -0.1195239775296602

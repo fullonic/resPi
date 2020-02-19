@@ -96,7 +96,9 @@
 
 <script type="text/javascript">
   $(document).ready(function() {
-    console.log("Making request for ignore_loops");
+    $("#generatePlotComplet").prop("checked", false);
+    $("#submit_files").text("Processar dades")
+    $("#submit_files").removeClass("btn-success")
     $.get("/ignored_loops", function(data) {
       console.log(data);
       document.getElementById("C1_inputIgnoreLoops").value = data.C1;
