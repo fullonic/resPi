@@ -29,6 +29,7 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash  # noqa
 from flask_socketio import SocketIO
 from engineio.async_drivers import gevent  # noqa
+from flask_debugtoolbar import DebugToolbarExtension
 
 from scripts.converter import ExperimentCycle, ControlFile
 from scripts.stats import ResumeDataFrame, ResumeControl
@@ -42,9 +43,7 @@ from scripts.utils import (
     config_from_file,
     save_config_to_file,
     global_plots,
-    add_global_plots,
 )
-
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
 # ROOT = Path(__file__).parent
 # App basic configuration
@@ -58,6 +57,7 @@ config = {
     "LOGS_MB_SIZE": 24578,
     "LOGS_BACKUP": 10,
     "ZIP_FOLDER": f"{ROOT}/static/uploads/zip_files",
+    "DEBUG_TB_INTERCEPT_REDIRECTS": False,
 }  # UNIT: minutes
 
 # DEFINE APP
@@ -72,6 +72,10 @@ else:
 
 app.config.from_mapping(config)
 exit_thread = Event()
+
+app.debug = True
+toolbar = DebugToolbarExtension(app)
+
 # Setup cache
 cache = Cache(app)
 cache.set_many(
@@ -82,6 +86,7 @@ cache.set_many(
         ("ignored_loops", {"C1": [], "Data": [], "C2": []}),
     )
 )
+
 
 # SocketIO
 socketio = SocketIO(app, async_mode="gevent")
@@ -116,12 +121,7 @@ def process_excel_files(
 
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush,
-            wait,
-            close,
-            c,
-            file_type=f"control_{idx + 1}",
-            ignore_loops=ignore_loops,
+            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
@@ -162,10 +162,7 @@ def process_excel_files(
         print("Tasca conclosa")
         socketio.emit(
             "processing_files",
-            {
-                "generating_files": True,
-                "msg": f"fitxers processats {i+1}/{total_files}",
-            },
+            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
             namespace="/resPi",
         )
     cache.set("generating_files", False)
@@ -186,17 +183,17 @@ def landing():
 
 
 @app.route("/excel_files", methods=["POST", "GET"])
+@cache.cached(timeout=15000, key_prefix="main_page")
 def excel_files():
     """User GUI for upload and deal with excel files."""
     session["excel_config"] = config_from_file()["file_cycle_config"]
     ignore_loops = cache.get("ignored_loops")
+    print(cache.get_dict("/excel_files"))
     if request.method == "POST":
         cache.set("generating_files", True)
         # IGNORED
         C1_ignore = {"C1": [_ for _ in request.form.get("c1_ignore_loops").split(",")]}
-        Data_ignore = {
-            "Data": [_ for _ in request.form.get("data_ignore_loops").split(",")]
-        }
+        Data_ignore = {"Data": [_ for _ in request.form.get("data_ignore_loops").split(",")]}
         C2_ignore = {"C2": [_ for _ in request.form.get("c2_ignore_loops").split(",")]}
         ignore_loops = {**C1_ignore, **Data_ignore, **C2_ignore}
         cache.set("ignored_loops", ignore_loops)
@@ -218,9 +215,7 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = (
-            True if request.form.get("plot") else False
-        )  # if generate or no loop plots
+        plot = True if request.form.get("plot") else False  # if generate or no loop plots
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
             global_plots(
@@ -243,9 +238,7 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(
-                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
-            )
+            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -267,8 +260,7 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files,
-            args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -348,6 +340,10 @@ def remove_file(file_):
 def settings():
     save_config_to_file(request.form.to_dict())
     flash("S'ha actualitzat la configuració", "info")
+    cache.delete("main_page")
+    # for k in cache.cache._cache:
+    #     print(k, cache.get(k))
+    print(vars(flash))
     return redirect("excel_files")
 
 
@@ -434,19 +430,19 @@ def ignored_loops():
 
 
 if __name__ == "__main__":
-    print("*" * 40)
-    print("""Benvingut a l'aplicació de "resPi Processor" """)
-    print("*" * 40)
-    print("\n")
-    print("Carregant l'aplicació ...")
     port = 5000
-    webbrowser.open(f"http://localhost:{port}")
-    print("\n")
-    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
-    print(f"http://localhost:{port}")
-    print("\n")
-    print("*" * 40)
-    print("Avís: tancant aquesta finestra es tancarà l’aplicació")
-    print("*" * 40)
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    # print("*" * 40)
+    # print("""Benvingut a l'aplicació de "resPi Processor" """)
+    # print("*" * 40)
+    # print("\n")
+    # print("Carregant l'aplicació ...")
+    # webbrowser.open(f"http://localhost:{port}")
+    # print("\n")
+    # print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
+    # print(f"http://localhost:{port}")
+    # print("\n")
+    # print("*" * 40)
+    # print("Avís: tancant aquesta finestra es tancarà l’aplicació")
+    # print("*" * 40)
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)
