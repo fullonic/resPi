@@ -434,9 +434,19 @@ def ignored_loops():
 
 
 if __name__ == "__main__":
+    print("*" * 40)
+    print("""Benvingut a l'aplicació de "resPi Processor" """)
+    print("*" * 40)
+    print("\n")
+    print("Carregant l'aplicació ...")
     port = 5000
-    # webbrowser.open(f"http://localhost:{port}/excel_files")
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
-
-    # -0.1195239775296602
+    webbrowser.open(f"http://localhost:{port}")
+    print("\n")
+    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
+    print(f"http://localhost:{port}")
+    print("\n")
+    print("*" * 40)
+    print("Avís: tancant aquesta finestra es tancarà l’aplicació")
+    print("*" * 40)
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
