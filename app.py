@@ -330,6 +330,13 @@ def downloads():
     return render_template("download.html", zip_files=zip_files)
 
 
+@app.route("/downloads/all")
+def download_all():
+    all_zipped = shutil.make_archive(app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"])
+    print(f"{all_zipped=}")
+    return send_from_directory(Path(all_zipped).parent, Path(all_zipped).name)
+
+
 @app.route("/get_file/<file_>", methods=["GET"])
 def get_file(file_):
     """Download a zip file based on file name."""
@@ -341,6 +348,14 @@ def remove_file(file_):
     """Delete a zip file based on file name."""
     location = os.path.join(app.config["ZIP_FOLDER"], file_)
     delete_zip_file(location)
+    return redirect(url_for("downloads"))
+
+
+@app.route("/remove_file/all", methods=["GET"])
+def remove_all_files():
+    """Delete a zip file based on file name."""
+    for f in Path(app.config["ZIP_FOLDER"]).glob("*.zip"):
+        delete_zip_file(f)
     return redirect(url_for("downloads"))
 
 

@@ -11,7 +11,8 @@
         <th scope="col">Nom de l'arxiu</th>
         <th scope="col">Data</th>
         <th scope="col">Mida</th>
-        <th scope="col"></th>
+        <th scope="col"> <a href="{{ url_for('download_all') }}" class="badge badge-success mr-2">Descàrregar Tot</a></th>
+        <th scope="col"> <a href="{{ url_for('remove_all_files') }}" class="badge badge-danger">Eliminar Tot</a></th>
       </tr>
     </thead>
     <tbody>
