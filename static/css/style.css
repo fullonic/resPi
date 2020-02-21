@@ -67,7 +67,13 @@
   z-index: -1;
 }
 
-*//* #################################### */
+/* NAV BAR */
+.brand {
+  font-size: 10px;
+  align-items: center;
+}
+
+/* #################################### */
 .info-icon {
   height: 20px;
 }

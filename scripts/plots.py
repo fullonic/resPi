@@ -37,14 +37,14 @@ class Plot:
             go.Scatter(
                 x=x,
                 y=y,
-                name=self.title,
+                name=self.y_axis,
                 line=dict(color="blue", width=1),
                 showlegend=True,
             )
         )
 
         fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
-        fig1.update_traces(line=dict(color="#861d4f", width=2))
+        fig1.update_traces(line=dict(color="#861d4f", width=3))
         fig.update_xaxes(title_text="<b>Temps (hr)</b>")
         fig.update_yaxes(title_text="<b>mg O2/l</b>")
         trendline = fig1.data[1]
@@ -97,13 +97,15 @@ class Plot:
             secondary_y=True,
         )
         # MARKERS
+        # nloops = markers[:-1]
+        nloops = [m - markers[0] for m in markers]
         y = [9.5] * len(markers)
         size = [2] * len(markers)
         loop = [
             f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i, _ in enumerate(markers)
         ]
 
-        points = px.scatter(x=markers, y=y, size=size, text=loop)
+        points = px.scatter(x=nloops, y=y, size=size, text=loop, )
         fig.add_trace(points.data[0])
 
         # Set x-axis title

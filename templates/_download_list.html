@@ -4,5 +4,5 @@
   <td>{{ file.created }}</td>
   <td>{{ file.size }} MB</td>
   <td><a href="{{ url_for('get_file', file_=file.name)}}" class="badge badge-success mr-2">Descarregar</a>
-    <a href="{{ url_for('remove_file', file_=file.name)}}" class="badge badge-danger">Elimina</a></td>
+    <a href="{{ url_for('remove_file', file_=file.name)}}" class="badge badge-danger">Eliminar</a></td>
 </tr>

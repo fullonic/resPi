@@ -162,23 +162,6 @@
       console.log("You called!!!");
     }
 
-    $("#generatePlotComplet").on("click", function() {
-      if ($("#generatePlotComplet").prop("checked")) {
-        $("#generatePlots").prop("checked", false);
-        $("#submit_files").text("Vista prèvia del gràfic global")
-        $("#submit_files").addClass("btn-success")
-      } else {
-        $("#submit_files").text("Processar dades");
-        $("#submit_files").removeClass("btn-success")
-      }
-    })
-    $("#generatePlots").on("click", function() {
-      if ($("#generatePlots").prop("checked")) {
-        $("#generatePlotComplet").prop("checked", false);
-        $("#submit_files").text("Processar dades")
-        $("#submit_files").removeClass("btn-success")
-      }
-    })
 
     function test() {
       console.log("PRESS MARKER");

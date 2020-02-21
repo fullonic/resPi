@@ -22,8 +22,8 @@ def test_full_file_process(plot=False, save=False):
     C2 = "/home/somnium/Desktop/ANGULA/RealData/D3/C2.txt"
     data_file = "/home/somnium/Desktop/ANGULA/RealData/D3/Angula.txt"
     dst = "/home/somnium/Desktop/ANGULA/RealData/results"
-    # ignore_loops = {"C2": ["2", "3"], "Data": [], "C1": ["1"]}
-    ignore_loops = {"C2": [], "Data": ["1", "2"], "C1": []}
+    # ignore_loops = {"C2": ["2", "3"], "Experiment": [], "C1": ["1"]}
+    ignore_loops = {"C2": [], "Experiment": ["1", "2"], "C1": []}
     flush, wait, close = 3, 10, 40
     for idx, c in enumerate([C1, C2]):
         C = ControlFile(

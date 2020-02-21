@@ -10,7 +10,7 @@ import json
 from glob import glob
 from logging.handlers import RotatingFileHandler
 from threading import Thread, Event
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial  # noqa maybe can be used on save files
 from pathlib import Path
 
@@ -44,6 +44,7 @@ from scripts.utils import (
     save_config_to_file,
     global_plots,
 )
+
 ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
 # ROOT = Path(__file__).parent
 # App basic configuration
@@ -83,7 +84,7 @@ cache.set_many(
         ("run_manual", False),
         ("run_auto", False),
         ("running", False),
-        ("ignored_loops", {"C1": [], "Data": [], "C2": []}),
+        ("ignored_loops", {"C1": [], "Experiment": [], "C2": []}),
     )
 )
 
@@ -103,6 +104,7 @@ handler.setFormatter(logging.Formatter("%(message)s"))
 handler.setLevel(logging.WARNING)
 
 logger.addHandler(handler)
+
 
 ####################
 # BACKGROUND TASKS
@@ -188,12 +190,13 @@ def excel_files():
     """User GUI for upload and deal with excel files."""
     session["excel_config"] = config_from_file()["file_cycle_config"]
     ignore_loops = cache.get("ignored_loops")
-    print(cache.get_dict("/excel_files"))
     if request.method == "POST":
         cache.set("generating_files", True)
         # IGNORED
         C1_ignore = {"C1": [_ for _ in request.form.get("c1_ignore_loops").split(",")]}
-        Data_ignore = {"Data": [_ for _ in request.form.get("data_ignore_loops").split(",")]}
+        Data_ignore = {
+            "Experiment": [_ for _ in request.form.get("data_ignore_loops").split(",")]
+        }
         C2_ignore = {"C2": [_ for _ in request.form.get("c2_ignore_loops").split(",")]}
         ignore_loops = {**C1_ignore, **Data_ignore, **C2_ignore}
         cache.set("ignored_loops", ignore_loops)
@@ -267,15 +270,20 @@ def excel_files():
         # Fixed
         session["excel_config"] = {"flush": flush, "wait": wait, "close": close}
         flash(
-            f"""El fitxer s'ha carregat. Quan totes les dades s’hagin processat,
-            estaran disponibles a la secció de arxius..""",
+            f"""Els fitxers s'ha carregat. Quan totes les dades s’hagin processat,
+            estaran disponibles a la secció Descàrregues..""",
             "info",
         )
         cache.set("ignored_loops", {})
         return redirect("excel_files")
 
     exp_config = session.get("excel_config")
-    exp_config["ignore_loops"] = cache.get("ignore_loops")
+    exp_config["ignore_loops"] = (
+        cache.get("ignore_loops")
+        if cache.get("ignore_loops")
+        else {"C1": [], "Experiment": [], "C2": []}
+    )
+
     config = config_from_file()
     return render_template("excel_files.html", exp_config=exp_config, config=config)
 
@@ -301,14 +309,14 @@ def downloads():
     zip_folder = sorted(zip_folder, key=lambda x: os.path.getmtime(x))[::-1]
 
     # TODO: Convert to namedtuple or class
-    zip_folder = [
+    zip_folder = (
         (
             os.path.basename(f),
             os.path.getsize(f),
-            datetime.utcfromtimestamp(os.path.getmtime(f)),
+            datetime.utcfromtimestamp(os.path.getmtime(f)) + timedelta(hours=1),
         )
         for f in zip_folder
-    ]
+    )
     zip_files = [
         {
             "id_": i,
@@ -341,9 +349,6 @@ def settings():
     save_config_to_file(request.form.to_dict())
     flash("S'ha actualitzat la configuració", "info")
     cache.delete("main_page")
-    # for k in cache.cache._cache:
-    #     print(k, cache.get(k))
-    print(vars(flash))
     return redirect("excel_files")
 
 
@@ -408,7 +413,7 @@ def ignore_loops(data: str) -> dict:
     """Add loops from multiple data sets to be ignored.
 
     data:
-    key: Data set name: C1, Data, C2
+    key: DF name: C1, Experiment, C2
     value: list of loops to be ignored
     """
     if request.method == "POST":
@@ -416,7 +421,7 @@ def ignore_loops(data: str) -> dict:
             cache.set("ignored_loops", {})
         fname, loops = data.split(":")
         try:
-            loops = [int(l) for l in loops.split(",") if l.isdigit()]
+            loops = set([int(l) for l in loops.split(",") if l.isdigit()])
             print(f"Ignorar 'loops': {loops}")
 
         except ValueError:
@@ -450,4 +455,3 @@ if __name__ == "__main__":
     # print("*" * 40)
     # socketio.run(app, debug=False, host="0.0.0.0", port=port)
     socketio.run(app, debug=True, host="0.0.0.0", port=port)
-v = "1"

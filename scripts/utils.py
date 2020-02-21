@@ -120,7 +120,8 @@ def save_config_to_file(new_config):
             else:
                 config_keys["file_cycle_config"].update({k: string_to_int(v)})
         else:
-            print(f"Unexpected value {k}: {v}")
+            if k not in ["save_loop_df", "save_converted"]:
+                print(f"Unexpected value {k}: {v}")
     config_keys["experiment_file_config"].update(
         {"SAVE_LOOP_DF": True if new_config.get("save_loop_df") else False}
     )

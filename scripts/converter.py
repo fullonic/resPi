@@ -2,12 +2,11 @@
 import os
 import math
 import datetime
-import sys
+
 
 import chardet
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
+
 
 from scripts.utils import string_to_float, config_from_file, progress_bar
 from scripts.plots import Plot
@@ -34,7 +33,6 @@ def convert_datetime(dt: str):
 def calculate_ox(ox_value, start_value):
     """Calculate the evolution of time."""
     return (float(ox_value) - float(start_value)) / 60
-    # return [calculate_ox(value) for value in lst_self.time_stamp_code]
 
 
 class FileFormater:
@@ -45,7 +43,7 @@ class FileFormater:
         self.folder_dst = os.path.dirname(file_)
         self.fname = os.path.basename(file_).split(".")[0]
         if self.fname not in ["C1", "C2"]:
-            self.fname = "Data"
+            self.fname = "Experiment"
         self.file_output = f"{self.folder_dst}/{self.fname}"
         config = config_from_file()["experiment_file_config"]
         self.save_converted = config["SAVE_CONVERTED"]
@@ -85,9 +83,9 @@ class FileFormater:
         # Change date time column to a python datetime object
         df.loc[:, self.dt_col_name] = df.loc[:, self.dt_col_name].map(convert_datetime)
         self.output = output
+        self.df = df
         if self.save_converted:
             self.save(output)
-        self.df = df
 
     def save(self, name=None):
         """Export converted DF to a new file."""
@@ -121,18 +119,14 @@ class ExperimentCycle:
         self.flush = flush
         self.wait = wait
         self.close = close
-        self.discard_time = (
-            flush + wait
-        )  # time-span to discard from each information cycle
+        self.discard_time = flush + wait  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
 
         # LOAD ALL CONFIG FROM FILE
         config = config_from_file()["experiment_file_config"]
         self.dt_col_name = config["DT_COL"]
         self.time_stamp_code = config["TSCODE"]  # Get data column name
-        self.O2_COL = config[
-            "O2_COL"
-        ]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
+        self.O2_COL = config["O2_COL"]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
         self.x = config["X_COL"]  # column of oxygen evolution self.x
         self.y = config["Y_COL"]
         self.plot_title = config["PLOT_TITLE"]
@@ -197,9 +191,7 @@ class ExperimentCycle:
         by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
-        time_diff = (
-            self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
-        )
+        time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
         # Put every time value into seconds
         total = (time_diff).seconds / (self.loop_time * 60)
         return math.ceil(total)  # rounds up the decimal to number
@@ -264,7 +256,9 @@ class ExperimentCycle:
         df_close.loc[:, "Temps (min)"] = df_close[self.time_stamp_code].apply(
             calculate_ox, args=(start_value,)
         )
-        df_close.loc[:, self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
+        # NOTE: Changes if time is minutes (.map(lambda x: x / 60)) or hours
+        # df_close.loc[:, self.x] = df_close["Temps (min)"].map(lambda x: x / 60)
+        df_close.loc[:, self.x] = df_close["Temps (min)"]
         df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 

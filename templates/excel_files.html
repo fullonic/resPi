@@ -2,18 +2,17 @@
 {% include "navbar.html" %}
 
 {% block body %}
-
 <div class="container">
   <div class="col-md-12 mt-3">
-    <div class="card">
-      <div class="card-header">
-        <div class="row">
-          <div class="col-md-10">Introduïu els arxius corresponents</div>
-          <div class="col-md"><a href="{{ url_for('downloads') }}" class="badge badge-warning">Arxius</a></div>
+    <form action="" method="POST" enctype="multipart/form-data">
+      <div class="card mb-3">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-10">Introduïu els arxius corresponents</div>
+            <div class="col-md"><a href="{{ url_for('downloads') }}" class="badge badge-warning">Descàrregues</a></div>
+          </div>
         </div>
-      </div>
-      <div class="card-body">
-        <form action="" method="POST" enctype="multipart/form-data">
+        <div class="card-body">
           <div class="form-row">
             <div class="form-group col-md">
               <label for="control_file_1">Control 1</label>
@@ -21,7 +20,7 @@
               <input type="file" accept=".txt" class="form-control" name="control_file_1" id="control_file_1" required>
             </div>
             <div class="form-group col-md">
-              <label for="data_file">Cicle nocturn</label>
+              <label for="data_file">Experiment</label>
               <input type="file" accept=".txt" class="form-control" name="data_file" id="data_file" required>
             </div>
             <div class="form-group col-md">
@@ -43,41 +42,54 @@
               <input type="number" value="{{ exp_config.close }}" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
             </div>
           </div>
-          <div class="form-row">Loops que seran ignorats</div>
-          <hr>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-10">Loops que seran ignorats</div>
+          </div>
+        </div>
+        <div class="card-body">
           <div class="row">
             <div class="form-group col-md-4">
               <label for="C1_inputIgnoreLoops">Control 1</label>
-              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="Loops per eliminar">
+              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="">
             </div>
             <div class="form-group col-md-4">
-              <label for="Data_inputIgnoreLoops">Data</label>
-              <input type="text" value="{{ exp_config.ignore_loops.Data }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="Loops per eliminar">
+              <label for="Data_inputIgnoreLoops">Experiment</label>
+              <input type="text" value="{{ exp_config.ignore_loops.Experiment }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="">
             </div>
             <div class="form-group col-md-4">
               <label for="C2_inputIgnoreLoops">Control 2</label>
-              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="Loops per eliminar">
+              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="">
             </div>
           </div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-body">
           <div class="row ml-auto">
             <button type="submit" id="submit_files" class="btn btn-primary mr-3">Processar dades</button>
             <div class="form-check  mr-3">
               <input class="form-check-input" name="plot" type="checkbox" value="yes" id="generatePlots" checked>
               <label class="form-check-label" for="generatePlots">
-                Generar un gràfic per cada loop
+                Generar i guardar gràfics
               </label>
             </div>
             <div class="form-check">
               <input class="form-check-input" name="experiment_plot" type="checkbox" value="yes" id="generatePlotComplet">
               <label class="form-check-label" for="generatePlotComplet" title="esta te gsg">
-                Vista previa de las graficas
+                Vista prèvia dels gràfics
               </label>
             </div>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
   </div>
+</div>
+</form>
+</div>
 </div>
 
 <!-- Settings Modal -->
@@ -103,7 +115,7 @@
     $.get("/ignored_loops", function(data) {
       console.log(data);
       document.getElementById("C1_inputIgnoreLoops").value = data.C1;
-      document.getElementById("Data_inputIgnoreLoops").value = data.Data;
+      document.getElementById("Data_inputIgnoreLoops").value = data.Experiment;
       document.getElementById("C2_inputIgnoreLoops").value = data.C2;
     });
   });
@@ -122,5 +134,24 @@
     old_value = new_value;
     console.log("NEW OLD" + old_value);
   }
+
+  // Update process data button
+  $("#generatePlotComplet").on("click", function() {
+    if ($("#generatePlotComplet").prop("checked")) {
+      $("#generatePlots").prop("checked", false);
+      $("#submit_files").text("Generar vista prèvia")
+      $("#submit_files").addClass("btn-success")
+    } else {
+      $("#submit_files").text("Processar dades");
+      $("#submit_files").removeClass("btn-success")
+    }
+  })
+  $("#generatePlots").on("click", function() {
+    if ($("#generatePlots").prop("checked")) {
+      $("#generatePlotComplet").prop("checked", false);
+      $("#submit_files").text("Processar dades")
+      $("#submit_files").removeClass("btn-success")
+    }
+  })
 </script>
 {% endblock %}

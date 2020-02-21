@@ -17,7 +17,6 @@ from scripts.utils import (
     string_to_float,
     delete_excel_files,
     config_from_file,
-    global_plots,
 )
 
 # ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # app root dir
@@ -131,7 +130,7 @@ class ResumeDataFrame:
                 "Loop": k,
                 "Phase time [s]": self.phase_time,
                 "MO2 [mgO2/hr]": O2_HR,
-                "slope [mgO2/L/hr]": slope,
+                "slope [mgO2/L/m]": slope,
                 "R^2": r2_a_b.rsquared,
                 "max O2 [mgO2/L]": O2.max,
                 "min O2 [mgO2/L]": O2.min,
@@ -189,6 +188,4 @@ class ResumeControl(ResumeDataFrame):
             self.values.append(0)
 
     def calculate_blank(self):
-        # print(self.values)
-        print(sum(self.values) / len(self.values))
-        return sum(self.values) / len(self.values)
+        return (sum(self.values) / len(self.values)) * -1
