@@ -8,8 +8,8 @@
   <div class="m-1">
 
     <a class="ml-3" type="button"><i data-toggle="popover" data-content='[{{ plot.name }}] Inseriu el número del "loop" que voleu ignorar. Separeu-los amb una "coma". ex: 1,5,7,10' data-placement="top" class="fas fa-info-circle"></i>
-      <input placeholder="Loops per eliminar" id="{{ plot.name }}" type="text" name="{{ plot.name }}">
-      <button onclick="addIgnoreLoop(this.name)" name="{{ plot.name }}" class="btn btn-primary mr-3">Ignorar</button>
+      <input placeholder="Loops per eliminar" oninput="ignoreInputIN(this.name)" id="{{ plot.name }}" type="text" name="{{ plot.name }}">
+      <button onclick="addIgnoreLoop(this.name, this.id)" id="{{ plot.name }}ID" name="{{ plot.name }}" class="d-none btn btn-danger mr-3"> Ignorar <i class="fas fa-backspace"></i></button>
   </div>
 
   {% endfor %}
@@ -28,14 +28,44 @@
 
 {% block scripts %}
 <script type="text/javascript">
-  function addIgnoreLoop(file_name) {
+  function addIgnoreLoop(file_name, id) {
     var name = file_name;
     var data = name + ":" + document.getElementById(file_name).value
-    console.log({
-      data
-    });
     $.post("/ignore_loops/" + data);
+    addIgnoreLoopBTN(file_name);
 
+
+  }
+
+  // IGNORE INPUT CHANGES
+  var old_value = "";
+  var new_value = "";
+  console.log("STARTING " + old_value + " " + new_value);
+
+  function ignoreInputIN(name) {
+    var btnID = "#" + name + "ID";
+    var input = document.getElementById(name).value;
+    new_value = input
+    $(btnID).removeClass("d-none");
+    // $(btnID).addClass("btn-danger");
+    if ($(btnID).hasClass("btn-success")) {
+      console.log("HEREEEE");
+      $(btnID).text("Actualitza")
+      $(btnID).removeClass("btn-success");
+      $(btnID).addClass("btn-warning");
+    }
+
+  };
+
+  function addIgnoreLoopBTN(name) {
+    var btnID = "#" + name + "ID";
+    if (new_value !== old_value) {
+      $(btnID).text("Actualitzat")
+      $(btnID).removeClass("btn-danger");
+      $(btnID).removeClass("btn-warning");
+      $(btnID).addClass("btn-success")
+    };
+    old_value = new_value;
   }
 
   //Get the button:

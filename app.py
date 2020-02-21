@@ -183,7 +183,7 @@ def landing():
 
 
 @app.route("/excel_files", methods=["POST", "GET"])
-@cache.cached(timeout=15000, key_prefix="main_page")
+# @cache.cached(timeout=15000, key_prefix="main_page")
 def excel_files():
     """User GUI for upload and deal with excel files."""
     session["excel_config"] = config_from_file()["file_cycle_config"]
@@ -414,9 +414,13 @@ def ignore_loops(data: str) -> dict:
     if request.method == "POST":
         if cache.get("ignored_loops") is None:
             cache.set("ignored_loops", {})
-        print(f"Ignorar 'loops'{data}")
         fname, loops = data.split(":")
-        loops = [l for l in loops.split(",")]
+        try:
+            loops = [int(l) for l in loops.split(",") if l.isdigit()]
+            print(f"Ignorar 'loops': {loops}")
+
+        except ValueError:
+            return "error", 400
         # Update cache information about ignored loops
         update = cache.get("ignored_loops")
         update.update({fname: loops})
@@ -446,3 +450,4 @@ if __name__ == "__main__":
     # print("*" * 40)
     # socketio.run(app, debug=False, host="0.0.0.0", port=port)
     socketio.run(app, debug=True, host="0.0.0.0", port=port)
+v = "1"

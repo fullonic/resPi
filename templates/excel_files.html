@@ -32,7 +32,7 @@
           <div class="form-row">
             <div class="form-group col-md-4">
               <label for="inputFlush">'Flush' temps</label>
-              <input type="number" value="{{ exp_config.flush }}" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
+              <input type="number" value="{{ exp_config.flush }}" onblur="ignoreInputBlur(this.id)" oninput="ignoreInputIN(this.id)" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
             </div>
             <div class="form-group col-md-4">
               <label for="inputWait">'Wait' temps</label>
@@ -48,15 +48,15 @@
           <div class="row">
             <div class="form-group col-md-4">
               <label for="C1_inputIgnoreLoops">Control 1</label>
-              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="Loops per eliminar">
             </div>
             <div class="form-group col-md-4">
               <label for="Data_inputIgnoreLoops">Data</label>
-              <input type="text" value="{{ exp_config.ignore_loops.Data }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops.Data }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="Loops per eliminar">
             </div>
             <div class="form-group col-md-4">
               <label for="C2_inputIgnoreLoops">Control 2</label>
-              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="Close time in minutes">
+              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="Loops per eliminar">
             </div>
           </div>
           <div class="row ml-auto">
@@ -107,5 +107,20 @@
       document.getElementById("C2_inputIgnoreLoops").value = data.C2;
     });
   });
+  var old_value = "";
+  var new_value = "";
+
+  function ignoreInputIN(id) {
+    var input = document.getElementById(id).value;
+    new_value = input
+    console.log(new_value);
+  }
+
+  function ignoreInputBlur() {
+    console.log("NEW" + new_value);
+    console.log("OLD" + old_value);
+    old_value = new_value;
+    console.log("NEW OLD" + old_value);
+  }
 </script>
 {% endblock %}
