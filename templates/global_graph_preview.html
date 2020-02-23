@@ -43,7 +43,6 @@
   // IGNORE INPUT CHANGES
   var old_value = "";
   var new_value = "";
-  console.log("STARTING " + old_value + " " + new_value);
 
   function ignoreInputIN(name) {
     var btnID = "#" + name + "ID";
@@ -52,7 +51,6 @@
     $(btnID).removeClass("d-none");
     // $(btnID).addClass("btn-danger");
     if ($(btnID).hasClass("btn-success")) {
-      console.log("HEREEEE");
       $(btnID).text("Actualitza")
       $(btnID).removeClass("btn-success");
       $(btnID).addClass("btn-warning");
