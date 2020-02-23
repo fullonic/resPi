@@ -222,6 +222,8 @@ def excel_files():
             True if request.form.get("plot") else False
         )  # if generate or no loop plots
         # Show preview plot if user wants
+        control_file_1.filename = "C1.txt"
+        control_file_2.filename = "C2.txt"
         if request.form.get("experiment_plot"):
             global_plots(
                 flush,
@@ -247,9 +249,6 @@ def excel_files():
                 app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
             )
             os.mkdir(project_folder)
-        # Here filename complete with extension
-        control_file_1.filename = "C1.txt"
-        control_file_2.filename = "C2.txt"
         # Save all files into project folder
         files_list = [data_file, control_file_1, control_file_2]
         for file_ in files_list:
