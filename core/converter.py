@@ -275,14 +275,14 @@ class ExperimentCycle:
         df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
-    @progress_bar
+    #@progress_bar
     def create_plot(self, format_="html"):
         """Proxy for Plot object."""
         print("Generació de gràfics", end="\n")
         step = 100 / self.total_of_loops
         for i, df_close in enumerate(self.df_loop_generator):
             k = i + 1
-            Plot(
+            return Plot(
                 df_close,
                 self.x,
                 self.y,
@@ -290,7 +290,7 @@ class ExperimentCycle:
                 dst=os.path.dirname(self.original_file.file_output),
                 fname=f"{self.original_file.fname}_loop{k}",
             ).create()
-            yield round(step * k)
+            #yield round(step * k)
 
     def save(self, df_loop, name):
         """Save data frame into a excel file."""
