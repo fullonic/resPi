@@ -29,7 +29,7 @@ def global_plots(
     folder_dst=None,
 ):
     """Proxy function to deal with global graphs."""
-    from scripts import ExperimentCycle
+    from core import ExperimentCycle
 
     if not keep:
         for f in files:
@@ -84,6 +84,7 @@ def check_extensions(ext):
 def config_from_file():
     """Open config file."""
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ROOT = Path(__file__).resolve().parent.parent
     with open(f"{ROOT}/config.json") as f:
         config = json.load(f)
     return config
@@ -132,10 +133,6 @@ def save_config_to_file(new_config):
     with open("config.json", "w") as f:
         json.dump(config_keys, f)
     return config_keys
-
-
-def calculate_blank(df):
-    pass
 
 
 def progress_bar(func):

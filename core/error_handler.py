@@ -1,8 +1,8 @@
 """Confirm that input file have the expected structure."""
 import json
 
-from scripts.converter import ExperimentCycle
-from scripts.utils import config_from_file
+from core.converter import ExperimentCycle
+from core.utils import config_from_file
 
 error_template = """Your file value: '{}', is different from the expected value of your
 configuration file: '{}'"""

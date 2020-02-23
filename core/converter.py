@@ -8,8 +8,8 @@ import chardet
 import pandas as pd
 
 
-from scripts.utils import string_to_float, config_from_file, progress_bar
-from scripts.plots import Plot
+from core.utils import string_to_float, config_from_file, progress_bar
+from core.plots import Plot
 
 experiment_file_config = config_from_file()["experiment_file_config"]
 

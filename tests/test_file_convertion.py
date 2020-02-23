@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.append("/home/somnium/Desktop/Projects/resPI/")
 import pandas as pd
 
-from scripts import (
+from core import (
     Plot,
     ExperimentCycle,
     ControlFile,
@@ -13,7 +13,7 @@ from scripts import (
     ResumeDataFrame,
     FileFormater,
 )
-from scripts.utils import string_to_float, global_plots
+from core.utils import string_to_float, global_plots
 
 
 def test_full_file_process(plot=False, save=False):

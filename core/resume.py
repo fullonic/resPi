@@ -13,7 +13,7 @@ from pathlib import Path
 import statsmodels.api as sm
 import pandas as pd
 
-from scripts.utils import (
+from core.utils import (
     string_to_float,
     delete_excel_files,
     config_from_file,

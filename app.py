@@ -1,52 +1,51 @@
 """Application backend logic."""
 
-import webbrowser
-import sys
+import logging
 import os
 import shutil
+import sys
 import time
-import logging
-import json
-from glob import glob
-from logging.handlers import RotatingFileHandler
-from threading import Thread, Event
+import webbrowser
 from datetime import datetime, timedelta
 from functools import partial  # noqa maybe can be used on save files
+from glob import glob
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from threading import Event, Thread
 
-from flask_caching import Cache
+from engineio.async_drivers import gevent  # noqa
 from flask import (
     Flask,
-    render_template,
-    redirect,
-    url_for,
-    request,
-    jsonify,
-    session,
     flash,
+    jsonify,
+    redirect,
+    render_template,
+    request,
     send_from_directory,
+    session,
+    url_for,
 )
-from werkzeug.security import generate_password_hash, check_password_hash  # noqa
-from flask_socketio import SocketIO
-from engineio.async_drivers import gevent  # noqa
+from flask_caching import Cache
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_socketio import SocketIO
+from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
-from scripts.converter import ExperimentCycle, ControlFile
-from scripts.stats import ResumeDataFrame, ResumeControl
-from scripts.error_handler import checker
-
-from scripts.utils import (
-    to_mbyte,
-    delete_zip_file,
-    check_extensions,
+from core.converter import ControlFile, ExperimentCycle
+from core.error_handler import checker
+from core.resume import ResumeControl, ResumeDataFrame
+from core.utils import (
     SUPPORTED_FILES,
+    check_extensions,
     config_from_file,
-    save_config_to_file,
+    delete_zip_file,
     global_plots,
+    save_config_to_file,
+    to_mbyte,
 )
 
-ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
-# ROOT = Path(__file__).parent
+# ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
+# print(f"{ROOT=}")
+ROOT = Path(__file__).resolve().parent  # app root dir
 # App basic configuration
 config = {
     "SECRET_KEY": "NONE",
@@ -74,7 +73,7 @@ else:
 app.config.from_mapping(config)
 exit_thread = Event()
 
-app.debug = True
+# app.debug = True
 toolbar = DebugToolbarExtension(app)
 
 # Setup cache
@@ -455,18 +454,20 @@ def ignored_loops():
 
 if __name__ == "__main__":
     port = 5000
-    # print("*" * 40)
-    # print("""Benvingut a l'aplicació de "resPi Processor" """)
-    # print("*" * 40)
-    # print("\n")
-    # print("Carregant l'aplicació ...")
-    # webbrowser.open(f"http://localhost:{port}")
-    # print("\n")
-    # print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
-    # print(f"http://localhost:{port}")
-    # print("\n")
-    # print("*" * 40)
-    # print("Avís: tancant aquesta finestra es tancarà l’aplicació")
-    # print("*" * 40)
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    print("*" * 70)
+    with open("logo.txt") as logo:
+        print(logo.read())
+    print("""Benvingut a l'aplicació de "resPi Converter" """)
+    print("*" * 70)
+    print("\n")
+    print("Carregant l'aplicació ...")
+    webbrowser.open(f"http://localhost:{port}")
+    print("\n")
+    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
+    print(f"http://localhost:{port}")
+    print("\n")
+    print("*" * 70)
+    print("Avís: tancant aquesta finestra es tancarà l’aplicació")
+    print("*" * 70)
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)

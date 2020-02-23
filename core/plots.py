@@ -3,7 +3,7 @@ from pathlib import Path
 import plotly.express as px
 import plotly.graph_objects as go
 
-from scripts.utils import string_to_float
+from core.utils import string_to_float
 
 
 class Plot:
