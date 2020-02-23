@@ -18,16 +18,19 @@
 <button type="button" onclick="topFunction()" id="myBtn" name="button"><i class="fas fa-chevron-up"></i></button>
 {% endblock %}
 {% block footer %}
-<!-- <div class="container">
-  <div class="row">
 
-  </div>
-</div>
--->
 {% endblock %}
 
 {% block scripts %}
 <script type="text/javascript">
+  $(document).ready(function() {
+    $.get("/ignored_loops", function(data) {
+      document.getElementById("C1").value = data.C1;
+      document.getElementById("Experiment").value = data.Experiment;
+      document.getElementById("C2").value = data.C2;
+    });
+  });
+
   function addIgnoreLoop(file_name, id) {
     var name = file_name;
     var data = name + ":" + document.getElementById(file_name).value

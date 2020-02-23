@@ -295,7 +295,7 @@ class ExperimentCycle:
     def save(self, df_loop, name):
         """Save data frame into a excel file."""
         return df_loop.to_excel(
-            f"{self.original_file.folder_dst}/[Dades]df_loop_{name}.xlsx", index=False
+            f"{self.original_file.folder_dst}/df_loop_{name}.xlsx", index=False
         )
 
 

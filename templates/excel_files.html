@@ -21,24 +21,24 @@
           <div class="form-row">
             <label class="d-none d-sm-block d-md-none" for="control_file_1">Control 1</label>
             <div class="form-group col-md-4">
-              <label class="custom-file-label mr-1 ml-1" for="control_file_1">Penja el control 1...</label>
-              <input type="file" accept=".txt" class="form-control custom-file-input" name="control_file_1" id="control_file_1" required>
+              <label class="custom-file-label mr-1 ml-1" id="control_file_1Label" for="control_file_1"> </label>
+              <input onchange="checkFile(this.name)" type="file" accept=".txt" class="form-control custom-file-input" name="control_file_1" id="control_file_1" required>
             </div>
             <label class="d-none d-sm-block d-md-none" for="data_file">Experiment</label>
             <div class="form-group col-md-4">
-              <label class="custom-file-label mr-1 ml-1" for="data_file">Penja el document...</label>
-              <input type="file" accept=".txt" class="form-control" name="data_file" id="data_file" required>
+              <label class="custom-file-label mr-1 ml-1" id="data_fileLabel" for="data_file"> </label>
+              <input type="file" onchange="checkFile(this.name)" accept=".txt" class="form-control" name="data_file" id="data_file" required>
             </div>
             <label class="d-none d-sm-block d-md-none" for="control_file_2">Control 2</label>
             <div class="form-group col-md-4">
-              <label class="custom-file-label mr-1 ml-1" for="control_file_2">Penja el control 2...</label>
-              <input type="file" accept=".txt" class="form-control" name="control_file_2" id="control_file_2" required>
+              <label class="custom-file-label mr-1 ml-1" id="control_file_2Label" for="control_file_2"></label>
+              <input type="file" onchange="checkFile(this.name)" accept=".txt" class="form-control" name="control_file_2" id="control_file_2" required>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group col-md-4">
               <label for="inputFlush">'Flush' temps</label>
-              <input type="number" value="{{ exp_config.flush }}" onblur="ignoreInputBlur(this.id)" oninput="ignoreInputIN(this.id)" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
+              <input type="number" value="{{ exp_config.flush }}" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
             </div>
             <div class="form-group col-md-4">
               <label for="inputWait">'Wait' temps</label>
@@ -119,8 +119,17 @@
     $("#generatePlotComplet").prop("checked", false);
     $("#submit_files").text("Processar dades")
     $("#submit_files").removeClass("btn-success")
+    const labels = ["control_file_1", "data_file", "control_file_2"];
+    console.log(labels);
+    for (const label of labels) {
+      var idLabel = "#" + label + "Label";
+      if ($('#' + label).get(0).files.length === 0) {
+        $(idLabel).text("")
+      } else {
+        $(idLabel).text($('#' + label).get(0).files[0].name)
+      }
+    }
     $.get("/ignored_loops", function(data) {
-      console.log("IGNORE DATA", data);
       document.getElementById("C1_inputIgnoreLoops").value = data.C1;
       document.getElementById("Data_inputIgnoreLoops").value = data.Experiment;
       document.getElementById("C2_inputIgnoreLoops").value = data.C2;
@@ -133,22 +142,6 @@
   window.addEventListener('beforeunload', function(event) {
     console.log('UNLOADING.');
   });
-  var old_value = "";
-  var new_value = "";
-
-  function ignoreInputIN(id) {
-    var input = document.getElementById(id).value;
-    new_value = input
-    console.log(new_value);
-  }
-
-  function ignoreInputBlur() {
-    console.log("NEW" + new_value);
-    console.log("OLD" + old_value);
-    old_value = new_value;
-    console.log("NEW OLD" + old_value);
-  }
-
   // Update process data button
   $("#generatePlotComplet").on("click", function() {
     if ($("#generatePlotComplet").prop("checked")) {
@@ -169,16 +162,30 @@
   })
 
   $("#submit_files").on("click", function() {
+    $("#spinner-front").removeClass("d-none");
+    $("#spinner-back").removeClass("d-none");
     if ($("#generatePlotComplet").prop("checked")) {
-      $("#submit_files").attr('disabled', true).text("Generació vista prèvia ...").html(
-        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generació vista prèvia ...`
+      $("#submit_files").attr('disabled', true).text("Generant vista prèvia ...").html(
+        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generant vista prèvia ...`
       );
     } else {
-      $("#submit_files").attr('disabled', true).text("Generació vista prèvia ...").html(
+      $("#submit_files").attr('disabled', true).text("Generant vista prèvia ...").html(
         `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processament de dades...`
       );
 
     }
   })
+
+  function checkFile(name) {
+    console.log(name);
+    var idLabel = "#" + name + "Label";
+    var idLabel = "#" + name + "Label";
+    var idLabel = "#" + name + "Label";
+    if ($('#' + name).get(0).files.length === 0) {
+      $(idLabel).text("")
+    } else {
+      $(idLabel).text($('#' + name).get(0).files[0].name)
+    }
+  }
 </script>
 {% endblock %}

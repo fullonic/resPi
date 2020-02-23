@@ -20,8 +20,8 @@
 <body>
   <!-- Spinner  -->
   <div id="spinner-front" class="d-none">
-    <img src="static/js/ajax-loader.gif" /><br>
-    Generació...
+    <img src="static/js/ajax-loader_cubes.gif" /><br>
+    Generant vista prèvia
   </div>
   <div id="spinner-back" class="d-none"></div>
   {% block body %}
@@ -52,12 +52,6 @@
       });
 
     }); // end of document ready
-
-    // SPINNER
-    $("#submit_files").on("click", function() {
-      document.getElementById("spinner-front").classList.add("d-none");
-      document.getElementById("spinner-back").classList.add("d-none");
-    });
   </script>
   {% block scripts %}{% endblock %}
 

@@ -456,7 +456,7 @@ if __name__ == "__main__":
     print("*" * 70)
     print("\n")
     print("Carregant l'aplicació ...")
-    # webbrowser.open(f"http://localhost:{port}")
+    webbrowser.open(f"http://localhost:{port}")
     print("\n")
     print(
         "Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador"
@@ -466,5 +466,5 @@ if __name__ == "__main__":
     print("*" * 70)
     print("Avís: tancant aquesta finestra es tancarà l’aplicació")
     print("*" * 70)
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
