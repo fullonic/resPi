@@ -9,7 +9,7 @@
 
     <a class="ml-3" type="button"><i data-toggle="popover" data-content='[{{ plot.name }}] Inseriu el número del “loop” que voleu ignorar. Separeu-lo amb una “,”. Ex:1,5,7,10' data-placement="top" class="fas fa-info-circle"></i>
       <input placeholder="Seleccionar loops" oninput="ignoreInputIN(this.name)" id="{{ plot.name }}" type="text" name="{{ plot.name }}">
-      <button onclick="addIgnoreLoop(this.name, this.id)" id="{{ plot.name }}ID" name="{{ plot.name }}" class="d-none btn btn-danger mr-3"> Ignorar <i class="fas fa-backspace"></i></button>
+      <button onclick="addIgnoreLoop(this.name, this.id)" id="{{ plot.name }}ID" name="{{ plot.name }}" class="btn btn-danger mr-3"> Ignorar <i class="fas fa-backspace"></i></button>
   </div>
 
   {% endfor %}
