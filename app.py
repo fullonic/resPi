@@ -409,15 +409,7 @@ def get_status():
     """Return information about the different components of the system."""
     return jsonify(
         {
-            "running": cache.get("running"),
-            "run_auto": cache.get("run_auto"),
-            "run_manual": cache.get("run_manual"),
-            "started_at": cache.get("started_at"),
-            "cycle_ends_in": cache.get("cycle_ends_in"),
-            "next_cycle_at": cache.get("next_cycle_at"),
             "generating_files": cache.get("generating_files"),
-            "total_loops": cache.get("total_loops"),
-            "auto_run_since": cache.get("auto_run_since"),
         }
     )
 
@@ -469,5 +461,5 @@ if __name__ == "__main__":
     print("*" * 70)
     print("Avís: tancant aquesta finestra es tancarà l’aplicació")
     print("*" * 70)
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)
