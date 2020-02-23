@@ -271,7 +271,7 @@ body, .settingsModal {
 
 #spinner-front {
   z-index: 999;
-  margin-top: 45vh;
+  margin-top: 30vh;
   color: #fff;
   text-align: center;
 }

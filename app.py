@@ -30,9 +30,9 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_socketio import SocketIO
 from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
-from core.converter import ControlFile, ExperimentCycle
+from core import ControlFile, ExperimentCycle, ResumeControl, ResumeDataFrame
 from core.error_handler import checker
-from core.resume import ResumeControl, ResumeDataFrame
+from core import parser
 from core.utils import (
     SUPPORTED_FILES,
     check_extensions,
@@ -375,7 +375,8 @@ def settings():
 
 @app.route("/help", methods=["GET"])
 def help():
-    return render_template("help.html")
+    help_page = parser("https://gitlab.com/fullonic/resPi/-/raw/master/README.md")
+    return render_template("help.html", help_page=help_page)
 
 
 ####################
