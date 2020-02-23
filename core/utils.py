@@ -34,9 +34,12 @@ def global_plots(
     if not keep:
         for f in files:
             file_path = str(Path(preview_folder) / f.filename)
+            print()
             f.save(file_path)
 
-            ExperimentCycle(flush, wait, close, file_path, file_type="preview")
+            ExperimentCycle(
+                flush, wait, close, file_path, file_type=f"{f.name}_Vista Preview"
+            )
             os.remove(file_path)
     else:
         for f in files:

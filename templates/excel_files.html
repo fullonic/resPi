@@ -54,15 +54,15 @@
           <div class="row">
             <div class="form-group col-md-4">
               <label for="C1_inputIgnoreLoops">Control 1</label>
-              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder="">
+              <input type="text" value="{{ exp_config.ignore_loops.C1 }}" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder=" ">
             </div>
             <div class="form-group col-md-4">
               <label for="Data_inputIgnoreLoops">Experiment</label>
-              <input type="text" value="{{ exp_config.ignore_loops.Experiment }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder="">
+              <input type="text" value="{{ exp_config.ignore_loops.Experiment }}" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder=" ">
             </div>
             <div class="form-group col-md-4">
               <label for="C2_inputIgnoreLoops">Control 2</label>
-              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder="">
+              <input type="text" value="{{ exp_config.ignore_loops.C2 }}" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder=" ">
             </div>
           </div>
         </div>
@@ -108,16 +108,23 @@
 {% block scripts %}
 
 <script type="text/javascript">
-  $(document).ready(function() {
+  function beforeLoad() {
     $("#generatePlotComplet").prop("checked", false);
     $("#submit_files").text("Processar dades")
     $("#submit_files").removeClass("btn-success")
     $.get("/ignored_loops", function(data) {
-      console.log(data);
+      console.log("IGNORE DATA", data);
       document.getElementById("C1_inputIgnoreLoops").value = data.C1;
       document.getElementById("Data_inputIgnoreLoops").value = data.Experiment;
       document.getElementById("C2_inputIgnoreLoops").value = data.C2;
     });
+  }
+
+  $(document).ready(function() {
+    beforeLoad();
+  });
+  window.addEventListener('beforeunload', function(event) {
+    console.log('UNLOADING.');
   });
   var old_value = "";
   var new_value = "";
@@ -151,6 +158,19 @@
       $("#generatePlotComplet").prop("checked", false);
       $("#submit_files").text("Processar dades")
       $("#submit_files").removeClass("btn-success")
+    }
+  })
+
+  $("#submit_files").on("click", function() {
+    if ($("#generatePlotComplet").prop("checked")) {
+      $("#submit_files").attr('disabled', true).text("Generació vista prèvia ...").html(
+        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generació vista prèvia ...`
+      );
+    } else {
+      $("#submit_files").attr('disabled', true).text("Generació vista prèvia ...").html(
+        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processament de dades...`
+      );
+
     }
   })
 </script>

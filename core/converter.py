@@ -119,23 +119,32 @@ class ExperimentCycle:
         self.flush = flush
         self.wait = wait
         self.close = close
-        self.discard_time = flush + wait  # time-span to discard from each information cycle
+        self.discard_time = (
+            flush + wait
+        )  # time-span to discard from each information cycle
         self.loop_time = flush + wait + close
 
         # LOAD ALL CONFIG FROM FILE
         config = config_from_file()["experiment_file_config"]
         self.dt_col_name = config["DT_COL"]
         self.time_stamp_code = config["TSCODE"]  # Get data column name
-        self.O2_COL = config["O2_COL"]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
+        self.O2_COL = config[
+            "O2_COL"
+        ]  # "SDWA0003000061      , CH 1 O2 [% air saturation]"
         self.x = config["X_COL"]  # column of oxygen evolution self.x
         self.y = config["Y_COL"]
         self.plot_title = config["PLOT_TITLE"]
         self.save_loop_df = config["SAVE_LOOP_DF"]
         self.format_file(original_file)
         self.ignore_loops = ignore_loops or {}
+
+        # Console feedback
         if file_type != "test":
             self.file_type = file_type
             print(f"Processament del fitxer <{file_type.title()}>")
+            print(
+                f"total loops: <{self.total_of_loops}> | completes: <{self.total_loops_completes}>"  # noqa
+            )
         else:
             print(f"Comprovació de capçaleres de fitxers ...")
 
@@ -191,9 +200,13 @@ class ExperimentCycle:
         by hour.
         This information is needed in order to calculate the number of cycle of the experiment.
         """
-        time_diff = self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
+        time_diff = (
+            self.df[self.dt_col_name].iloc[-1] - self.df[self.dt_col_name].iloc[0]
+        )
         # Put every time value into seconds
         total = (time_diff).seconds / (self.loop_time * 60)
+        self.total_loops_completes = int(total)
+        # print("total loops", int(total))
         return math.ceil(total)  # rounds up the decimal to number
 
     @property

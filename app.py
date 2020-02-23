@@ -122,7 +122,12 @@ def process_excel_files(
 
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx + 1}",
+            ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
@@ -139,7 +144,12 @@ def process_excel_files(
     total_files = len(uploaded_excel_files)
     for i, data_file in enumerate(uploaded_excel_files):
         experiment = ExperimentCycle(
-            flush, wait, close, data_file, ignore_loops=ignore_loops, file_type="data"
+            flush,
+            wait,
+            close,
+            data_file,
+            ignore_loops=ignore_loops,
+            file_type="Experiment",
         )
         if save_converted:
             experiment.original_file.save()
@@ -161,15 +171,7 @@ def process_excel_files(
 
         # logger.warning(f"Task concluded {i+1}/{total_files}")
         print("Tasca conclosa")
-        socketio.emit(
-            "processing_files",
-            {"generating_files": True, "msg": f"fitxers processats {i+1}/{total_files}",},
-            namespace="/resPi",
-        )
     cache.set("generating_files", False)
-    socketio.emit(
-        "processing_files", {"generating_files": False, "msg": ""}, namespace="/resPi"
-    )
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
 
 
@@ -179,7 +181,6 @@ def process_excel_files(
 @app.route("/", methods=["GET"])
 def landing():
     """Endpoint dispatcher to redirect user to the proper route."""
-    # Check if user is authenticated
     return redirect(url_for("excel_files"))
 
 
@@ -217,7 +218,9 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False  # if generate or no loop plots
+        plot = (
+            True if request.form.get("plot") else False
+        )  # if generate or no loop plots
         # Show preview plot if user wants
         if request.form.get("experiment_plot"):
             global_plots(
@@ -240,7 +243,9 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            project_folder = os.path.join(
+                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
+            )
             os.mkdir(project_folder)
         # Here filename complete with extension
         control_file_1.filename = "C1.txt"
@@ -262,7 +267,8 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files,
+            args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -273,14 +279,15 @@ def excel_files():
             estaran disponibles a la secció Descàrregues..""",
             "info",
         )
-        cache.set("ignored_loops", {})
+        cache.set("ignored_loops", {"C1": [], "Experiment": [], "C2": []})
         return redirect("excel_files")
 
     exp_config = session.get("excel_config")
+    # exp_config["ignore_loops"] = cache.get("ignored_loops")
     exp_config["ignore_loops"] = (
-        cache.get("ignore_loops")
-        if cache.get("ignore_loops")
-        else {"C1": [], "Experiment": [], "C2": []}
+        cache.get("ignored_loops")
+        if cache.get("ignored_loops")
+        else {"C1": " ", "Experiment": " ", "C2": " "}
     )
 
     config = config_from_file()
@@ -331,8 +338,9 @@ def downloads():
 
 @app.route("/downloads/all")
 def download_all():
-    all_zipped = shutil.make_archive(app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"])
-    print(f"{all_zipped=}")
+    all_zipped = shutil.make_archive(
+        app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"]
+    )
     return send_from_directory(Path(all_zipped).parent, Path(all_zipped).name)
 
 
@@ -407,11 +415,7 @@ def download_log(log):
 @app.route("/status", methods=["GET"])
 def get_status():
     """Return information about the different components of the system."""
-    return jsonify(
-        {
-            "generating_files": cache.get("generating_files"),
-        }
-    )
+    return jsonify({"generating_files": cache.get("generating_files"),})
 
 
 @app.route("/ignore_loops/<data>", methods=["POST"])
@@ -428,13 +432,13 @@ def ignore_loops(data: str) -> dict:
         fname, loops = data.split(":")
         try:
             loops = set([int(l) for l in loops.split(",") if l.isdigit()])
-            print(f"Ignorar 'loops': {loops}")
+            print(f"Ignorar 'loops': {loops} | {fname}")
 
         except ValueError:
             return "error", 400
         # Update cache information about ignored loops
         update = cache.get("ignored_loops")
-        update.update({fname: loops})
+        update.update({fname: list(loops)})
         cache.set("ignored_loops", update)
         return "ok", 201
 
@@ -455,11 +459,13 @@ if __name__ == "__main__":
     print("Carregant l'aplicació ...")
     webbrowser.open(f"http://localhost:{port}")
     print("\n")
-    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
+    print(
+        "Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador"
+    )
     print(f"http://localhost:{port}")
     print("\n")
     print("*" * 70)
     print("Avís: tancant aquesta finestra es tancarà l’aplicació")
     print("*" * 70)
-    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True, host="0.0.0.0", port=port)

@@ -105,7 +105,7 @@ class Plot:
             f'<a id="marker_" name="{i + 1}">{i + 1}</a>' for i, _ in enumerate(markers)
         ]
 
-        points = px.scatter(x=nloops, y=y, size=size, text=loop, )
+        points = px.scatter(x=nloops, y=y, size=size, text=loop,)
         fig.add_trace(points.data[0])
 
         # Set x-axis title

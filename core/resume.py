@@ -81,6 +81,9 @@ class ResumeDataFrame:
         self.dt_col_name = experiment.dt_col_name
         self.df_lists = []
         self.phase_time = f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
+        # print(
+        #     f"<{self.experiment.original_file.fname}> total loops: {self.experiment.total_of_loops}\n  loops completos: {self.experiment.total_loops_completes}" # noqa
+        # )
 
     @property
     def experiment_files(self) -> list:
@@ -96,6 +99,7 @@ class ResumeDataFrame:
         """Create a time ranges of each complete loop of the experiment."""
         loop_range = {}
         start = self.original_df[self.dt_col_name].iloc[0]
+
         for i in range(self.experiment.total_of_loops):
             end = start + datetime.timedelta(minutes=self.experiment.loop_time)
             loop_range[i + 1] = {"start": start, "end": end}
