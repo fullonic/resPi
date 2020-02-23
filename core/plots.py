@@ -45,8 +45,8 @@ class Plot:
 
         fig1 = px.scatter(self.data, x=x, y=y, trendline="ols")
         fig1.update_traces(line=dict(color="#861d4f", width=3))
-        fig.update_xaxes(title_text="<b>Temps (hr)</b>")
-        fig.update_yaxes(title_text="<b>mg O2/l</b>")
+        fig.update_xaxes(title_text=f"<b>{self.x_axis}</b>")
+        fig.update_yaxes(title_text=f"<b>{self.y_axis}</b>")
         trendline = fig1.data[1]
         fig.add_trace(trendline)
         formula, rsqt = trendline.hovertemplate.split("<br>")[1:3]
@@ -109,8 +109,8 @@ class Plot:
         fig.add_trace(points.data[0])
 
         # Set x-axis title
-        fig.update_xaxes(title_text="<b>Temps (hr)</b>")
-        fig.update_yaxes(title_text="<b>mg O2/l</b>", secondary_y=False)
+        fig.update_xaxes(title_text=f"<b>{self.x_axis}</b>")
+        fig.update_yaxes(title_text=f"<b>{self.y_axis}</b>", secondary_y=False)
         fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
         fig.update_layout(title=f"<b>{fname.title()} Gràfic global</b>")
         template_folder = Path().resolve() / "templates/previews"
