@@ -249,8 +249,8 @@ def excel_files():
         # Fixed
         session["excel_config"] = {"flush": flush, "wait": wait, "close": close}
         flash(
-            f"""Els fitxers s'ha carregat. Quan totes les dades s’hagin processat,
-            estaran disponibles a la secció Descàrregues..""",
+            f"""Els fitxers s'han carregat. Quan totes les dades s’hagin processat,
+            estaran disponibles a la secció Descàrregues.""",
             "info",
         )
         cache.set("ignored_loops", {"C1": [], "Experiment": [], "C2": []})
