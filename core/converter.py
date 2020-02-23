@@ -282,7 +282,7 @@ class ExperimentCycle:
         step = 100 / self.total_of_loops
         for i, df_close in enumerate(self.df_loop_generator):
             k = i + 1
-            return Plot(
+            Plot(
                 df_close,
                 self.x,
                 self.y,
