@@ -432,7 +432,8 @@ def ignore_loops(data: str) -> dict:
         fname, loops = data.split(":")
         try:
             loops = set([int(l) for l in loops.split(",") if l.isdigit()])
-            print(f"Ignorar 'loops': {loops} | {fname}")
+            if loops:
+                print(f"Ignorar 'loops': {loops} | {fname}")
 
         except ValueError:
             return "error", 400
