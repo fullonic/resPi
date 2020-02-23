@@ -283,7 +283,7 @@ def show_global_plot():
 @app.route("/downloads", methods=["GET"])
 def downloads():
     """Route to see all zip files available to download."""
-    zip_folder = Path(app.config['ZIP_FOLDER']).glob("*.zip")
+    zip_folder = [str(p) for p in Path(app.config['ZIP_FOLDER']).glob("*.zip")]
     # get only the file name and the size of it excluding the path.
     # Create a list of tuples sorted by file name
     zip_folder = sorted(zip_folder, key=lambda x: os.path.getmtime(x))[::-1]
