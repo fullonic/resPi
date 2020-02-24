@@ -83,9 +83,6 @@ class ResumeDataFrame:
         self.phase_time = (
             f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
         )
-        # print(
-        #     f"<{self.experiment.original_file.fname}> total loops: {self.experiment.total_of_loops}\n  loops completos: {self.experiment.total_loops_completes}" # noqa
-        # )
 
     @property
     def experiment_files(self) -> list:
@@ -191,8 +188,6 @@ class TearDown:
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
         location = self.project_folder
-        print(f"{location=}")
-
         graph_folder = Path(location) / "Graphics"
         graph_folder.mkdir()
         data_folder = Path(location) / "Dades"

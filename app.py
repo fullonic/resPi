@@ -5,6 +5,7 @@ import shutil
 import sys
 import time
 import webbrowser
+import filecmp
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Event, Thread
@@ -49,6 +50,8 @@ config = {
     "CACHE_DEFAULT_TIMEOUT": 0,
     # "CACHE_ARGS": ["test", "Anna", "DIR"],
     "UPLOAD_FOLDER": f"{ROOT}/static/uploads",
+    "FILES_PREVIEW_FOLDER": f"{ROOT}/static/uploads/preview",
+    "GRAPHICS_PREVIEW_FOLDER": f"{ROOT}/templates/previews",
     "ZIP_FOLDER": f"{ROOT}/static/uploads/zip_files",
     "DEBUG_TB_INTERCEPT_REDIRECTS": False,
 }  # UNIT: minutes
@@ -96,7 +99,7 @@ def multi_global_plots(flush, wait, close, files, preview_folder, keep, folder_d
         shutil.move(str(f), folder_dst)
 
 
-def save_loop_file(experiment):
+def save_loop_file(experiment):  # TODO: SAVE INDIVIDUAL LOOPS FASTER WIP
     for k, loop in enumerate(experiment.df_loop_generator):
         if experiment.file_type == "Experiment":
             print(str(k))
@@ -104,6 +107,25 @@ def save_loop_file(experiment):
         else:
             print(f"control_{str(k)}")
             # experiment.save(loop, name=f"control_{str(k)}")
+
+
+def compare_files(experiment_files, preview_experiment_files, project_folder, times={}):
+    k_map = {"C1.txt": "C1.html", "C2.txt": "C2.html"}
+    for uploaded, preview in zip(experiment_files, preview_experiment_files):
+        if not filecmp.cmp(preview, uploaded):
+            # User uploaded a new file, global plot needs to be generated
+            experiment = ExperimentCycle(
+                **times, original_file=uploaded, file_type="Global grafic"
+            )
+            experiment.experiment_plot()
+        else:
+            # move html file from templates preview into project folder
+            html_file = Path(app.config["GRAPHICS_PREVIEW_FOLDER"]) / k_map.setdefault(
+                uploaded.name, "Experiment.html"
+            )
+            shutil.move(str(html_file), str(project_folder))
+
+
 ####################
 # BACKGROUND TASKS
 ####################
@@ -112,6 +134,20 @@ def process_excel_files(
 ):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
+    project_folder = Path(uploaded_excel_files[0]).parent
+    if plot:
+        experiment_files = sorted([f for f in Path(project_folder).glob("*.txt")])
+        preview_experiment_files = sorted(
+            [f for f in Path(app.config["FILES_PREVIEW_FOLDER"]).glob("*.txt")]
+        )
+        if preview_experiment_files:
+            compare_files(
+                experiment_files,
+                preview_experiment_files,
+                project_folder,
+                times={"flush": flush, "wait": wait, "close": close}
+            )
+
     save_converted = False  # NOTE: REMOVE AND GET INFO FROM CONFIG FILE
 
     # CALCULATE BLANKS
@@ -139,7 +175,7 @@ def process_excel_files(
         if save_converted:
             experiment.original_file.save()
 
-        save_loop_file(experiment)
+        # save_loop_file(experiment)
         resume = ResumeDataFrame(experiment)
         resume.generate_resume(control)
         resume.save()
@@ -238,24 +274,6 @@ def excel_files():
             return redirect("excel_files")
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
-        if plot:
-            experiment_files = [f for f in Path(project_folder).glob("*.txt")]
-            now = time.perf_counter()
-            proc = Process(
-                target=multi_global_plots,
-                args=(
-                    flush,
-                    wait,
-                    close,
-                    experiment_files,
-                    str(Path(template_folder) / "previews"),
-                    True,
-                    project_folder,
-                    now,
-                ),
-            )
-            proc.start()
-
         t = Thread(
             target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
         )

@@ -23,35 +23,6 @@ ROOT_DIR = Path(__file__).parent.parent
 
 
 @pytest.mark.skip
-def test_main_page():
-    response = requests.get(URL)
-    assert response.status_code == 200
-    print("ok")
-
-
-@pytest.mark.skip
-def test_file_upload_simple():
-    """Test basic upload.
-    WHEN: User upload and only wants tables data
-    THEN: Process only the data
-    """
-    data = dict(
-        flush=3,
-        wait=10,
-        close=40,
-        data_ignore_loops="2",
-        c1_ignore_loops="1",
-        c2_ignore_loops="2",
-    )
-    response = requests.post(f"{URL}/excel_files", data=data, files=FILES)
-    assert response.status_code == 200
-    # Get the file name from flash message
-    pattern = r"\w+\.zip"
-    resp = re.search(pattern, response.text)
-    assert resp.group() is not None
-
-
-@pytest.mark.skip
 def test_preview_global_plots():
     """Global plots.
     WHEN: User upload and wants see the vista previa
@@ -72,10 +43,10 @@ def test_preview_global_plots():
     assert response.status_code == 200
     for f in templates_folder.glob("*.html"):
         assert f.name in ["C1.html", "Experiment.html", "C2.html"]
-        f.unlink()
+        # f.unlink()
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_file_upload_and_graphic():
     """Global plots.
     WHEN: User upload and wants tables plus graphics
@@ -96,10 +67,10 @@ def test_file_upload_and_graphic():
     assert response.status_code == 200
     for f in templates_folder.glob("*.html"):
         assert f.name in ["C1.html", "Experiment.html", "C2.html"]
-        f.unlink()
+        # f.unlink()
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_zip_file_exist():
     """Test zipped file exist.
 
@@ -110,8 +81,6 @@ def test_zip_file_exist():
         flush=3,
         wait=10,
         close=40,
-        # experiment_plot=False,
-        # plot=False,
         data_ignore_loops="",
         c1_ignore_loops="",
         c2_ignore_loops="",
@@ -148,7 +117,6 @@ def test_file_upload_graphic():
     fname = re.search(pattern, response.text)
     project_folder = fname.group().split(".")[0]
     preview_txt_files = [str(f) for f in (ROOT_DIR / "static/uploads/preview").glob("*.txt")]
-    print(f"{preview_txt_files=}")
     sorted(preview_txt_files)
 
     # Upload and generate all graphics
@@ -164,3 +132,31 @@ def test_file_upload_graphic():
             # add flag to cache that global plot of this file already exist
             # {fname_gplot: True}
             pass
+
+@pytest.mark.skip
+def test_main_page():
+    response = requests.get(URL)
+    assert response.status_code == 200
+    print("ok")
+
+
+@pytest.mark.skip
+def test_file_upload_simple():
+    """Test basic upload.
+    WHEN: User upload and only wants tables data
+    THEN: Process only the data
+    """
+    data = dict(
+        flush=3,
+        wait=10,
+        close=40,
+        data_ignore_loops="2",
+        c1_ignore_loops="1",
+        c2_ignore_loops="2",
+    )
+    response = requests.post(f"{URL}/excel_files", data=data, files=FILES)
+    assert response.status_code == 200
+    # Get the file name from flash message
+    pattern = r"\w+\.zip"
+    resp = re.search(pattern, response.text)
+    assert resp.group() is not None

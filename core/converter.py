@@ -143,7 +143,7 @@ class ExperimentCycle:
             self.file_type = file_type
             print(f"Processament del fitxer <{file_type.title()}>")
             print(
-                f"total loops: <{self.total_of_loops}> | completes: <{self.total_loops_completes}>"  # noqa
+                f"Total loops: {self.total_of_loops} | complets: {self.total_loops_completes}"  # noqa
             )
         else:
             print(f"Comprovació de capçaleres de fitxers ...")
