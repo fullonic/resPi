@@ -80,7 +80,9 @@ class ResumeDataFrame:
         self.experiment = experiment
         self.dt_col_name = experiment.dt_col_name
         self.df_lists = []
-        self.phase_time = f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
+        self.phase_time = (
+            f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
+        )
         # print(
         #     f"<{self.experiment.original_file.fname}> total loops: {self.experiment.total_of_loops}\n  loops completos: {self.experiment.total_loops_completes}" # noqa
         # )
@@ -113,10 +115,7 @@ class ResumeDataFrame:
         for i, df_close in enumerate(self.experiment.df_loop_generator):
             k = i + 1
             try:
-                if (
-                    str(k)
-                    in self.experiment.ignore_loops[self.experiment.original_file.fname]
-                ):
+                if str(k) in self.experiment.ignore_loops[self.experiment.original_file.fname]:
                     continue
             except KeyError:
                 pass
@@ -139,9 +138,7 @@ class ResumeDataFrame:
                 "max O2 [mgO2/L]": O2.max,
                 "min O2 [mgO2/L]": O2.min,
                 "avg O2 [mgO2/L]": O2.avg,
-                "avg temp [°C]": temp_mean(
-                    df_close["SDWA0003000061      , CH 1 temp [°C]"]
-                ),
+                "avg temp [°C]": temp_mean(df_close["SDWA0003000061      , CH 1 temp [°C]"]),
                 "O2 after blank": O2_HR - control,
             }
 
@@ -161,9 +158,40 @@ class ResumeDataFrame:
     def zip_folder(self):
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
-        location = os.path.dirname(
-            os.path.abspath(self.experiment.original_file.file_output)
-        )
+
+        TearDown(Path(self.experiment.original_file.file_output).parent).zip_folder()
+
+
+class ResumeControl(ResumeDataFrame):
+
+    values = []
+
+    def get_bank(self):
+        self.generate_resume(0)
+        self.save()
+        try:
+            self.values.append(
+                self.resume_df["MO2 [mgO2/hr]"].sum() / len(self.resume_df["MO2 [mgO2/hr]"])
+            )
+        except ZeroDivisionError:
+            print("Control table empty")
+            self.values.append(0)
+
+    def calculate_blank(self):
+        return (sum(self.values) / len(self.values)) * -1
+
+
+class TearDown:
+    def __init__(self, project_folder):
+        self.project_folder = project_folder
+        self.graph_preview = Path(ROOT) / "templates/previews"
+        self.txt_preview = Path(ROOT) / "static/uploads/preview"
+
+    def zip_folder(self):
+        """Zip the most recent folder created with excel files."""
+        # Full path of the project folder name
+        location = self.project_folder
+        print(f"{location=}")
 
         graph_folder = Path(location) / "Graphics"
         graph_folder.mkdir()
@@ -183,24 +211,14 @@ class ResumeDataFrame:
         # Move it to the app zip files folder
         shutil.move(zipped, ZIP_FOLDER)
         # Delete folder data files
-        delete_excel_files(location)
+        self.delete_project_files()
 
-
-class ResumeControl(ResumeDataFrame):
-
-    values = []
-
-    def get_bank(self):
-        self.generate_resume(0)
-        self.save()
-        try:
-            self.values.append(
-                self.resume_df["MO2 [mgO2/hr]"].sum()
-                / len(self.resume_df["MO2 [mgO2/hr]"])
-            )
-        except ZeroDivisionError:
-            print("Control table empty")
-            self.values.append(0)
-
-    def calculate_blank(self):
-        return (sum(self.values) / len(self.values)) * -1
+    def delete_project_files(self):
+        """Deletes all residual files from each processing data."""
+        # Remove project folder
+        shutil.rmtree(self.project_folder)
+        # Remove preview global plots and files
+        for f in self.txt_preview.glob("*.txt"):
+            f.unlink()
+        for g in self.graph_preview.glob("*.html"):
+            g.unlink()

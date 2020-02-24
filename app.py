@@ -145,7 +145,7 @@ def process_excel_files(
         resume.save()
         if plot:
             experiment.create_plot()
-        # resume.zip_folder()
+        resume.zip_folder()
         print("Tasca conclosa")
     cache.set("generating_files", False)
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")

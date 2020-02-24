@@ -75,7 +75,7 @@ def test_preview_global_plots():
         f.unlink()
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_file_upload_and_graphic():
     """Global plots.
     WHEN: User upload and wants tables plus graphics
@@ -131,7 +131,7 @@ def test_zip_file_exist():
         zip.unlink()
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_file_upload_graphic():
     # Upload and generate preview
     data = dict(
