@@ -165,6 +165,17 @@ class ResumeDataFrame:
             os.path.abspath(self.experiment.original_file.file_output)
         )
 
+        graph_folder = Path(location) / "Graphics"
+        graph_folder.mkdir()
+        data_folder = Path(location) / "Dades"
+        data_folder.mkdir()
+
+        for g in Path(location).glob("*.html"):
+            shutil.move(str(g), str(graph_folder))
+
+        for d in Path(location).glob("*.xlsx"):
+            shutil.move(str(d), str(data_folder))
+
         # Same as app.config["ZIP_FOLDER"]
         ZIP_FOLDER = os.path.abspath(f"{ROOT}/static/uploads/zip_files")
         # Create the zip file
