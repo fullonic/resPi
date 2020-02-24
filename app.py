@@ -8,6 +8,7 @@ import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Event, Thread
+from multiprocessing import Process
 
 from engineio.async_drivers import gevent  # noqa
 from flask import (
@@ -82,6 +83,20 @@ cache.set_many(
 socketio = SocketIO(app, async_mode="gevent")
 
 ####################
+# MULTI PROCESSOR TASK
+####################
+def multi_global_plots(
+    flush, wait, close, files, preview_folder, keep, folder_dst, now
+):
+    print(f"now multiprocess: {now}")
+    global_plots(flush, wait, close, files, preview_folder, keep, folder_dst)
+    for f in Path(preview_folder).glob("*.html"):
+        print(f"moving folder {f}")
+        shutil.move(str(f), folder_dst)
+    print("End", round(time.perf_counter() - now, 3))
+
+
+####################
 # BACKGROUND TASKS
 ####################
 def process_excel_files(
@@ -113,9 +128,6 @@ def process_excel_files(
     control = C_Total.calculate_blank()
     print(f"Valor 'Blanco' {control}")
 
-    ######################
-    #
-    ######################
     now = time.perf_counter()
     total_files = len(uploaded_excel_files)
     for i, data_file in enumerate(uploaded_excel_files):
@@ -134,17 +146,7 @@ def process_excel_files(
         resume.save()
         if plot:
             experiment.create_plot()
-            global_plots(
-                flush,
-                wait,
-                close,
-                files=resume.experiment_files,
-                preview_folder=Path(template_folder) / "previews",
-                keep=True,
-                folder_dst=resume.experiment.original_file.folder_dst,
-            )
         resume.zip_folder()
-
         print("Tasca conclosa")
     cache.set("generating_files", False)
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
@@ -240,6 +242,23 @@ def excel_files():
             return redirect("excel_files")
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
+            if plot:
+                experiment_files = [f for f in Path(project_folder).glob("*.txt")]
+                now = time.perf_counter()
+                proc = Process(
+                    target=multi_global_plots,
+                    args=(
+                        flush,
+                        wait,
+                        close,
+                        experiment_files,
+                        str(Path(template_folder) / "previews"),
+                        True,
+                        project_folder,
+                        now,
+                    ),
+                )
+                proc.start()
         t = Thread(
             target=process_excel_files,
             args=(flush, wait, close, uploaded_excel_files, plot),
