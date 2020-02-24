@@ -19,3 +19,4 @@ FrontEnd
  - [x] SAVE GLOBAL PLOT OF CONTROL AND DATA
 
  - [x] ADD IGNORE LOOPS TO CONTROL 1 AND 2
+ - [ ] Pass all plot information as a dictionary to Plot class

@@ -23,12 +23,14 @@ from flask import (
     url_for,
 )
 from flask_caching import Cache
+
 # from flask_debugtoolbar import DebugToolbarExtension
 from flask_socketio import SocketIO
 
-from core import ControlFile, ExperimentCycle, ResumeControl, ResumeDataFrame
+from core.converter import ControlFile, ExperimentCycle
+from core.resume import ResumeControl, ResumeDataFrame
 from core.error_handler import checker
-from core import parser
+from core.parse_help_page import parser
 from core.utils import (
     SUPPORTED_FILES,
     check_extensions,
@@ -82,20 +84,26 @@ cache.set_many(
 # SocketIO
 socketio = SocketIO(app, async_mode="gevent")
 
+
 ####################
 # MULTI PROCESSOR TASK
 ####################
-def multi_global_plots(
-    flush, wait, close, files, preview_folder, keep, folder_dst, now
-):
-    print(f"now multiprocess: {now}")
+def multi_global_plots(flush, wait, close, files, preview_folder, keep, folder_dst, now):
+    """Start a new processor to generate and move all global plots."""
     global_plots(flush, wait, close, files, preview_folder, keep, folder_dst)
     for f in Path(preview_folder).glob("*.html"):
         print(f"moving folder {f}")
         shutil.move(str(f), folder_dst)
-    print("End", round(time.perf_counter() - now, 3))
 
 
+def save_loop_file(experiment):
+    for k, loop in enumerate(experiment.df_loop_generator):
+        if experiment.file_type == "Experiment":
+            print(str(k))
+            # experiment.save(loop, name=str(k))
+        else:
+            print(f"control_{str(k)}")
+            # experiment.save(loop, name=f"control_{str(k)}")
 ####################
 # BACKGROUND TASKS
 ####################
@@ -113,12 +121,7 @@ def process_excel_files(
 
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush,
-            wait,
-            close,
-            c,
-            file_type=f"control_{idx + 1}",
-            ignore_loops=ignore_loops,
+            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
@@ -129,24 +132,20 @@ def process_excel_files(
     print(f"Valor 'Blanco' {control}")
 
     now = time.perf_counter()
-    total_files = len(uploaded_excel_files)
     for i, data_file in enumerate(uploaded_excel_files):
         experiment = ExperimentCycle(
-            flush,
-            wait,
-            close,
-            data_file,
-            ignore_loops=ignore_loops,
-            file_type="Experiment",
+            flush, wait, close, data_file, ignore_loops=ignore_loops, file_type="Experiment",
         )
         if save_converted:
             experiment.original_file.save()
+
+        save_loop_file(experiment)
         resume = ResumeDataFrame(experiment)
         resume.generate_resume(control)
         resume.save()
         if plot:
             experiment.create_plot()
-        resume.zip_folder()
+        # resume.zip_folder()
         print("Tasca conclosa")
     cache.set("generating_files", False)
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
@@ -168,8 +167,9 @@ def excel_files():
     session["excel_config"] = config_from_file()["file_cycle_config"]
     ignore_loops = cache.get("ignored_loops")
     if request.method == "POST":
+        print(f"{request.form=}")
         cache.set("generating_files", True)
-        # IGNORED
+        # IGNORED LOOPS
         C1_ignore = {"C1": [_ for _ in request.form.get("c1_ignore_loops").split(",")]}
         Data_ignore = {
             "Experiment": [_ for _ in request.form.get("data_ignore_loops").split(",")]
@@ -195,9 +195,7 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = (
-            True if request.form.get("plot") else False
-        )  # if generate or no loop plots
+        plot = True if request.form.get("plot") else False  # if generate or no loop plots
         # Show preview plot if user wants
         control_file_1.filename = "C1.txt"
         control_file_2.filename = "C2.txt"
@@ -222,9 +220,7 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(
-                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
-            )
+            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
             os.mkdir(project_folder)
         # Save all files into project folder
         files_list = [data_file, control_file_1, control_file_2]
@@ -259,10 +255,9 @@ def excel_files():
                 ),
             )
             proc.start()
-        
+
         t = Thread(
-            target=process_excel_files,
-            args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -270,7 +265,7 @@ def excel_files():
         session["excel_config"] = {"flush": flush, "wait": wait, "close": close}
         flash(
             f"""Els fitxers s'han carregat. Quan totes les dades s’hagin processat,
-            estaran disponibles a la secció Descàrregues.""",
+            estaran disponibles a la secció Descàrregues [{Path(project_folder).name}.zip].""",
             "info",
         )
         cache.set("ignored_loops", {"C1": [], "Experiment": [], "C2": []})
@@ -303,7 +298,7 @@ def show_global_plot():
 @app.route("/downloads", methods=["GET"])
 def downloads():
     """Route to see all zip files available to download."""
-    zip_folder = [str(p) for p in Path(app.config['ZIP_FOLDER']).glob("*.zip")]
+    zip_folder = [str(p) for p in Path(app.config["ZIP_FOLDER"]).glob("*.zip")]
     # get only the file name and the size of it excluding the path.
     # Create a list of tuples sorted by file name
     zip_folder = sorted(zip_folder, key=lambda x: os.path.getmtime(x))[::-1]
@@ -332,9 +327,7 @@ def downloads():
 
 @app.route("/downloads/all")
 def download_all():
-    all_zipped = shutil.make_archive(
-        app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"]
-    )
+    all_zipped = shutil.make_archive(app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"])
     return send_from_directory(Path(all_zipped).parent, Path(all_zipped).name)
 
 
@@ -423,15 +416,13 @@ if __name__ == "__main__":
     print("*" * 70)
     print("\n")
     print("Carregant l'aplicació ...")
-    webbrowser.open(f"http://localhost:{port}")
+    # webbrowser.open(f"http://localhost:{port}")
     print("\n")
-    print(
-        "Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador"
-    )
+    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
     print(f"http://localhost:{port}")
     print("\n")
     print("*" * 70)
     print("Avís: tancant aquesta finestra es tancarà l’aplicació")
     print("*" * 70)
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)

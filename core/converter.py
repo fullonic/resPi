@@ -246,11 +246,11 @@ class ExperimentCycle:
                 break
             start = end + 1
             end += 1
-            if self.save_loop_df:
-                if self.file_type == "data":
-                    self.save(df_close, name=str(k))
-                else:
-                    self.save(df_close, name=f"control_{str(k)}")
+            # if self.save_loop_df:
+            #     if self.file_type == "data":
+            #         self.save(df_close, name=str(k))
+            #     else:
+            #         self.save(df_close, name=f"control_{str(k)}")
 
             yield df_close
 

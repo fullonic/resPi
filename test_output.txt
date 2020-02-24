@@ -1,0 +1,377 @@
+<nav class="navbar navbar-collapse navbar-dark bg-dark">
+  <a class="navbar-brand" href="/excel_files"> <img class="eel-icon" src="/static/img/eel.png"> resPi <small class="brand mb-5">CONVERTER</small></a>
+  
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/help"><i class="fas fa-question"></i> Ajuda</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/excel_files"><i class="fas fa-table"></i> Arxius Excel</a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-toggle="modal" data-target="#settingsModal"><i class="fas fa-cog"></i> Configuració</a>
+      </li>
+      
+
+    </ul>
+  </div>
+</nav>
+
+
+
+<div class="alert alert-info alert-dismissible" role="alert">
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+  Els fitxers s&#39;han carregat. Quan totes les dades s’hagin processat,
+            estaran disponibles a la secció Descàrregues [angula_24_02_2020_17_16_21.zip].
+</div>
+
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/static/css/all.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="shortcut icon" href="/static/img/favicon.ico">
+
+
+  <title>resPi | converter</title>
+
+</head>
+
+<body>
+  <!-- Spinner  -->
+  <div id="spinner-front" class="d-none">
+    <img src="static/js/ajax-loader_cubes.gif" /><br>
+    Generant vista prèvia
+  </div>
+  <div id="spinner-back" class="d-none"></div>
+  
+<div class="container">
+  <div class="col-md-12 mt-3">
+    <form action="" method="POST" enctype="multipart/form-data">
+      <div class="card mb-3">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-10">Introduïu els arxius corresponents</div>
+            <div class="col-md"><a href="/downloads" class="badge badge-warning">Descàrregues</a></div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="col-md-4 d-sm-none d-md-block"><label for="data_file">Control 1</label></div>
+            <div class="col-md-4 d-sm-none d-md-block"><label for="data_file">Experiment</label></div>
+            <div class="col-md-4 d-sm-none d-md-block"><label for="data_file">Control 2</label></div>
+          </div>
+          <div class="form-row">
+            <label class="d-none d-sm-block d-md-none" for="control_file_1">Control 1</label>
+            <div class="form-group col-md-4">
+              <label class="custom-file-label mr-1 ml-1" id="control_file_1Label" for="control_file_1"> </label>
+              <input onchange="checkFile(this.name)" type="file" accept=".txt" class="form-control custom-file-input" name="control_file_1" id="control_file_1" required>
+            </div>
+            <label class="d-none d-sm-block d-md-none" for="data_file">Experiment</label>
+            <div class="form-group col-md-4">
+              <label class="custom-file-label mr-1 ml-1" id="data_fileLabel" for="data_file"> </label>
+              <input type="file" onchange="checkFile(this.name)" accept=".txt" class="form-control" name="data_file" id="data_file" required>
+            </div>
+            <label class="d-none d-sm-block d-md-none" for="control_file_2">Control 2</label>
+            <div class="form-group col-md-4">
+              <label class="custom-file-label mr-1 ml-1" id="control_file_2Label" for="control_file_2"></label>
+              <input type="file" onchange="checkFile(this.name)" accept=".txt" class="form-control" name="control_file_2" id="control_file_2" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-md-4">
+              <label for="inputFlush">'Flush' temps</label>
+              <input type="number" value="3" name="flush" class="form-control" id="inputFlush" placeholder="Flush time in minutes" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="inputWait">'Wait' temps</label>
+              <input type="number" value="10" name="wait" class="form-control" id="inputWait" placeholder="Wait time in minutes" required>
+            </div>
+            <div class="form-group col-md-4">
+              <label for="inputClose">'Close' temps</label>
+              <input type="number" value="40" name="close" class="form-control" id="inputClose" placeholder="Close time in minutes" required>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-header">
+          <div class="row">
+            <div class="col-md-10">Loops que seran ignorats</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="form-group col-md-4">
+              <label for="C1_inputIgnoreLoops">Control 1</label>
+              <input type="text" value="[]" name="c1_ignore_loops" class="form-control" id="C1_inputIgnoreLoops" placeholder=" ">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="Data_inputIgnoreLoops">Experiment</label>
+              <input type="text" value="[]" name="data_ignore_loops" class="form-control" id="Data_inputIgnoreLoops" placeholder=" ">
+            </div>
+            <div class="form-group col-md-4">
+              <label for="C2_inputIgnoreLoops">Control 2</label>
+              <input type="text" value="[]" name="c2_ignore_loops" class="form-control" id="C2_inputIgnoreLoops" placeholder=" ">
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="row ml-auto">
+            <button type="submit" id="submit_files" class="btn btn-primary mr-3">Processar dades</button>
+            <div class="form-check  mr-3">
+              <input class="form-check-input" name="plot" type="checkbox" value="yes" id="generatePlots" checked>
+              <label class="form-check-label" for="generatePlots">
+                Generar i guardar gràfics
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" name="experiment_plot" type="checkbox" value="yes" id="generatePlotComplet">
+              <label class="form-check-label" for="generatePlotComplet" title="esta te gsg">
+                Vista prèvia dels gràfics
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+</div>
+</form>
+</div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settingsModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog mw-100 w-75" role="document">
+    <div class="modal-content">
+      <div class="modal-body settingsModal">
+        <form action="/settings" method="POST" enctype="multipart/form-data">
+  <!-- Excel Files CONTROL CARD -->
+  <div class="card mt-3">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-10">Configuració</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group col-md">
+          <label for="flush">'Flush' temps</label>
+          <input type="number" min="0" value="3" name="file_flush" class="form-control" id="flush" placeholder="Flush temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="wait">'Wait' temps</label>
+          <input type="number" min="0" value="10" name="file_wait" class="form-control" id="wait" placeholder="Wait temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="close">'Close' temps</label>
+          <input type="number" min="0" value="40" name="file_close" class="form-control" id="close" placeholder="Close temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="aqua_volume">Volum (L)</label>
+          <input type="number" min="0" step="0.0001" value="0.2" name="file_aqua_volume" class="form-control" id="aqua_volume" placeholder="Close temps en minuts" required>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphics CONTROL CARD -->
+  <div class="card mt-3">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-10">Gràfics</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group col-md">
+          <label for="PLOT_TITLE">Títol del gràfic</label>
+          <input type="text" value="Evolució de l&#39;oxigen disde el aire" name="output_file_PLOT_TITLE" class="form-control" id="PLOT_TITLE" placeholder="Close temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="X_COL">Nom de l'eix X</label>
+          <input type="text" value="Temps (min)" name="output_file_X_COL" class="form-control" id="X_COL" placeholder="Close temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="Y_COL">Nom de l'eix Y</label>
+          <input type="text" value="mg 02/L" name="output_file_Y_COL" class="form-control" id="Y_COL" placeholder="Close temps en minuts" required>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Excel Files CONTROL CARD -->
+  <div class="card mt-3">
+    <div class="card-header">
+      <div class="row">
+        <div class="col-md-10">Fitxer de sortida</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="form-row">
+        <div class="form-group col-md">
+          <label for="DT_COL">Nom de la columna "Date & Time"</label>
+          <input title='"loligo system" arxiu' type="text" value="Date &amp;Time [DD-MM-YYYY HH:MM:SS]" name="output_file_DT_COL" class="form-control" id="DT_COL" placeholder="Flush temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="TSCODE">Nom de la columna "Time Stamp Code"</label>
+          <input title='"loligo system" arxiu' type="text" value="Time stamp code" name="output_file_TSCODE" class="form-control" id="TSCODE" placeholder="Wait temps en minuts" required>
+        </div>
+        <div class="form-group col-md">
+          <label for="O2_COL">Nom de la columna O2</label>
+          <input title='"loligo system" arxiu' type="text" value="SDWA0003000061      , CH 1 O2 [mg/L]" name="output_file_O2_COL" class="form-control" id="O2_COL" placeholder="Close temps en minuts" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-check mr-3">
+          <input class="form-check-input" name="save_loop_df" type="checkbox" value="yes" id="saveLoopsDF" >
+          <label class="form-check-label" for="saveLoopsDF">
+            Crear un fitxer excel per a cada loop
+          </label>
+        </div>
+        <div class="form-check mr-3">
+          <input class="form-check-input" name="save_converted" type="checkbox" value="yes" id="saveConvertedFile" >
+
+          <label class="form-check-label" for="saveConvertedFile">
+            Crear una còpia del cicle complet (.txt) en arxiu excel
+          </label>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <!-- CONFIRM BUTTON -->
+  <div class="row mt-4">
+    <button type="submit" id="submit_config" class="btn btn-primary ml-5">Guardar</button>
+  </div>
+  </div>
+
+</form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+  
+  <!-- <footer class="footer fixed-bottom mt-auto py-3">
+<span class="text-muted ml-2">version: Testing</span>
+</footer> -->
+  
+
+
+  <!-- JavaScript -->
+  <script src="/static/js/jquery.min.js"></script>
+  <script src="/static/js/popper.min.js"></script>
+  <script src="/static/js/bootstrap.min.js"></script>
+  <script src="/static/js/socket.io.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $.get("/status", function(system_info, status) {
+        console.log(system_info);
+        if (system_info.generating_files) {
+          $("#submit_files").addClass("deactivated")
+        } else {
+          $("#submit_files").removeClass("deactivated")
+        }
+      });
+
+    }); // end of document ready
+  </script>
+  
+
+<script type="text/javascript">
+  function beforeLoad() {
+    $("#generatePlotComplet").prop("checked", false);
+    $("#submit_files").text("Processar dades")
+    $("#submit_files").removeClass("btn-success")
+    const labels = ["control_file_1", "data_file", "control_file_2"];
+    console.log(labels);
+    for (const label of labels) {
+      var idLabel = "#" + label + "Label";
+      if ($('#' + label).get(0).files.length === 0) {
+        $(idLabel).text("")
+      } else {
+        $(idLabel).text($('#' + label).get(0).files[0].name)
+      }
+    }
+    $.get("/ignored_loops", function(data) {
+      document.getElementById("C1_inputIgnoreLoops").value = data.C1;
+      document.getElementById("Data_inputIgnoreLoops").value = data.Experiment;
+      document.getElementById("C2_inputIgnoreLoops").value = data.C2;
+    });
+  }
+
+  $(document).ready(function() {
+    beforeLoad();
+  });
+  window.addEventListener('beforeunload', function(event) {
+    console.log('UNLOADING.');
+  });
+  // Update process data button
+  $("#generatePlotComplet").on("click", function() {
+    if ($("#generatePlotComplet").prop("checked")) {
+      $("#generatePlots").prop("checked", false);
+      $("#submit_files").text("Generar vista prèvia")
+      $("#submit_files").addClass("btn-success")
+    } else {
+      $("#submit_files").text("Processar dades");
+      $("#submit_files").removeClass("btn-success")
+    }
+  })
+  $("#generatePlots").on("click", function() {
+    if ($("#generatePlots").prop("checked")) {
+      $("#generatePlotComplet").prop("checked", false);
+      $("#submit_files").text("Processar dades")
+      $("#submit_files").removeClass("btn-success")
+    }
+  })
+
+  $("#submit_files").on("click", function() {
+    $("#spinner-front").removeClass("d-none");
+    $("#spinner-back").removeClass("d-none");
+    if ($("#generatePlotComplet").prop("checked")) {
+      $("#submit_files").attr('disabled', true).text("Generant vista prèvia ...").html(
+        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generant vista prèvia ...`
+      );
+    } else {
+      $("#submit_files").attr('disabled', true).text("Generant vista prèvia ...").html(
+        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processament de dades...`
+      );
+
+    }
+  })
+
+  function checkFile(name) {
+    console.log(name);
+    var idLabel = "#" + name + "Label";
+    var idLabel = "#" + name + "Label";
+    var idLabel = "#" + name + "Label";
+    if ($('#' + name).get(0).files.length === 0) {
+      $(idLabel).text("")
+    } else {
+      $(idLabel).text($('#' + name).get(0).files[0].name)
+    }
+  }
+</script>
+
+
+</body>
+
+</html>

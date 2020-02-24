@@ -4,8 +4,8 @@ import datetime
 import pandas as pd
 import random
 
-from core.converter import FileFormater, ExperimentCycle
-from core.resume import ResumeDataFrame
+from .core.converter import FileFormater, ExperimentCycle
+from .core.resume import ResumeDataFrame
 
 file_path = "/home/somnium/Desktop/angula5.txt"
 experiment = ExperimentCycle(3, 2, 20, file_path, "Date &Time [DD-MM-YYYY HH:MM:SS]")
@@ -127,8 +127,8 @@ lst = fake_data()
 lst = lst[:8178]
 
 file_path = "/home/somnium/Desktop/fake_cycle.txt"
-from core.converter import FileFormater, ExperimentCycle
-from core.resume import ResumeDataFrame
+from .core.converter import FileFormater, ExperimentCycle
+from .core.resume import ResumeDataFrame
 
 experiment = ExperimentCycle(2, 3, 20, file_path)
 experiment.loop_time * 60
