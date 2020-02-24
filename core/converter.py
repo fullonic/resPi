@@ -38,7 +38,7 @@ def calculate_ox(ox_value, start_value):
 class FileFormater:
     """Format a txt file into a excel table."""
 
-    def __init__(self, file_: str):  # noqa
+    def __init__(self, file_: str, file_type):  # noqa
         self.file_ = file_
         self.folder_dst = os.path.dirname(file_)
         self.fname = os.path.basename(file_).split(".")[0]
@@ -46,7 +46,7 @@ class FileFormater:
             self.fname = "Experiment"
         self.file_output = f"{self.folder_dst}/{self.fname}"
         config = config_from_file()["experiment_file_config"]
-        self.save_converted = config["SAVE_CONVERTED"]
+        self.save_converted = False if ("Preview" in file_type) else config["SAVE_CONVERTED"]
         self.dt_col_name = config["DT_COL"]
 
     @property
@@ -135,7 +135,7 @@ class ExperimentCycle:
         self.y = config["Y_COL"]
         self.plot_title = config["PLOT_TITLE"]
         self.save_loop_df = config["SAVE_LOOP_DF"]
-        self.format_file(original_file)
+        self.format_file(original_file, file_type)
         self.ignore_loops = ignore_loops or {}
 
         # Console feedback
@@ -148,9 +148,9 @@ class ExperimentCycle:
         else:
             print(f"Comprovació de capçaleres de fitxers ...")
 
-    def format_file(self, original_file):
+    def format_file(self, original_file, file_type):
         """For OLSystem output file into a pandas DF."""
-        txt_file = FileFormater(original_file)
+        txt_file = FileFormater(original_file, file_type)
         txt_file.to_dataframe()
         df = txt_file.df
         for col in df.columns[1:]:
@@ -275,7 +275,7 @@ class ExperimentCycle:
         df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
-    @progress_bar
+    #@progress_bar
     def create_plot(self, format_="html"):
         """Proxy for Plot object."""
         print("Generació de gràfics", end="\n")
@@ -290,7 +290,7 @@ class ExperimentCycle:
                 dst=os.path.dirname(self.original_file.file_output),
                 fname=f"{self.original_file.fname}_loop{k}",
             ).create()
-            yield round(step * k)
+            #yield round(step * k)
 
     def save(self, df_loop, name):
         """Save data frame into a excel file."""

@@ -13,12 +13,6 @@ from pathlib import Path
 SUPPORTED_FILES = ["txt", "xlsx"]
 
 
-def add_global_plots(preview_folder, folder_dst):
-    # Loop throw preview files and move it into project folder
-    for f in Path(preview_folder).glob("*.html"):
-        shutil.move(str(f), folder_dst)
-
-
 def global_plots(
     flush: int,
     wait: int,
@@ -30,22 +24,20 @@ def global_plots(
 ):
     """Proxy function to deal with global graphs."""
     from core import ExperimentCycle
-
     if not keep:
         for f in files:
             file_path = str(Path(preview_folder) / f.filename)
-            print()
             f.save(file_path)
 
-            ExperimentCycle(
+            experiment = ExperimentCycle(
                 flush, wait, close, file_path, file_type=f"{f.name}_Vista Preview"
             )
+            experiment.experiment_plot()
             os.remove(file_path)
     else:
         for f in files:
-            ExperimentCycle(flush, wait, close, f, file_type="Global grafic")
-
-        add_global_plots(preview_folder, folder_dst)
+            experiment = ExperimentCycle(flush, wait, close, f, file_type="Global grafic")
+            experiment.experiment_plot()
 
 
 def string_to_float(n: str) -> float:

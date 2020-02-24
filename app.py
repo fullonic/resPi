@@ -1,17 +1,14 @@
 """Application backend logic."""
 
-import logging
 import os
 import shutil
 import sys
 import time
 import webbrowser
 from datetime import datetime, timedelta
-from functools import partial  # noqa maybe can be used on save files
-from glob import glob
-from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from threading import Event, Thread
+from multiprocessing import Process
 
 from engineio.async_drivers import gevent  # noqa
 from flask import (
@@ -26,9 +23,8 @@ from flask import (
     url_for,
 )
 from flask_caching import Cache
-from flask_debugtoolbar import DebugToolbarExtension
+# from flask_debugtoolbar import DebugToolbarExtension
 from flask_socketio import SocketIO
-from werkzeug.security import check_password_hash, generate_password_hash  # noqa
 
 from core import ControlFile, ExperimentCycle, ResumeControl, ResumeDataFrame
 from core.error_handler import checker
@@ -43,8 +39,6 @@ from core.utils import (
     to_mbyte,
 )
 
-# ROOT = os.path.dirname(os.path.abspath(__file__))  # app root dir
-# print(f"{ROOT=}")
 ROOT = Path(__file__).resolve().parent  # app root dir
 # App basic configuration
 config = {
@@ -53,9 +47,6 @@ config = {
     "CACHE_DEFAULT_TIMEOUT": 0,
     # "CACHE_ARGS": ["test", "Anna", "DIR"],
     "UPLOAD_FOLDER": f"{ROOT}/static/uploads",
-    "LOGS_FOLDER": f"{ROOT}/logs",
-    "LOGS_MB_SIZE": 24578,
-    "LOGS_BACKUP": 10,
     "ZIP_FOLDER": f"{ROOT}/static/uploads/zip_files",
     "DEBUG_TB_INTERCEPT_REDIRECTS": False,
 }  # UNIT: minutes
@@ -74,7 +65,7 @@ app.config.from_mapping(config)
 exit_thread = Event()
 
 # app.debug = True
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 # Setup cache
 cache = Cache(app)
@@ -91,18 +82,18 @@ cache.set_many(
 # SocketIO
 socketio = SocketIO(app, async_mode="gevent")
 
-# Setup logging
-logger = app.logger
-handler = RotatingFileHandler(
-    f"{app.config['LOGS_FOLDER']}/resPI.log",
-    maxBytes=app.config["LOGS_MB_SIZE"],
-    backupCount=app.config["LOGS_BACKUP"],
-)
-# handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(message)s"))
-handler.setFormatter(logging.Formatter("%(message)s"))
-handler.setLevel(logging.WARNING)
-
-logger.addHandler(handler)
+####################
+# MULTI PROCESSOR TASK
+####################
+def multi_global_plots(
+    flush, wait, close, files, preview_folder, keep, folder_dst, now
+):
+    print(f"now multiprocess: {now}")
+    global_plots(flush, wait, close, files, preview_folder, keep, folder_dst)
+    for f in Path(preview_folder).glob("*.html"):
+        print(f"moving folder {f}")
+        shutil.move(str(f), folder_dst)
+    print("End", round(time.perf_counter() - now, 3))
 
 
 ####################
@@ -137,9 +128,6 @@ def process_excel_files(
     control = C_Total.calculate_blank()
     print(f"Valor 'Blanco' {control}")
 
-    ######################
-    #
-    ######################
     now = time.perf_counter()
     total_files = len(uploaded_excel_files)
     for i, data_file in enumerate(uploaded_excel_files):
@@ -158,18 +146,7 @@ def process_excel_files(
         resume.save()
         if plot:
             experiment.create_plot()
-            global_plots(
-                flush,
-                wait,
-                close,
-                files=resume.experiment_files,
-                preview_folder=Path(template_folder) / "previews",
-                keep=True,
-                folder_dst=resume.experiment.original_file.folder_dst,
-            )
         resume.zip_folder()
-
-        # logger.warning(f"Task concluded {i+1}/{total_files}")
         print("Tasca conclosa")
     cache.set("generating_files", False)
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
@@ -265,6 +242,24 @@ def excel_files():
             return redirect("excel_files")
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
+        if plot:
+            experiment_files = [f for f in Path(project_folder).glob("*.txt")]
+            now = time.perf_counter()
+            proc = Process(
+                target=multi_global_plots,
+                args=(
+                    flush,
+                    wait,
+                    close,
+                    experiment_files,
+                    str(Path(template_folder) / "previews"),
+                    True,
+                    project_folder,
+                    now,
+                ),
+            )
+            proc.start()
+        
         t = Thread(
             target=process_excel_files,
             args=(flush, wait, close, uploaded_excel_files, plot),
@@ -274,8 +269,8 @@ def excel_files():
         # Fixed
         session["excel_config"] = {"flush": flush, "wait": wait, "close": close}
         flash(
-            f"""Els fitxers s'ha carregat. Quan totes les dades s’hagin processat,
-            estaran disponibles a la secció Descàrregues..""",
+            f"""Els fitxers s'han carregat. Quan totes les dades s’hagin processat,
+            estaran disponibles a la secció Descàrregues.""",
             "info",
         )
         cache.set("ignored_loops", {"C1": [], "Experiment": [], "C2": []})
@@ -308,7 +303,7 @@ def show_global_plot():
 @app.route("/downloads", methods=["GET"])
 def downloads():
     """Route to see all zip files available to download."""
-    zip_folder = glob(f"{app.config['ZIP_FOLDER']}/*.zip")
+    zip_folder = [str(p) for p in Path(app.config['ZIP_FOLDER']).glob("*.zip")]
     # get only the file name and the size of it excluding the path.
     # Create a list of tuples sorted by file name
     zip_folder = sorted(zip_folder, key=lambda x: os.path.getmtime(x))[::-1]
@@ -380,36 +375,6 @@ def help():
 
 
 ####################
-# LOGS ROUTES
-####################
-@app.route("/logs", methods=["GET"])
-def logs():
-    """Route to see all zip files available to download."""
-    logs_folder = glob(f"{app.config['LOGS_FOLDER']}/*.log*")
-    # get only the file name and the size of it excluding the path.
-    # Create a list of tuples sorted by file name
-    logs_folder = sorted([os.path.basename(f) for f in logs_folder])
-    logs = [{"id_": i, "name": file_} for i, file_ in enumerate(logs_folder)]
-    return render_template("logs.html", logs=logs)
-
-
-@app.route("/read_log/<log>")
-def read_log(log):
-    """Open a log file and return it to a html page."""
-    file_ = os.path.join(app.config["LOGS_FOLDER"], log)
-    with open(file_, "r") as f:
-        log_text = [f"<p>{line}</p>" for line in f.readlines()]
-        log_ = "\n".join(log_text)
-    return log_
-
-
-@app.route("/download_log/<log>")
-def download_log(log):
-    """Download a log file."""
-    return send_from_directory(app.config["LOGS_FOLDER"], log)
-
-
-####################
 # API ROUTES
 ####################
 @app.route("/status", methods=["GET"])
@@ -432,7 +397,8 @@ def ignore_loops(data: str) -> dict:
         fname, loops = data.split(":")
         try:
             loops = set([int(l) for l in loops.split(",") if l.isdigit()])
-            print(f"Ignorar 'loops': {loops} | {fname}")
+            if loops:
+                print(f"Ignorar 'loops': {loops} | {fname}")
 
         except ValueError:
             return "error", 400

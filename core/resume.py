@@ -61,7 +61,7 @@ def trendline_data(df_close, x_column, y_column):
     """Calculate R squared, a and b values."""
     x = df_close[x_column]
     y = df_close[y_column]
-    x = sm.add_constant(x)
+    x = sm.add_constant(x.values)
     model = sm.OLS(y, x)
     results = model.fit()
     # Values
