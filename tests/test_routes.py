@@ -43,10 +43,10 @@ def test_preview_global_plots():
     assert response.status_code == 200
     for f in templates_folder.glob("*.html"):
         assert f.name in ["C1.html", "Experiment.html", "C2.html"]
-        # f.unlink()
+        f.unlink()
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_file_upload_and_graphic():
     """Global plots.
     WHEN: User upload and wants tables plus graphics
@@ -70,7 +70,7 @@ def test_file_upload_and_graphic():
         # f.unlink()
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_zip_file_exist():
     """Test zipped file exist.
 
