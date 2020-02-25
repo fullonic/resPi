@@ -116,12 +116,15 @@ def test_file_upload_graphic():
     pattern = r"\w+\.zip"
     fname = re.search(pattern, response.text)
     project_folder = fname.group().split(".")[0]
-    preview_txt_files = [str(f) for f in (ROOT_DIR / "static/uploads/preview").glob("*.txt")]
+    preview_txt_files = [
+        str(f) for f in (ROOT_DIR / "static/uploads/preview").glob("*.txt")
+    ]
     sorted(preview_txt_files)
 
     # Upload and generate all graphics
     uploaded_files = [
-        str(f) for f in (ROOT_DIR / f"static/uploads/angula_24_02_2020_18_24_06").glob("*.txt")
+        str(f)
+        for f in (ROOT_DIR / f"static/uploads/angula_24_02_2020_18_24_06").glob("*.txt")
     ]
     sorted(uploaded_files)
     for preview, uploaded in zip(uploaded_files, preview_txt_files):
@@ -132,6 +135,7 @@ def test_file_upload_graphic():
             # add flag to cache that global plot of this file already exist
             # {fname_gplot: True}
             pass
+
 
 @pytest.mark.skip
 def test_main_page():

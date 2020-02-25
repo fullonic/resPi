@@ -24,6 +24,7 @@ def global_plots(
 ):
     """Proxy function to deal with global graphs."""
     from core.converter import ExperimentCycle
+
     if not keep:
         for f in files:
             file_path = str(Path(preview_folder) / f.filename)
@@ -36,7 +37,9 @@ def global_plots(
             # os.remove(file_path)
     else:
         for f in files:
-            experiment = ExperimentCycle(flush, wait, close, f, file_type="Global grafic")
+            experiment = ExperimentCycle(
+                flush, wait, close, f, file_type="Global grafic"
+            )
             experiment.experiment_plot()
 
 

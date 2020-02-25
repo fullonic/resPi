@@ -1,9 +1,11 @@
 from pathlib import Path
 import pytest
+import requests
 from selenium import webdriver
-from selenium.webdriver.common.by import By
+from selenium.common.exceptions import ElementNotInteractableException
+from core.utils import config_from_file, save_config_to_file
 
-test_data = Path(".").resolve() /"tests/Data"
+test_data = Path(".").resolve() / "tests/Data"
 data_file = test_data / "angula.txt"
 control_file_1 = test_data / "control1.txt"
 control_file_2 = test_data / "control2.txt"
@@ -21,8 +23,6 @@ def driver():
 # @pytest.mark.skip
 def test_home_page(driver):
     driver.get("http://localhost:5000/")
-    # starting = driver.find_element_by_id("get_starting")
-    # assert starting.text == "Lets map!"
 
 
 def process_data_with_graphics(preview=False):
@@ -40,18 +40,28 @@ def process_data_with_graphics(preview=False):
     else:
         preview_plots(driver)
 
+
 def preview_plots(driver):
     vista_previa = driver.find_element_by_id("generatePlotComplet")
     vista_previa.click()
     submit = driver.find_element_by_id("submit_files")
+    submit.click()
     # Preview plots
-    driver.implicitly_wait(5)
+    driver.implicitly_wait(10)
     driver.find_element_by_id("C1").send_keys("1,2")
     driver.find_element_by_id("C1ID").click()
-    driver.find_element_by_id("myBtn").click()
+    try:
+        driver.find_element_by_id("myBtn").click()
+    except ElementNotInteractableException:
+        pass
     driver.find_element_by_xpath("/html/body/nav/a[2]").click()
-    driver.implicitly_wait(0.1)
+    driver.implicitly_wait(0.5)
     driver.find_element_by_id("generatePlots").click()
-    submit.click()
+    driver.find_element_by_id("submit_files").click()
 
-process_data_with_graphics()
+
+def process_preview_and_plot():
+    return process_data_with_graphics(True)
+
+
+process_preview_and_plot()

@@ -142,10 +142,7 @@ def process_excel_files(
         if preview_experiment_files:
             print("HERE, preview_experiment_files")
             compare_files(
-                experiment_files,
-                preview_experiment_files,
-                project_folder,
-                times=times,
+                experiment_files, preview_experiment_files, project_folder, times=times,
             )
         else:
             print("global_plots")
@@ -169,7 +166,12 @@ def process_excel_files(
     processed_files = []
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx + 1}",
+            ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
@@ -180,27 +182,30 @@ def process_excel_files(
     now = time.perf_counter()
     for i, data_file in enumerate(uploaded_excel_files):
         experiment = ExperimentCycle(
-            flush, wait, close, data_file, ignore_loops=ignore_loops, file_type="Experiment",
+            flush,
+            wait,
+            close,
+            data_file,
+            ignore_loops=ignore_loops,
+            file_type="Experiment",
         )
         resume = ResumeDataFrame(experiment)
         resume.generate_resume(control)
         resume.save()
         processed_files.append(experiment)
 
+    p = Pool()
+    if plot:
+        p.map(save_loop_graph, processed_files)
     if config["experiment_file_config"]["SAVE_LOOP_DF"]:
-        # p = Process(target=save_loop_file, name="SaveLoops", args=(processed_files,))
-        p = Pool()
         p.map(save_loop_file, processed_files)
-        if plot:
-            p.map(save_loop_graph, processed_files)
-
     if config["experiment_file_config"]["SAVE_CONVERTED"]:
         for f in processed_files:
             f.original_file.save(name=f"[Original]{f.original_file.fname}")
 
     TearDown(Path(experiment.original_file.folder_dst)).organize()
     cache.set("generating_files", False)
-    print("Tasca conclosa")
+    print("✨ Tasca conclosa ✨")
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
 
 
@@ -247,7 +252,9 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False  # if generate or no loop plots
+        plot = (
+            True if request.form.get("plot") else False
+        )  # if generate or no loop plots
         # Show preview plot if user wants
         control_file_1.filename = "C1.txt"
         control_file_2.filename = "C2.txt"
@@ -272,7 +279,9 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            project_folder = os.path.join(
+                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
+            )
             os.mkdir(project_folder)
         # Save all files into project folder
         files_list = [data_file, control_file_1, control_file_2]
@@ -291,7 +300,8 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files,
+            args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -361,7 +371,9 @@ def downloads():
 
 @app.route("/downloads/all")
 def download_all():
-    all_zipped = shutil.make_archive(app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"])
+    all_zipped = shutil.make_archive(
+        app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"]
+    )
     return send_from_directory(Path(all_zipped).parent, Path(all_zipped).name)
 
 
@@ -407,7 +419,7 @@ def help():
 @app.route("/status", methods=["GET"])
 def get_status():
     """Return information about the different components of the system."""
-    return jsonify({"generating_files": cache.get("generating_files"),})
+    return jsonify({"generating_files": cache.get("generating_files")})
 
 
 @app.route("/ignore_loops/<data>", methods=["POST"])
@@ -450,13 +462,15 @@ if __name__ == "__main__":
     print("*" * 70)
     print("\n")
     print("Carregant l'aplicació ...")
-    # webbrowser.open(f"http://localhost:{port}")
+    webbrowser.open(f"http://localhost:{port}")
     print("\n")
-    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
+    print(
+        "Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador"
+    )
     print(f"http://localhost:{port}")
     print("\n")
     print("*" * 70)
     print("Avís: tancant aquesta finestra es tancarà l’aplicació")
     print("*" * 70)
-    socketio.run(app, debug=False, host="0.0.0.0", port=port)
-    # socketio.run(app, debug=True, host="0.0.0.0", port=port)
+    # socketio.run(app, debug=False, host="0.0.0.0", port=port)
+    socketio.run(app, debug=True, host="0.0.0.0", port=port)
