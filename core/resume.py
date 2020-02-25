@@ -156,7 +156,8 @@ class ResumeDataFrame:
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
 
-        TearDown(Path(self.experiment.original_file.file_output).parent).zip_folder()
+        pass
+        # TearDown(Path(self.experiment.original_file.file_output).parent).zip_folder()
 
 
 class ResumeControl(ResumeDataFrame):
@@ -184,7 +185,7 @@ class TearDown:
         self.graph_preview = Path(ROOT) / "templates/previews"
         self.txt_preview = Path(ROOT) / "static/uploads/preview"
 
-    def zip_folder(self):
+    def organize(self):
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
         location = self.project_folder
