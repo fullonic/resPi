@@ -80,9 +80,7 @@ class ResumeDataFrame:
         self.experiment = experiment
         self.dt_col_name = experiment.dt_col_name
         self.df_lists = []
-        self.phase_time = (
-            f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
-        )
+        self.phase_time = f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
 
     @property
     def experiment_files(self) -> list:
@@ -112,7 +110,10 @@ class ResumeDataFrame:
         for i, df_close in enumerate(self.experiment.df_loop_generator):
             k = i + 1
             try:
-                if str(k) in self.experiment.ignore_loops[self.experiment.original_file.fname]:
+                if (
+                    str(k)
+                    in self.experiment.ignore_loops[self.experiment.original_file.fname]
+                ):
                     continue
             except KeyError:
                 pass
@@ -135,7 +136,9 @@ class ResumeDataFrame:
                 "max O2 [mgO2/L]": O2.max,
                 "min O2 [mgO2/L]": O2.min,
                 "avg O2 [mgO2/L]": O2.avg,
-                "avg temp [°C]": temp_mean(df_close["SDWA0003000061      , CH 1 temp [°C]"]),
+                "avg temp [°C]": temp_mean(
+                    df_close["SDWA0003000061      , CH 1 temp [°C]"]
+                ),
                 "O2 after blank": O2_HR - control,
             }
 
@@ -156,7 +159,8 @@ class ResumeDataFrame:
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
 
-        TearDown(Path(self.experiment.original_file.file_output).parent).zip_folder()
+        pass
+        # TearDown(Path(self.experiment.original_file.file_output).parent).zip_folder()
 
 
 class ResumeControl(ResumeDataFrame):
@@ -168,7 +172,8 @@ class ResumeControl(ResumeDataFrame):
         self.save()
         try:
             self.values.append(
-                self.resume_df["MO2 [mgO2/hr]"].sum() / len(self.resume_df["MO2 [mgO2/hr]"])
+                self.resume_df["MO2 [mgO2/hr]"].sum()
+                / len(self.resume_df["MO2 [mgO2/hr]"])
             )
         except ZeroDivisionError:
             print("Control table empty")
@@ -184,7 +189,7 @@ class TearDown:
         self.graph_preview = Path(ROOT) / "templates/previews"
         self.txt_preview = Path(ROOT) / "static/uploads/preview"
 
-    def zip_folder(self):
+    def organize(self):
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
         location = self.project_folder

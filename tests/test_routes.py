@@ -43,10 +43,10 @@ def test_preview_global_plots():
     assert response.status_code == 200
     for f in templates_folder.glob("*.html"):
         assert f.name in ["C1.html", "Experiment.html", "C2.html"]
-        # f.unlink()
+        f.unlink()
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_file_upload_and_graphic():
     """Global plots.
     WHEN: User upload and wants tables plus graphics
@@ -70,7 +70,7 @@ def test_file_upload_and_graphic():
         # f.unlink()
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_zip_file_exist():
     """Test zipped file exist.
 
@@ -116,12 +116,15 @@ def test_file_upload_graphic():
     pattern = r"\w+\.zip"
     fname = re.search(pattern, response.text)
     project_folder = fname.group().split(".")[0]
-    preview_txt_files = [str(f) for f in (ROOT_DIR / "static/uploads/preview").glob("*.txt")]
+    preview_txt_files = [
+        str(f) for f in (ROOT_DIR / "static/uploads/preview").glob("*.txt")
+    ]
     sorted(preview_txt_files)
 
     # Upload and generate all graphics
     uploaded_files = [
-        str(f) for f in (ROOT_DIR / f"static/uploads/angula_24_02_2020_18_24_06").glob("*.txt")
+        str(f)
+        for f in (ROOT_DIR / f"static/uploads/angula_24_02_2020_18_24_06").glob("*.txt")
     ]
     sorted(uploaded_files)
     for preview, uploaded in zip(uploaded_files, preview_txt_files):
@@ -132,6 +135,7 @@ def test_file_upload_graphic():
             # add flag to cache that global plot of this file already exist
             # {fname_gplot: True}
             pass
+
 
 @pytest.mark.skip
 def test_main_page():

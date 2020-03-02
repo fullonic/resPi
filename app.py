@@ -9,7 +9,7 @@ import filecmp
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Event, Thread
-from multiprocessing import Process
+from multiprocessing import Pool
 
 from engineio.async_drivers import gevent  # noqa
 from flask import (
@@ -29,7 +29,7 @@ from flask_caching import Cache
 from flask_socketio import SocketIO
 
 from core.converter import ControlFile, ExperimentCycle
-from core.resume import ResumeControl, ResumeDataFrame
+from core.resume import ResumeControl, ResumeDataFrame, TearDown
 from core.error_handler import checker
 from core.parse_help_page import parser
 from core.utils import (
@@ -83,7 +83,6 @@ cache.set_many(
     )
 )
 
-
 # SocketIO
 socketio = SocketIO(app, async_mode="gevent")
 
@@ -91,29 +90,25 @@ socketio = SocketIO(app, async_mode="gevent")
 ####################
 # MULTI PROCESSOR TASK
 ####################
-def multi_global_plots(flush, wait, close, files, preview_folder, keep, folder_dst, now):
-    """Start a new processor to generate and move all global plots."""
-    global_plots(flush, wait, close, files, preview_folder, keep, folder_dst)
-    for f in Path(preview_folder).glob("*.html"):
-        print(f"moving folder {f}")
-        shutil.move(str(f), folder_dst)
-
-
 def save_loop_file(experiment):  # TODO: SAVE INDIVIDUAL LOOPS FASTER WIP
     for k, loop in enumerate(experiment.df_loop_generator):
         if experiment.file_type == "Experiment":
-            print(str(k))
-            # experiment.save(loop, name=str(k))
+            experiment.save(loop, name=str(k + 1))
         else:
-            print(f"control_{str(k)}")
-            # experiment.save(loop, name=f"control_{str(k)}")
+            experiment.save(loop, name=f"{experiment.original_file.fname}_{str(k + 1)}")
+
+
+def save_loop_graph(experiment):  # TODO: CREATE INDIVIDUAL LOOPS FASTER WIP
+    """Generate individual graphs for loop of each uploaded file."""
+    print(f"CREATING PLOT: {experiment.original_file.fname}")
+    experiment.create_plot()
 
 
 def compare_files(experiment_files, preview_experiment_files, project_folder, times={}):
     k_map = {"C1.txt": "C1.html", "C2.txt": "C2.html"}
     for uploaded, preview in zip(experiment_files, preview_experiment_files):
         if not filecmp.cmp(preview, uploaded):
-            # User uploaded a new file, global plot needs to be generated
+            # User uploaded a new file after preview global plot
             experiment = ExperimentCycle(
                 **times, original_file=uploaded, file_type="Global grafic"
             )
@@ -134,56 +129,83 @@ def process_excel_files(
 ):
     """Start a new thread to process excel file uploaded by the user."""
     # Loop throw all uploaded files and clean the data set
+    config = config_from_file()
     project_folder = Path(uploaded_excel_files[0]).parent
     if plot:
         experiment_files = sorted([f for f in Path(project_folder).glob("*.txt")])
         preview_experiment_files = sorted(
             [f for f in Path(app.config["FILES_PREVIEW_FOLDER"]).glob("*.txt")]
         )
+        times = {"flush": flush, "wait": wait, "close": close}
+        yes = True if preview_experiment_files else False
+        print(f"{yes=}")
         if preview_experiment_files:
+            print("HERE, preview_experiment_files")
             compare_files(
-                experiment_files,
-                preview_experiment_files,
-                project_folder,
-                times={"flush": flush, "wait": wait, "close": close}
+                experiment_files, preview_experiment_files, project_folder, times=times,
             )
-
-    save_converted = False  # NOTE: REMOVE AND GET INFO FROM CONFIG FILE
+        else:
+            print("global_plots")
+            global_plots(
+                flush,
+                wait,
+                close,
+                experiment_files,
+                preview_folder=f"{app.config['UPLOAD_FOLDER']}/preview",
+                keep=True,
+            )
+            for f in Path(app.config["GRAPHICS_PREVIEW_FOLDER"]).glob("*.html"):
+                print(f"moving folder {f}")
+                shutil.move(str(f), project_folder)
 
     # CALCULATE BLANKS
     control_file_1 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C1.txt")
     control_file_2 = os.path.join(os.path.dirname(uploaded_excel_files[0]), "C2.txt")
     ignore_loops = cache.get("ignored_loops")
 
+    processed_files = []
     for idx, c in enumerate([control_file_1, control_file_2]):
         C = ControlFile(
-            flush, wait, close, c, file_type=f"control_{idx + 1}", ignore_loops=ignore_loops,
+            flush,
+            wait,
+            close,
+            c,
+            file_type=f"control_{idx + 1}",
+            ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
         C_Total.get_bank()
-        if plot:
-            C.create_plot()
-
+        processed_files.append(C)
     control = C_Total.calculate_blank()
     print(f"Valor 'Blanco' {control}")
 
     now = time.perf_counter()
     for i, data_file in enumerate(uploaded_excel_files):
         experiment = ExperimentCycle(
-            flush, wait, close, data_file, ignore_loops=ignore_loops, file_type="Experiment",
+            flush,
+            wait,
+            close,
+            data_file,
+            ignore_loops=ignore_loops,
+            file_type="Experiment",
         )
-        if save_converted:
-            experiment.original_file.save()
-
-        # save_loop_file(experiment)
         resume = ResumeDataFrame(experiment)
         resume.generate_resume(control)
         resume.save()
-        if plot:
-            experiment.create_plot()
-        resume.zip_folder()
-        print("Tasca conclosa")
+        processed_files.append(experiment)
+
+    p = Pool()
+    if plot:
+        p.map(save_loop_graph, processed_files)
+    if config["experiment_file_config"]["SAVE_LOOP_DF"]:
+        p.map(save_loop_file, processed_files)
+    if config["experiment_file_config"]["SAVE_CONVERTED"]:
+        for f in processed_files:
+            f.original_file.save(name=f"[Original]{f.original_file.fname}")
+
+    TearDown(Path(experiment.original_file.folder_dst)).organize()
     cache.set("generating_files", False)
+    print("✨ Tasca conclosa ✨")
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
 
 
@@ -203,7 +225,6 @@ def excel_files():
     session["excel_config"] = config_from_file()["file_cycle_config"]
     ignore_loops = cache.get("ignored_loops")
     if request.method == "POST":
-        print(f"{request.form=}")
         cache.set("generating_files", True)
         # IGNORED LOOPS
         C1_ignore = {"C1": [_ for _ in request.form.get("c1_ignore_loops").split(",")]}
@@ -231,7 +252,9 @@ def excel_files():
         flush = int(request.form.get("flush"))
         wait = int(request.form.get("wait"))
         close = int(request.form.get("close"))
-        plot = True if request.form.get("plot") else False  # if generate or no loop plots
+        plot = (
+            True if request.form.get("plot") else False
+        )  # if generate or no loop plots
         # Show preview plot if user wants
         control_file_1.filename = "C1.txt"
         control_file_2.filename = "C2.txt"
@@ -256,7 +279,9 @@ def excel_files():
         try:
             os.mkdir(project_folder)
         except FileExistsError:
-            project_folder = os.path.join(app.config["UPLOAD_FOLDER"], f"{folder_name}_1")
+            project_folder = os.path.join(
+                app.config["UPLOAD_FOLDER"], f"{folder_name}_1"
+            )
             os.mkdir(project_folder)
         # Save all files into project folder
         files_list = [data_file, control_file_1, control_file_2]
@@ -275,7 +300,8 @@ def excel_files():
         # save the full path of the saved file
         uploaded_excel_files.append(os.path.join(project_folder, data_file.filename))
         t = Thread(
-            target=process_excel_files, args=(flush, wait, close, uploaded_excel_files, plot),
+            target=process_excel_files,
+            args=(flush, wait, close, uploaded_excel_files, plot),
         )
         t.start()
 
@@ -345,7 +371,9 @@ def downloads():
 
 @app.route("/downloads/all")
 def download_all():
-    all_zipped = shutil.make_archive(app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"])
+    all_zipped = shutil.make_archive(
+        app.config["ZIP_FOLDER"], "zip", app.config["ZIP_FOLDER"]
+    )
     return send_from_directory(Path(all_zipped).parent, Path(all_zipped).name)
 
 
@@ -391,7 +419,7 @@ def help():
 @app.route("/status", methods=["GET"])
 def get_status():
     """Return information about the different components of the system."""
-    return jsonify({"generating_files": cache.get("generating_files"),})
+    return jsonify({"generating_files": cache.get("generating_files")})
 
 
 @app.route("/ignore_loops/<data>", methods=["POST"])
@@ -434,9 +462,11 @@ if __name__ == "__main__":
     print("*" * 70)
     print("\n")
     print("Carregant l'aplicació ...")
-    # webbrowser.open(f"http://localhost:{port}")
+    webbrowser.open(f"http://localhost:{port}")
     print("\n")
-    print("Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador")
+    print(
+        "Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador"
+    )
     print(f"http://localhost:{port}")
     print("\n")
     print("*" * 70)

@@ -2,7 +2,7 @@
 import os
 import math
 import datetime
-
+from pathlib import Path
 
 import chardet
 import pandas as pd
@@ -46,7 +46,6 @@ class FileFormater:
             self.fname = "Experiment"
         self.file_output = f"{self.folder_dst}/{self.fname}"
         config = config_from_file()["experiment_file_config"]
-        self.save_converted = False if ("Preview" in file_type) else config["SAVE_CONVERTED"]
         self.dt_col_name = config["DT_COL"]
 
     @property
@@ -84,13 +83,12 @@ class FileFormater:
         df.loc[:, self.dt_col_name] = df.loc[:, self.dt_col_name].map(convert_datetime)
         self.output = output
         self.df = df
-        if self.save_converted:
-            self.save(output)
 
     def save(self, name=None):
         """Export converted DF to a new file."""
         # TODO: Allow user pass a new name for the exported file
-        self.converted_file = f"{self.file_output}.xlsx"
+        name = Path(self.file_output).parent / name if name else self.file_output
+        self.converted_file = f"{name}.xlsx"
         self.df.to_excel(self.converted_file, index=False)
 
 
@@ -246,11 +244,6 @@ class ExperimentCycle:
                 break
             start = end + 1
             end += 1
-            # if self.save_loop_df:
-            #     if self.file_type == "data":
-            #         self.save(df_close, name=str(k))
-            #     else:
-            #         self.save(df_close, name=f"control_{str(k)}")
 
             yield df_close
 
@@ -275,7 +268,7 @@ class ExperimentCycle:
         df_close.loc[:, self.y] = df_close[self.O2_COL].map(string_to_float)
         return df_close
 
-    #@progress_bar
+    # @progress_bar
     def create_plot(self, format_="html"):
         """Proxy for Plot object."""
         print("Generació de gràfics", end="\n")
@@ -290,7 +283,7 @@ class ExperimentCycle:
                 dst=os.path.dirname(self.original_file.file_output),
                 fname=f"{self.original_file.fname}_loop{k}",
             ).create()
-            #yield round(step * k)
+            # yield round(step * k)
 
     def save(self, df_loop, name):
         """Save data frame into a excel file."""
