@@ -9,7 +9,6 @@ import filecmp
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Event, Thread
-from multiprocessing import Pool
 
 from engineio.async_drivers import gevent  # noqa
 from flask import (
@@ -137,8 +136,6 @@ def process_excel_files(
             [f for f in Path(app.config["FILES_PREVIEW_FOLDER"]).glob("*.txt")]
         )
         times = {"flush": flush, "wait": wait, "close": close}
-        yes = True if preview_experiment_files else False
-        print(f"{yes=}")
         if preview_experiment_files:
             print("HERE, preview_experiment_files")
             compare_files(
@@ -194,11 +191,10 @@ def process_excel_files(
         resume.save()
         processed_files.append(experiment)
 
-    p = Pool()
     if plot:
-        p.map(save_loop_graph, processed_files)
+        map(save_loop_graph, processed_files)
     if config["experiment_file_config"]["SAVE_LOOP_DF"]:
-        p.map(save_loop_file, processed_files)
+        map(save_loop_file, processed_files)
     if config["experiment_file_config"]["SAVE_CONVERTED"]:
         for f in processed_files:
             f.original_file.save(name=f"[Original]{f.original_file.fname}")

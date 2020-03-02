@@ -46,7 +46,7 @@ def test_preview_global_plots():
         f.unlink()
 
 
-# @pytest.mark.skip
+@pytest.mark.skip
 def test_file_upload_and_graphic():
     """Global plots.
     WHEN: User upload and wants tables plus graphics
@@ -144,7 +144,7 @@ def test_main_page():
     print("ok")
 
 
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_file_upload_simple():
     """Test basic upload.
     WHEN: User upload and only wants tables data

@@ -55,7 +55,11 @@ class Plot:
 
         config = {"editable": True, "displaylogo": False}
 
-        fig.write_html(f"{self.dst}/{self.fname}.{self.output}", config=config)
+        fig.write_html(
+            f"{self.dst}/{self.fname}.{self.output}",
+            config=config,
+            include_plotlyjs="cdn",
+        )
         return fig1
 
     def create_global_plot(self, fname=None, markers=[]):
@@ -114,4 +118,7 @@ class Plot:
         fig.update_yaxes(title_text="<b>Temperatura</b>", secondary_y=True)
         fig.update_layout(title=f"<b>{fname.title()} Gràfic global</b>")
         template_folder = Path().resolve() / "templates/previews"
-        fig.write_html(f"{template_folder}/{fname}.html")
+        config = {"editable": True, "displaylogo": False}
+        fig.write_html(
+            f"{template_folder}/{fname}.html", config=config, include_plotlyjs=False
+        )

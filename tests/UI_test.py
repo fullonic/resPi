@@ -3,7 +3,8 @@ import pytest
 import requests
 from selenium import webdriver
 from selenium.common.exceptions import ElementNotInteractableException
-from core.utils import config_from_file, save_config_to_file
+
+# from core.utils import config_from_file, save_config_to_file
 
 test_data = Path(".").resolve() / "tests/Data"
 data_file = test_data / "angula.txt"

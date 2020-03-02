@@ -15,7 +15,6 @@ import pandas as pd
 
 from core.utils import (
     string_to_float,
-    delete_excel_files,
     config_from_file,
 )
 
@@ -131,7 +130,7 @@ class ResumeDataFrame:
                 "Loop": k,
                 "Phase time [s]": self.phase_time,
                 "MO2 [mgO2/hr]": O2_HR,
-                "slope [mgO2/L/m]": slope,
+                "slope [mgO2/L/hr]": slope,
                 "R^2": r2_a_b.rsquared,
                 "max O2 [mgO2/L]": O2.max,
                 "min O2 [mgO2/L]": O2.min,
@@ -143,7 +142,7 @@ class ResumeDataFrame:
             }
 
             resume_df.loc[k] = row
-
+        resume_df.to_excel("test.xlsx")
         self.resume_df = resume_df
 
     def save(self):
@@ -154,13 +153,6 @@ class ResumeDataFrame:
             self.resume_df.to_csv(file_dest)
         else:
             self.resume_df.to_excel(file_dest, index=False)
-
-    def zip_folder(self):
-        """Zip the most recent folder created with excel files."""
-        # Full path of the project folder name
-
-        pass
-        # TearDown(Path(self.experiment.original_file.file_output).parent).zip_folder()
 
 
 class ResumeControl(ResumeDataFrame):
@@ -193,13 +185,16 @@ class TearDown:
         """Zip the most recent folder created with excel files."""
         # Full path of the project folder name
         location = self.project_folder
-        graph_folder = Path(location) / "Graphics"
-        graph_folder.mkdir()
         data_folder = Path(location) / "Dades"
         data_folder.mkdir()
 
-        for g in Path(location).glob("*.html"):
-            shutil.move(str(g), str(graph_folder))
+        # Only creates Graphics folder if there is any graphics inside project folder
+        graphics = list(Path(location).glob("*.html"))
+        if graphics:
+            graph_folder = Path(location) / "Grafics"
+            graph_folder.mkdir()
+            for g in graphics:
+                shutil.move(str(g), str(graph_folder))
 
         for d in Path(location).glob("*.xlsx"):
             shutil.move(str(d), str(data_folder))
@@ -222,3 +217,8 @@ class TearDown:
             f.unlink()
         for g in self.graph_preview.glob("*.html"):
             g.unlink()
+
+if list():
+    print("a")
+else:
+    print("b")
