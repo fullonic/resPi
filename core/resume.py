@@ -106,8 +106,7 @@ class ResumeDataFrame:
         """Create a the daily experiment resume."""
         resume_df = pd.DataFrame(columns=COLS_NAME)
         aqua_volume = config["file_cycle_config"]["aqua_volume"]
-        for i, df_close in enumerate(self.experiment.df_loop_generator):
-            k = i + 1
+        for k, df_close in enumerate(self.experiment.df_loop_generator, start=1):
             try:
                 if (
                     str(k)

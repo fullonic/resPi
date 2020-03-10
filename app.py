@@ -57,8 +57,8 @@ config = {
 
 # DEFINE APP
 if getattr(sys, "frozen", False):
-    template_folder = os.path.join(sys._MEIPASS, "templates")
-    static_folder = os.path.join(sys._MEIPASS, "static")
+    template_folder = os.path.join(sys._MEIPASS, "templates")  # noqa
+    static_folder = os.path.join(sys._MEIPASS, "static")  # noqa
     app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
 else:
     template_folder = Path("templates").resolve()
@@ -90,11 +90,11 @@ socketio = SocketIO(app, async_mode="gevent")
 # MULTI PROCESSOR TASK
 ####################
 def save_loop_file(experiment):  # TODO: SAVE INDIVIDUAL LOOPS FASTER WIP
-    for k, loop in enumerate(experiment.df_loop_generator):
+    for k, loop in enumerate(experiment.df_loop_generator, start=1):
         if experiment.file_type == "Experiment":
-            experiment.save(loop, name=str(k + 1))
+            experiment.save(loop, name=str(k))
         else:
-            experiment.save(loop, name=f"{experiment.original_file.fname}_{str(k + 1)}")
+            experiment.save(loop, name=f"{experiment.original_file.fname}_{str(k)}")
 
 
 def save_loop_graph(experiment):  # TODO: CREATE INDIVIDUAL LOOPS FASTER WIP
@@ -161,13 +161,13 @@ def process_excel_files(
     ignore_loops = cache.get("ignored_loops")
 
     processed_files = []
-    for idx, c in enumerate([control_file_1, control_file_2]):
+    for idx, c in enumerate([control_file_1, control_file_2], start=1):
         C = ControlFile(
             flush,
             wait,
             close,
             c,
-            file_type=f"control_{idx + 1}",
+            file_type=f"control_{idx}",
             ignore_loops=ignore_loops,
         )
         C_Total = ResumeControl(C)
@@ -177,7 +177,7 @@ def process_excel_files(
     print(f"Valor 'Blanco' {control}")
 
     now = time.perf_counter()
-    for i, data_file in enumerate(uploaded_excel_files):
+    for data_file in uploaded_excel_files:
         experiment = ExperimentCycle(
             flush,
             wait,
@@ -359,7 +359,7 @@ def downloads():
             "created": file_[2].strftime("%Y/%m/%d %H:%M"),
             "size": to_mbyte(file_[1]),
         }
-        for i, file_ in enumerate(zip_folder)
+        for i, file_ in enumerate(zip_folder, start=1)
     ]
 
     return render_template("download.html", zip_files=zip_files)
