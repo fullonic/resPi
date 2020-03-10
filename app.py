@@ -201,7 +201,7 @@ def process_excel_files(
 
     TearDown(Path(experiment.original_file.folder_dst)).organize()
     cache.set("generating_files", False)
-    print("✨ Tasca conclosa ✨")
+    print("Tasca conclosa")
     print(f"Processament de temps total {round(time.perf_counter() - now, 3)} segons")
 
 
