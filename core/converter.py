@@ -57,18 +57,26 @@ class FileFormater:
     def file_encoding(self):
         """Get encoding from the given text file."""
         with open(self.file_, "rb") as f:
-            raw = b"".join([f.readline() for _ in range(20)])
+            raw = b"".join(f.readline() for _ in range(20))
 
         return chardet.detect(raw)["encoding"]
 
+    def get_starting_idx(self, df):
+        """Drop all rows before reach the starting row we are intrested on.
+
+        Mainly remove all headers produced by reading system.
+        """
+        for col_idx, dt in enumerate(df):
+            if df.iloc[col_idx][0] == self.dt_col_name:
+                return col_idx
+
     def to_dataframe(self, output="xlsx"):
+        """Convert a reading experiment file into a pandas dataframe."""
         df = pd.read_table(
             self.file_, encoding=self.file_encoding, decimal=",", low_memory=False
         )
-        for col_idx, dt in enumerate(df):
-            if df.iloc[col_idx][0] == self.dt_col_name:
-                break
 
+        col_idx = self.get_starting_idx(df)
         df = df[col_idx:]
         columns_name = list(df.iloc[0])[:6]
         # Drop all NaN columns

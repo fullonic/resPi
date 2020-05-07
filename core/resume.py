@@ -78,7 +78,6 @@ class ResumeDataFrame:
         self.original_df = experiment.df
         self.experiment = experiment
         self.dt_col_name = experiment.dt_col_name
-        self.df_lists = []
         self.phase_time = f"F{experiment.flush*60}/W{experiment.wait*60}/C{experiment.close*60}"  # noqa
 
     @property

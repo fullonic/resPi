@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Event, Thread
 
-from engineio.async_drivers import gevent  # noqa
+# from engineio.async_drivers import gevent  # noqa
 from flask import (
     Flask,
     flash,
