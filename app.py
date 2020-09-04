@@ -137,7 +137,6 @@ def process_excel_files(
         )
         times = {"flush": flush, "wait": wait, "close": close}
         if preview_experiment_files:
-            print("HERE, preview_experiment_files")
             compare_files(
                 experiment_files, preview_experiment_files, project_folder, times=times,
             )
@@ -151,7 +150,7 @@ def process_excel_files(
                 keep=True,
             )
             for f in Path(app.config["GRAPHICS_PREVIEW_FOLDER"]).glob("*.html"):
-                print(f"moving folder {f}")
+                print(f"Creant fitxer {f}")
                 shutil.move(str(f), project_folder)
 
     # CALCULATE BLANKS

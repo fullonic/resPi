@@ -31,7 +31,7 @@ def global_plots(
             f.save(file_path)
 
             experiment = ExperimentCycle(
-                flush, wait, close, file_path, file_type=f"{f.name}_Vista Preview"
+                flush, wait, close, file_path, file_type=f"{f.name} [vista prèvia]"
             )
             experiment.experiment_plot()
     else:
