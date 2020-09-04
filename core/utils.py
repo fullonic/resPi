@@ -34,11 +34,10 @@ def global_plots(
                 flush, wait, close, file_path, file_type=f"{f.name}_Vista Preview"
             )
             experiment.experiment_plot()
-            # os.remove(file_path)
     else:
         for f in files:
             experiment = ExperimentCycle(
-                flush, wait, close, f, file_type="Global grafic"
+                flush, wait, close, f, file_type=f"{f.name}"
             )
             experiment.experiment_plot()
 

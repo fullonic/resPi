@@ -142,7 +142,6 @@ def process_excel_files(
                 experiment_files, preview_experiment_files, project_folder, times=times,
             )
         else:
-            print("global_plots")
             global_plots(
                 flush,
                 wait,
@@ -458,7 +457,7 @@ if __name__ == "__main__":
     print("*" * 70)
     print("\n")
     print("Carregant l'aplicació ...")
-    webbrowser.open(f"http://localhost:{port}")
+    # webbrowser.open(f"http://localhost:{port}")
     print("\n")
     print(
         "Si l'aplicació no s'obre automàticament, introduïu la següent URL al navegador"

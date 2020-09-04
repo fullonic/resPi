@@ -120,5 +120,5 @@ class Plot:
         template_folder = Path().resolve() / "templates/previews"
         config = {"editable": True, "displaylogo": False}
         fig.write_html(
-            f"{template_folder}/{fname}.html", config=config, include_plotlyjs=False
+            f"{template_folder}/{fname}.html", config=config, include_plotlyjs="cdn"
         )
