@@ -83,7 +83,7 @@ cache.set_many(
 )
 
 # SocketIO
-socketio = SocketIO(app, async_mode="gevent")
+socketio = SocketIO(app)
 
 
 ####################
