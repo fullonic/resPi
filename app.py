@@ -16,7 +16,7 @@ try:
     import RPi.GPIO as GPIO
 
     # ROOT = os.path.join(os.getcwd(), "resPI")
-except RuntimeError:
+except (RuntimeError, ModuleNotFoundError):
     GPIO = None  # None means that is not running on raspberry pi
     # ROOT = os.getcwd()
 
