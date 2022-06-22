@@ -23,7 +23,7 @@ jupyter-client==5.3.4
 jupyter-core==4.6.1
 MarkupSafe==1.1.1
 nbformat==4.4.0
-numpy==1.17.4
+numpy==1.22.0
 openpyxl==3.0.2
 pandas==0.25.3
 parso==0.5.1
